@@ -2,10 +2,16 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, F
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 import datetime
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./ipsi.db"
+import os
+from pathlib import Path
+
+# DB 파일의 절대 경로 지정 (실행 위치에 관계없이 항상 프로젝트의 ipsi.db 참조)
+DB_FILE = Path(__file__).resolve().parent / "ipsi.db"
+SQLALCHEMY_DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{DB_FILE}")
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False, "timeout": 30} if SQLALCHEMY_DATABASE_URL.startswith("sqlite") else {}
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

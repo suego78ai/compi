@@ -1,4 +1,4 @@
-﻿"""
+"""
 export_data.py
 --------------
 ipsi.db 데이터를 data/data.json 으로 export 합니다.
@@ -26,64 +26,69 @@ DB_PATH = Path(__file__).parent / "ipsi.db"
 OUT_DIR  = Path(__file__).parent / "data"
 OUT_FILE = OUT_DIR / "data.json"
 
-def main():
-    if not DB_PATH.exists():
-        print(f"[오류] DB 파일을 찾을 수 없습니다: {DB_PATH}")
-        sys.exit(1)
+def export_to_json(db=None):
+    close_db = False
+    if db is None:
+        if not DB_PATH.exists():
+            print(f"[오류] DB 파일을 찾을 수 없습니다: {DB_PATH}")
+            return False
+        engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
+        Session = sessionmaker(bind=engine)
+        db = Session()
+        close_db = True
 
-    engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
-    Session = sessionmaker(bind=engine)
-    db = Session()
+    try:
+        universities = db.query(University).order_by(University.year.desc(), University.name).all()
 
-    print("[1/3] 대학 데이터 읽는 중...")
-    universities = db.query(University).order_by(University.year.desc(), University.name).all()
+        records = []
+        for u in universities:
+            departments = []
+            for d in u.departments:
+                departments.append({
+                    "table_title":       d.table_title or "",
+                    "department_name":   d.department_name or "",
+                    "admission_count":   d.admission_count or "",
+                    "applicant_count":   d.applicant_count or "",
+                    "competition_ratio": d.competition_ratio or "",
+                })
 
-    records = []
-    for u in universities:
-        departments = []
-        for d in u.departments:
-            departments.append({
-                "table_title":       d.table_title or "",
-                "department_name":   d.department_name or "",
-                "admission_count":   d.admission_count or "",
-                "applicant_count":   d.applicant_count or "",
-                "competition_ratio": d.competition_ratio or "",
+            scraped = {}
+            try:
+                if u.scraped_data:
+                    scraped = json.loads(u.scraped_data)
+            except Exception:
+                pass
+
+            records.append({
+                "id":             u.id,
+                "name":           u.name or "",
+                "year":           u.year or "",
+                "admission_type": u.admission_type or "",
+                "capacity_type":  u.capacity_type or "",
+                "url":            u.url or "",
+                "departments":    departments,
+                "scraped_data":   scraped,
             })
 
-        # scraped_data 에는 HTML 테이블이 담겨 있음
-        scraped = {}
-        try:
-            if u.scraped_data:
-                scraped = json.loads(u.scraped_data)
-        except Exception:
-            pass
+        OUT_DIR.mkdir(exist_ok=True)
+        payload = {
+            "universities": records,
+            "exported_at": __import__("datetime").datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        }
+        with open(OUT_FILE, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
 
-        records.append({
-            "id":             u.id,
-            "name":           u.name or "",
-            "year":           u.year or "",
-            "admission_type": u.admission_type or "",
-            "capacity_type":  u.capacity_type or "",
-            "url":            u.url or "",
-            "departments":    departments,
-            "scraped_data":   scraped,
-        })
+        size_kb = OUT_FILE.stat().st_size / 1024
+        print(f"[성공] JSON export 완료: {OUT_FILE} ({len(records)}개 대학, {size_kb:.1f} KB)")
+        return True
+    finally:
+        if close_db:
+            db.close()
 
-    db.close()
-
-    print(f"[2/3] {len(records)}개 대학 레코드 확인.")
-
-    OUT_DIR.mkdir(exist_ok=True)
-    payload = {
-        "universities": records,
-        "exported_at": __import__("datetime").datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    }
-    with open(OUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-
-    size_kb = OUT_FILE.stat().st_size / 1024
-    print(f"[3/3] 저장 완료: {OUT_FILE}  ({size_kb:.1f} KB)")
-    print("      GitHub Pages용 data/data.json 이 준비되었습니다.")
+def main():
+    print("[1/2] DB 데이터 읽는 중...")
+    export_to_json()
+    print("[2/2] 완료되었습니다.")
 
 if __name__ == "__main__":
     main()

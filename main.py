@@ -9,6 +9,7 @@ import io
 from typing import Optional
 from database import SessionLocal, engine, Base, University, DepartmentData
 from scraper_service import scrape_university_data
+from export_data import export_to_json
 
 app = FastAPI()
 
@@ -347,23 +348,30 @@ async def scrape_url(request: Request, name: str = Form(...), year: str = Form(.
             existing_univ.scraped_data = json.dumps(scraped_data)
             db.commit()
             save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
-            return RedirectResponse(url=f"/univ/{existing_univ.id}", status_code=303)
-            
-        # Save new
-        new_univ = University(
-            name=name,
-            year=year,
-            admission_type=admission_type,
-            capacity_type=capacity_type,
-            url=url,
-            scraped_data=json.dumps(scraped_data)
-        )
-        db.add(new_univ)
-        db.commit()
-        db.refresh(new_univ)
-        save_departments(db, new_univ.id, scraped_data.get("parsed_departments", []))
+            target_id = existing_univ.id
+        else:
+            # Save new
+            new_univ = University(
+                name=name,
+                year=year,
+                admission_type=admission_type,
+                capacity_type=capacity_type,
+                url=url,
+                scraped_data=json.dumps(scraped_data)
+            )
+            db.add(new_univ)
+            db.commit()
+            db.refresh(new_univ)
+            save_departments(db, new_univ.id, scraped_data.get("parsed_departments", []))
+            target_id = new_univ.id
         
-        return RedirectResponse(url=f"/univ/{new_univ.id}", status_code=303)
+        # 정적 사이트(JSON)도 자동 동기화
+        try:
+            export_to_json(db)
+        except Exception as ex:
+            print(f"[경고] JSON 자동 갱신 실패: {ex}")
+        
+        return RedirectResponse(url=f"/univ/{target_id}", status_code=303)
     except Exception as e:
         all_univs = db.query(University).order_by(University.created_at.desc()).all()
         unique_univ_names = sorted(list(set([u.name for u in all_univs])))
@@ -443,6 +451,12 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
                 print(f"Error scraping {url}: {e}")
                 continue
                 
+        # 정적 사이트(JSON)도 자동 동기화
+        try:
+            export_to_json(db)
+        except Exception as ex:
+            print(f"[경고] JSON 자동 갱신 실패: {ex}")
+
         return RedirectResponse(url="/", status_code=303)
     except Exception as e:
         all_univs = db.query(University).order_by(University.created_at.desc()).all()
@@ -586,6 +600,10 @@ async def custom_report(
                 except Exception as e:
                     print(f"Failed to real-time scrape {u.name}: {e}")
         db.commit()
+        try:
+            export_to_json(db)
+        except Exception as ex:
+            print(f"[경고] JSON 자동 갱신 실패: {ex}")
         
         # 다시 쿼리하여 업데이트된 데이터 반영
         target_univs = db.query(University).filter(
