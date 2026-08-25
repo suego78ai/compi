@@ -375,7 +375,7 @@ async def scrape_url(request: Request, name: str = Form(...), year: str = Form(.
 
 @app.get("/template.xlsx")
 async def download_template():
-    df = pd.DataFrame(columns=["연도", "모집시기", "대학명", "URL"])
+    df = pd.DataFrame(columns=["학년도", "모집시기", "대학명", "URL"])
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Sheet1")
@@ -669,6 +669,8 @@ async def custom_report(
     })
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=26240, reload=True)
+    import os, uvicorn
+    port = int(os.environ.get("PORT", 26240))
+    host = "0.0.0.0"
+    uvicorn.run("main:app", host=host, port=port, reload=True)
 

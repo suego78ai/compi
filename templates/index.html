@@ -413,7 +413,7 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>연도</th>
+                                    <th>학년도</th>
                                     <th>분류</th>
                                     <th>대학명</th>
                                     <th>표 제목</th>
@@ -465,13 +465,13 @@
                     <form action="/report" method="GET" data-realtime="{% if builder_mode == 'realtime_builder' %}true{% else %}false{% endif %}" onsubmit="return handleReportSubmit(this)">
                         <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                             <div style="flex: 1;">
-                                <label style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.3rem; display: block;">기준 연도</label>
+                                <label style="font-weight: 600; font-size: 0.88rem; margin-bottom: 0.3rem; display: block;">기준 학년도</label>
                                 {% if builder_mode == 'realtime_builder' %}
                                 <input type="number" name="year" id="reportYearSelect" value="2026" class="form-control" onchange="updateUnivCheckboxes()" onkeyup="updateUnivCheckboxes()">
                                 {% else %}
                                 <select name="year" id="reportYearSelect" class="form-control" onchange="updateUnivCheckboxes()">
                                     {% for y in all_years %}
-                                    <option value="{{ y }}">{{ y }}년</option>
+                                    <option value="{{ y }}">{{ y }}학년도</option>
                                     {% endfor %}
                                 </select>
                                 {% endif %}
@@ -696,7 +696,7 @@
                 </div>
 
                 {% else %}
-                <!-- Center Main Content: 핵심 인사이트 분석 & 연도별 추이 그래프 -->
+                <!-- Center Main Content: 핵심 인사이트 분석 & 학년도별 추이 그래프 -->
                 {% if insights and insights.latest_year %}
                 <div class="glass-card">
                     <div class="card-header">
@@ -735,7 +735,7 @@
                     {% if chart_data_json %}
                     <div style="margin-top: 2rem;">
                         <div class="card-header" style="border-bottom: none; margin-bottom: 0.75rem;">
-                            <h2>📊 주요 대학 연도별 경쟁률 추이</h2>
+                            <h2>📊 주요 대학 학년도별 경쟁률 추이</h2>
                         </div>
                         <div style="width: 100%; height: 380px;">
                             <canvas id="mainChart"></canvas>
@@ -788,7 +788,7 @@
                         <h2>📝 엑셀 템플릿 다운로드</h2>
                     </div>
                     <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.25rem;">
-                        대학 스크래핑 전용 엑셀 서식을 다운로드 받아 연도, 모집시기, 대학명, URL을 일괄 작성하세요.
+                        대학 스크래핑 전용 엑셀 서식을 다운로드 받아 학년도, 모집시기, 대학명, URL을 일괄 작성하세요.
                     </p>
                     <a href="/template.xlsx" class="btn btn-secondary" style="width: 100%; border-color: var(--primary-color); color: var(--primary-color);">
                         📥 엑셀 표준 템플릿 다운로드 (.xlsx)
@@ -839,7 +839,7 @@
                         </div>
                         <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                             <div style="flex: 1;">
-                                <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; display: block;">연도</label>
+                                <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; display: block;">학년도</label>
                                 <input type="text" name="year" value="2026" required class="form-control">
                             </div>
                             <div style="flex: 1;">
