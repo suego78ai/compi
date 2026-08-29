@@ -383,10 +383,40 @@ async def scrape_url(request: Request, name: str = Form(...), year: str = Form(.
 
 @app.get("/template.xlsx")
 async def download_template():
-    df = pd.DataFrame(columns=["학년도", "모집시기", "대학명", "URL"])
+    data = [
+        {
+            "학년도": "2027",
+            "모집시기": "수시1차",
+            "대학명": "인하공업전문대학",
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41260471.html",
+            "정원구분": "정원내"
+        },
+        {
+            "학년도": "2027",
+            "모집시기": "수시1차",
+            "대학명": "유한대학교",
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41280381.html",
+            "정원구분": "구분없음"
+        },
+        {
+            "학년도": "2027",
+            "모집시기": "수시2차",
+            "대학명": "동양미래대학교",
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41150241.html",
+            "정원구분": "구분없음"
+        }
+    ]
+    df = pd.DataFrame(data)
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False, sheet_name="Sheet1")
+        df.to_excel(writer, index=False, sheet_name="경쟁률_등록서식")
+        
+        # openpyxl 스타일 및 컬럼 너비 자동 조정
+        ws = writer.sheets["경쟁률_등록서식"]
+        col_widths = {"A": 12, "B": 14, "C": 22, "D": 65, "E": 14}
+        for col, width in col_widths.items():
+            ws.column_dimensions[col].width = width
+
     output.seek(0)
     
     headers = {
