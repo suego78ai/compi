@@ -880,7 +880,7 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
         </h2>
         <div style="display:flex;gap:0.5rem;align-items:center;">
           <button onclick="showReportBuilder(${isRealtime}, true)" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">← 다시 생성</button>
-          <button onclick="location.reload();" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">🔄 새로고침</button>
+          <button onclick="reloadLatestData();" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;" title="최신 JSON 데이터 즉시 재로드">🔄 실시간 새로고침</button>
         </div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
@@ -905,6 +905,26 @@ function renderDataSummary(){
 }
 
 // ── Helpers ───────────────────────────────────────────────────
+function getLatestYear() {
+  const years = [...new Set(ALL_UNIVS.map(u=>u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
+  return years[0] || '2027';
+}
+async function reloadLatestData() {
+  showLoading(true);
+  try {
+    const res = await fetch('data/data.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const payload = await res.json();
+    ALL_UNIVS = payload.universities || [];
+    buildTree();
+    renderDataSummary();
+    handleUrlParams();
+  } catch(e) {
+    alert('최신 데이터 갱신 실패: ' + e.message);
+  } finally {
+    showLoading(false);
+  }
+}
 function e(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function pr(s){ try{ return parseFloat((s||'').split(':')[0].trim()) || 0; } catch{ return 0; } }
 function inhaFirst(arr){ return [...arr].sort((a,b)=>{ const ai=a.includes('인하공업전문대학')?0:1, bi=b.includes('인하공업전문대학')?0:1; return ai-bi||a.localeCompare(b,'ko'); }); }
