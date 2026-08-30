@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>입시 경쟁률 대시보드</title>
-  <meta name="description" content="수도권 전문대학 입시 경쟁률 데이터 대시보드 - 연도별 추이, 학과 검색, 3개년 비교 리포트">
+  <meta name="description" content="수도권 전문대학 입시 경쟁률 데이터 대시보드 - 연도별 추이, 학과 검색, 3개년 비교 리포트 및 당해년도 실시간 파싱 리포트">
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -16,6 +16,7 @@
       --primary-color: #4f46e5;
       --primary-hover: #4338ca;
       --danger-color: #ef4444;
+      --success-color: #10b981;
       --border-color: #cbd5e1;
       --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08),0 2px 4px -1px rgba(0,0,0,0.04);
       --row-hover: #f8fafc;
@@ -34,7 +35,7 @@
     .header-title h1{color:var(--primary-color);font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;}
     .header-actions{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
     .header-search{display:flex;gap:0.35rem;align-items:center;}
-    .header-search input{padding:0.55rem 0.85rem;border:1px solid var(--border-color);border-radius:0.6rem;font-size:0.9rem;width:220px;font-family:inherit;}
+    .header-search input{padding:0.55rem 0.85rem;border:1px solid var(--border-color);border-radius:0.6rem;font-size:0.9rem;width:200px;font-family:inherit;}
     .header-search input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 2px rgba(79,70,229,0.15);}
     .app-container{max-width:1680px;margin:1.5rem auto;padding:0 1.5rem;}
     .dashboard-grid{display:grid;grid-template-columns:310px 1fr 300px;gap:1.5rem;align-items:start;}
@@ -43,9 +44,11 @@
     .glass-card{background:var(--surface-color);border:1px solid var(--border-color);box-shadow:var(--shadow-md);border-radius:1.25rem;padding:1.5rem;margin-bottom:1.5rem;}
     .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:1px solid #f1f5f9;}
     .card-header h2{font-size:1.15rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem;}
-    .btn{cursor:pointer;border:none;border-radius:0.6rem;align-items:center;gap:0.4rem;padding:0.6rem 1rem;font-weight:600;transition:all 0.2s;display:inline-flex;font-size:0.88rem;text-decoration:none;justify-content:center;font-family:inherit;}
+    .btn{cursor:pointer;border:none;border-radius:0.6rem;align-items:center;gap:0.4rem;padding:0.55rem 0.95rem;font-weight:600;transition:all 0.2s;display:inline-flex;font-size:0.88rem;text-decoration:none;justify-content:center;font-family:inherit;}
     .btn-primary{background:var(--primary-color);color:#fff;}
     .btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,0.3);}
+    .btn-success{background:var(--success-color);color:#fff;}
+    .btn-success:hover{background:#059669;transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,0.3);}
     .btn-secondary{background:#f8fafc;color:var(--text-primary);border:1px solid var(--border-color);}
     .btn-secondary:hover{background:#e2e8f0;}
     .tree-container details{margin-bottom:0.4rem;}
@@ -100,6 +103,8 @@
     .badge-tag{display:inline-block;padding:0.2rem 0.5rem;border-radius:0.4rem;font-size:0.78rem;font-weight:600;background:#e2e8f0;color:#334155;}
     .query-box{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;margin-bottom:1rem;}
     .query-field label{font-weight:600;font-size:0.82rem;margin-bottom:0.25rem;display:block;color:var(--text-secondary);}
+    .realtime-badge{display:inline-flex;align-items:center;gap:0.35rem;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:0.25rem 0.65rem;border-radius:0.4rem;font-size:0.82rem;font-weight:700;}
+    .url-link-item{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.8rem;background:#f8fafc;border:1px solid var(--border-color);border-radius:0.5rem;margin-bottom:0.4rem;font-size:0.88rem;}
   </style>
 </head>
 <body>
@@ -124,7 +129,8 @@
         <button class="btn btn-secondary" onclick="clearSearch()" title="검색어 지우기">✕</button>
       </div>
       <button class="btn btn-secondary" onclick="showAdvancedQueryModal(true)">🔎 상세 쿼리</button>
-      <button class="btn btn-primary" onclick="showReportBuilder(true)">📊 비교 리포트</button>
+      <button class="btn btn-secondary" onclick="showReportBuilder(false, true)">📊 비교 리포트</button>
+      <button class="btn btn-primary" onclick="showRealtimeReportBuilder(true)">🔄 실시간 파싱 리포트</button>
     </div>
   </div>
 </header>
@@ -142,8 +148,9 @@
         <div class="card-header"><h2>⚡ 빠른 탐색 메뉴</h2></div>
         <div style="display:flex;flex-direction:column;gap:0.6rem;">
           <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showHome(true)">🏠 메인 대시보드</button>
+          <button class="btn btn-primary" style="width:100%;justify-content:flex-start;" onclick="showRealtimeReportBuilder(true)">🔄 당해년도 실시간 파싱 리포트</button>
+          <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showReportBuilder(false, true)">📊 전형별 맞춤 비교 리포트</button>
           <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showAdvancedQueryModal(true)">🔎 조건별 상세 쿼리 검색</button>
-          <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showReportBuilder(true)">📊 전형별 비교 리포트 생성</button>
         </div>
       </div>
     </aside>
@@ -217,6 +224,7 @@ function handleUrlParams() {
   const admType = params.get('adm_type') || params.get('adm');
   const capType = params.get('cap_type') || params.get('cap');
   const univs = params.get('univs');
+  const isRealtime = params.get('realtime') === 'true' || mode === 'realtime_builder' || mode === 'realtime';
 
   if (univId) {
     const idNum = parseInt(univId);
@@ -239,11 +247,20 @@ function handleUrlParams() {
     return;
   }
 
+  if (mode === 'realtime_builder' || (mode === 'report' && isRealtime)) {
+    if (univs) {
+      showReportDirect(year || getLatestYear(), admType || '수시1차', univs.split(','), true, false);
+    } else {
+      showRealtimeReportBuilder(false);
+    }
+    return;
+  }
+
   if (mode === 'report' || params.get('report') === '1') {
     if (univs) {
-      showReportDirect(year || '2026', admType || '수시1차', univs.split(','), false);
+      showReportDirect(year || getLatestYear(), admType || '수시1차', univs.split(','), isRealtime, false);
     } else {
-      showReportBuilder(false);
+      showReportBuilder(isRealtime, false);
     }
     return;
   }
@@ -280,6 +297,11 @@ function updateUrl(paramsObj) {
     }
   }
   window.history.pushState({}, '', url);
+}
+
+function getLatestYear() {
+  const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
+  return years.length ? years[0] : '2027';
 }
 
 // ── Tree ──────────────────────────────────────────────────────
@@ -466,6 +488,7 @@ function showUnivDetail(id, pushUrl = true) {
         <h2>${isInha ? '<span class="inha-badge">⭐ ' + e(u.name) + '</span>' : '🏫 ' + e(u.name)} 경쟁률 현황</h2>
         <span style="font-size:0.85rem;color:var(--text-secondary);">${e(u.year)} › ${e(u.admission_type)} › ${e(u.capacity_type)}</span>
       </div>
+      ${u.url ? `<div style="margin-bottom:1rem;"><a href="${e(u.url)}" target="_blank" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">🔗 원본 실시간 경쟁률 페이지 바로가기 (새창)</a></div>` : ''}
       <div class="tabs">${tabs}</div>
       <div>${contents}</div>
     </div>`;
@@ -710,15 +733,26 @@ function showGroupCompare(y, a, c, pushUrl = true){
     </div>`;
 }
 
-// ── Report Builder ────────────────────────────────────────────
-function showReportBuilder(pushUrl = true){
+// ── Report Builder (Custom / Realtime) ────────────────────────
+function showRealtimeReportBuilder(pushUrl = true) {
+  showReportBuilder(true, pushUrl);
+}
+
+function showReportBuilder(isRealtime = false, pushUrl = true){
   clearActive();
-  if(pushUrl) updateUrl({ mode: 'report' });
+  if(pushUrl) updateUrl({ mode: isRealtime ? 'realtime_builder' : 'report' });
   const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
   const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type))].filter(Boolean).sort();
+  
   document.getElementById('centerCol').innerHTML = `
     <div class="glass-card">
-      <div class="card-header"><h2>📊 맞춤형 전형별 비교 리포트 생성</h2></div>
+      <div class="card-header">
+        <h2>${isRealtime ? '🔄 당해년도 실시간 파싱 리포트 생성' : '📊 맞춤형 전형별 비교 리포트 생성'}</h2>
+        ${isRealtime ? '<span class="realtime-badge">⚡ 실시간 파싱 모드</span>' : ''}
+      </div>
+      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.25rem;">
+        ${isRealtime ? '최신 당해년도 데이터를 기반으로 3개년 경쟁률 추이를 실시간 비교 분석합니다.' : '기준 연도와 모집 시기를 선택하여 대학별 3개년 경쟁률 추이를 비교합니다.'}
+      </p>
       <div style="display:flex;gap:1rem;margin-bottom:1rem;">
         <div style="flex:1;"><label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">기준 연도</label>
           <select id="rY" class="form-control" onchange="updateRU()">${years.map(y=>'<option value="'+e(y)+'">'+e(y)+'년</option>').join('')}</select></div>
@@ -735,7 +769,9 @@ function showReportBuilder(pushUrl = true){
         </div>
         <div id="rUL" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.75rem;padding:1rem;background:#f8fafc;border-radius:0.5rem;border:1px solid var(--border-color);max-height:250px;overflow-y:auto;"></div>
       </div>
-      <button class="btn btn-primary" style="width:100%;" onclick="genReport(true)">리포트 생성하기</button>
+      <button class="${isRealtime ? 'btn btn-primary' : 'btn btn-primary'}" style="width:100%;font-size:0.95rem;padding:0.75rem;" onclick="genReport(${isRealtime}, true)">
+        ${isRealtime ? '🔄 실시간 파싱 & 리포트 생성' : '📊 리포트 생성하기'}
+      </button>
     </div>`;
   updateRU();
 }
@@ -745,33 +781,46 @@ function updateRU(){
   const names = inhaFirst([...new Set(ALL_UNIVS.filter(u => u.year === y && u.admission_type === a).map(u => u.name))]);
   document.getElementById('rUL').innerHTML = names.map(n => {
     const isInha = n.includes('인하공업전문대학');
-    return `<label class="univ-label${isInha ? ' inha-checkbox-label' : ''}"><input type="checkbox" class="rc" value="${e(n)}"> ${isInha ? '⭐ <strong>' + e(n) + '</strong>' : e(n)}</label>`;
+    return `<label class="univ-label${isInha ? ' inha-checkbox-label' : ''}"><input type="checkbox" class="rc" value="${e(n)}" checked> ${isInha ? '⭐ <strong>' + e(n) + '</strong>' : e(n)}</label>`;
   }).join('');
 }
 
 function sAll(v){ document.querySelectorAll('.rc').forEach(cb => cb.checked = v); }
 
-function genReport(pushUrl = true){
+function genReport(isRealtime = false, pushUrl = true){
   const y = document.getElementById('rY').value, a = document.getElementById('rA').value;
   const sel = [...document.querySelectorAll('.rc:checked')].map(cb => cb.value);
   if(!sel.length){ alert('비교할 대학을 1개 이상 선택해 주세요.'); return; }
-  showReportDirect(y, a, sel, pushUrl);
+  showReportDirect(y, a, sel, isRealtime, pushUrl);
 }
 
-function showReportDirect(y, a, selectedList, pushUrl = true) {
-  if (pushUrl) updateUrl({ mode: 'report', year: y, adm_type: a, univs: selectedList.join(',') });
+function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true) {
+  if (pushUrl) {
+    updateUrl({
+      mode: isRealtime ? 'realtime' : 'report',
+      year: y,
+      adm_type: a,
+      univs: selectedList.join(','),
+      realtime: isRealtime ? 'true' : ''
+    });
+  }
   const allY = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a2,b)=>b.localeCompare(a2));
   const rY = [...new Set([y, ...allY])].slice(0, 3).sort((a2,b)=>b.localeCompare(a2));
   const names = inhaFirst(selectedList), ud = {};
+  const univUrls = {};
+
   for(const n of names){
     ud[n] = { ac: {}, ap: {}, rt: {} };
     for(const ry of rY){
       const recs = ALL_UNIVS.filter(u => u.name === n && u.year === ry && u.admission_type === a);
       let ac = 0, ap = 0, mx = 0;
-      for(const u of recs) for(const d of u.departments || []){
-        ac += parseInt((d.admission_count || '').replace(/,/g, '')) || 0;
-        ap += parseInt((d.applicant_count || '').replace(/,/g, '')) || 0;
-        const rv = pr(d.competition_ratio); if(rv > mx) mx = rv;
+      for(const u of recs) {
+        if (u.url && ry === y) univUrls[n] = u.url;
+        for(const d of u.departments || []){
+          ac += parseInt((d.admission_count || '').replace(/,/g, '')) || 0;
+          ap += parseInt((d.applicant_count || '').replace(/,/g, '')) || 0;
+          const rv = pr(d.competition_ratio); if(rv > mx) mx = rv;
+        }
       }
       ud[n].ac[ry] = ac; ud[n].ap[ry] = ap; ud[n].rt[ry] = mx ? mx.toFixed(2) : '-';
     }
@@ -781,13 +830,15 @@ function showReportDirect(y, a, selectedList, pushUrl = true) {
       ud[n].dr = (parseFloat(ud[n].rt[ry2[0]]) || 0) - (parseFloat(ud[n].rt[ry2[1]]) || 0);
     } else { ud[n].da = 0; ud[n].dr = 0; }
   }
+
   let th = `<tr><th rowspan="2">대학명</th>
-    <th colspan="${rY.length}" style="text-align:center;">모집인원</th>
-    <th colspan="${rY.length+1}" style="text-align:center;">지원자수</th>
-    <th colspan="${rY.length+1}" style="text-align:center;">경쟁률</th></tr><tr>
+    <th colspan="${rY.length}" style="text-align:center;">모집인원(정원내)</th>
+    <th colspan="${rY.length+1}" style="text-align:center;">지원자수(정원내)</th>
+    <th colspan="${rY.length+1}" style="text-align:center;">경쟁률(정원내)</th></tr><tr>
     ${rY.map(ry=>'<th>'+e(ry)+'</th>').join('')}
     ${rY.map(ry=>'<th>'+e(ry)+'</th>').join('')}<th>증감</th>
     ${rY.map(ry=>'<th>'+e(ry)+'</th>').join('')}<th>증감</th></tr>`;
+  
   let tb = '';
   for(const n of names){
     const isInha = n.includes('인하공업전문대학'), d = ud[n], da = d.da || 0, dr = d.dr || 0;
@@ -800,13 +851,44 @@ function showReportDirect(y, a, selectedList, pushUrl = true) {
       <td class="fw-bold ${dr>0?(isInha?'text-purple':'text-pc'):dr<0?'text-danger':''}">${dr>0?'+':''}${dr.toFixed(2)}</td>
     </tr>`;
   }
+
+  let rawLinksHtml = '';
+  const urlKeys = Object.keys(univUrls);
+  if (urlKeys.length) {
+    rawLinksHtml = `
+      <div style="margin-top:1.5rem;background:#f8fafc;padding:1.25rem;border-radius:0.75rem;border:1px solid var(--border-color);">
+        <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.4rem;">
+          🔗 당해년도(${e(y)} ${e(a)}) 실시간 원본 경쟁률 웹페이지 바로가기
+        </h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.5rem;">
+          ${urlKeys.map(k=>`
+            <div class="url-link-item">
+              <span style="font-weight:600;">${k.includes('인하공업전문대학')?'⭐ '+e(k):e(k)}</span>
+              <a href="${e(univUrls[k])}" target="_blank" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.55rem;">진학사/유웨이 ↗</a>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   document.getElementById('centerCol').innerHTML = `
     <div class="glass-card">
       <div class="card-header">
-        <h2>📊 3개년 추이 종합 리포트</h2>
-        <button onclick="showReportBuilder(true)" class="btn btn-secondary" style="font-size:0.85rem;padding:0.4rem 0.85rem;">← 다시 생성</button>
+        <h2>
+          ${isRealtime ? '🔄 당해년도 실시간 파싱 대시보드' : '📊 3개년 추이 종합 리포트'}
+        </h2>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <button onclick="showReportBuilder(${isRealtime}, true)" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">← 다시 생성</button>
+          <button onclick="location.reload();" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">🔄 새로고침</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
+        <span style="font-size:0.88rem;color:var(--text-secondary);">기준: <strong>${e(y)}학년도 ${e(a)}</strong> (최근 3개년 ${rY.join(', ')} 비교)</span>
+        ${isRealtime ? '<span class="realtime-badge">⚡ 당해년도 데이터 실시간 반영</span>' : ''}
       </div>
       <div class="table-container"><table><thead>${th}</thead><tbody>${tb}</tbody></table></div>
+      ${rawLinksHtml}
     </div>`;
 }
 
