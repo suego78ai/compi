@@ -327,8 +327,11 @@ function buildTree() {
     html+=`<details><summary><span>🗓️ ${e(y)}학년도</span></summary><div class="tree-content">`;
     for (const a of Object.keys(TREE[y]).sort()) {
       html+=`<details><summary><span>📌 ${e(a)}</span></summary><div class="tree-content">`;
-      for (const c of Object.keys(TREE[y][a]).sort()) {
-        html+=`<details><summary><span>🏷️ ${e(c)}</span></summary><div class="tree-content">`;
+      const capKeys = Object.keys(TREE[y][a]).sort();
+
+      // '구분없음' 단일 항목인 경우 불필요한 '구분없음' 뎁스를 생략하고 대학 목록을 바로 표출
+      if (capKeys.length === 1 && (capKeys[0] === '구분없음' || !capKeys[0])) {
+        const c = capKeys[0];
         html+=`<button class="btn btn-secondary" style="font-size:0.78rem;padding:0.35rem 0.6rem;width:100%;margin-bottom:0.5rem;"
           onclick="showGroupCompare('${e(y)}','${e(a)}','${e(c)}', true)">📊 그룹 비교하기</button>`;
         for (const u of TREE[y][a][c]) {
@@ -336,7 +339,19 @@ function buildTree() {
           html+=`<span class="tree-link${isInha?' inha-tree-link':''}" onclick="showUnivDetail(${u.id}, true)" data-uid="${u.id}">
             ${isInha?'⭐ <strong>'+e(u.name)+'</strong>':'🏫 '+e(u.name)}</span>`;
         }
-        html+=`</div></details>`;
+      } else {
+        // 정원내, 정원외 등 여러 구분이 있는 경우에만 🏷️ 뎁스 표시
+        for (const c of capKeys) {
+          html+=`<details><summary><span>🏷️ ${e(c)}</span></summary><div class="tree-content">`;
+          html+=`<button class="btn btn-secondary" style="font-size:0.78rem;padding:0.35rem 0.6rem;width:100%;margin-bottom:0.5rem;"
+            onclick="showGroupCompare('${e(y)}','${e(a)}','${e(c)}', true)">📊 그룹 비교하기</button>`;
+          for (const u of TREE[y][a][c]) {
+            const isInha=u.name.includes('인하공업전문대학');
+            html+=`<span class="tree-link${isInha?' inha-tree-link':''}" onclick="showUnivDetail(${u.id}, true)" data-uid="${u.id}">
+              ${isInha?'⭐ <strong>'+e(u.name)+'</strong>':'🏫 '+e(u.name)}</span>`;
+          }
+          html+=`</div></details>`;
+        }
       }
       html+=`</div></details>`;
     }

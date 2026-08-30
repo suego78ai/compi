@@ -359,19 +359,30 @@
                                     <details>
                                         <summary><span>📌 {{ adm_type }}</span></summary>
                                         <div class="tree-content">
-                                            {% for cap_type, univs in cap_types.items() %}
-                                            <details>
-                                                <summary><span>🏷️ {{ cap_type }}</span></summary>
-                                                <div class="tree-content">
-                                                    <a href="/compare?year={{ year }}&adm_type={{ adm_type }}&cap_type={{ cap_type }}" class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.35rem 0.6rem; width: 100%; margin-bottom: 0.5rem;">📊 그룹 비교하기</a>
-                                                    {% for univ in univs %}
-                                                    <a href="/univ/{{ univ.id }}" class="tree-link {% if '인하공업전문대학' in univ.name %}inha-tree-link{% endif %}">
-                                                        {% if '인하공업전문대학' in univ.name %}⭐ <strong>{{ univ.name }}</strong>{% else %}🏫 {{ univ.name }}{% endif %}
-                                                    </a>
-                                                    {% endfor %}
-                                                </div>
-                                            </details>
-                                            {% endfor %}
+                                            {% if cap_types|length == 1 and ('구분없음' in cap_types or '' in cap_types) %}
+                                                {% set default_cap = '구분없음' if '구분없음' in cap_types else '' %}
+                                                {% set univs = cap_types[default_cap] %}
+                                                <a href="/compare?year={{ year }}&adm_type={{ adm_type }}&cap_type={{ default_cap }}" class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.35rem 0.6rem; width: 100%; margin-bottom: 0.5rem;">📊 그룹 비교하기</a>
+                                                {% for univ in univs %}
+                                                <a href="/univ/{{ univ.id }}" class="tree-link {% if '인하공업전문대학' in univ.name %}inha-tree-link{% endif %}">
+                                                    {% if '인하공업전문대학' in univ.name %}⭐ <strong>{{ univ.name }}</strong>{% else %}🏫 {{ univ.name }}{% endif %}
+                                                </a>
+                                                {% endfor %}
+                                            {% else %}
+                                                {% for cap_type, univs in cap_types.items() %}
+                                                <details>
+                                                    <summary><span>🏷️ {{ cap_type }}</span></summary>
+                                                    <div class="tree-content">
+                                                        <a href="/compare?year={{ year }}&adm_type={{ adm_type }}&cap_type={{ cap_type }}" class="btn btn-secondary" style="font-size: 0.78rem; padding: 0.35rem 0.6rem; width: 100%; margin-bottom: 0.5rem;">📊 그룹 비교하기</a>
+                                                        {% for univ in univs %}
+                                                        <a href="/univ/{{ univ.id }}" class="tree-link {% if '인하공업전문대학' in univ.name %}inha-tree-link{% endif %}">
+                                                            {% if '인하공업전문대학' in univ.name %}⭐ <strong>{{ univ.name }}</strong>{% else %}🏫 {{ univ.name }}{% endif %}
+                                                        </a>
+                                                        {% endfor %}
+                                                    </div>
+                                                </details>
+                                                {% endfor %}
+                                            {% endif %}
                                         </div>
                                     </details>
                                     {% endfor %}
