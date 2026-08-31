@@ -1220,6 +1220,119 @@ function setupDropzoneEvents() {
   }, false);
 }
 
+let DIRECT_ADMIN_PARSED_DATA = null;
+
+// Smart Direct Excel Parser (Scans sheets for competition ratio data)
+function parseDirectExcelData(workbook, fileName) {
+  const baseName = fileName.replace(/\.xlsx?$/i, '').trim();
+  
+  // Extract year from filename (e.g. 2024, 2025, 2026, 2027)
+  const yearMatch = baseName.match(/202[0-9]/);
+  const fileYear = yearMatch ? yearMatch[0] : '2026';
+  
+  // Extract admission type from filename
+  let fileAdm = '수시1차';
+  if (baseName.includes('수시2') || baseName.includes('2차')) fileAdm = '수시2차';
+  else if (baseName.includes('정시')) fileAdm = '정시';
+  else if (baseName.includes('수시1') || baseName.includes('1차')) fileAdm = '수시1차';
+  
+  // Extract univ name from filename
+  let fileUnivName = '';
+  const univMatch = baseName.match(/([가-힣]+(?:대학|대학교|전문대학|대))/);
+  if (univMatch) fileUnivName = univMatch[1];
+  else fileUnivName = baseName.replace(/202[0-9]|수시[12]?차?|정시|경쟁률|지원현황|서식|\(|\)/g, '').trim() || '등록대학';
+
+  const sheetsData = [];
+
+  workbook.SheetNames.forEach(sheetName => {
+    const sheet = workbook.Sheets[sheetName];
+    const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    if (!rawRows || rawRows.length < 2) return;
+
+    let headerRowIdx = -1;
+    let colIndexes = { dept: -1, adm: -1, app: -1, ratio: -1 };
+
+    for (let rIdx = 0; rIdx < Math.min(10, rawRows.length); rIdx++) {
+      const row = rawRows[rIdx];
+      row.forEach((cell, cIdx) => {
+        const txt = String(cell).trim();
+        if (/모집단위|전형명|학과|전공|모집학부|학부|계열|구분/.test(txt) && colIndexes.dept === -1) colIndexes.dept = cIdx;
+        if (/모집인원|총모집인원|모집/.test(txt) && colIndexes.adm === -1) colIndexes.adm = cIdx;
+        if (/지원인원|지원자수|지원인원수|지원자|지원/.test(txt) && colIndexes.app === -1) colIndexes.app = cIdx;
+        if (/경쟁률|지원경쟁률/.test(txt) && colIndexes.ratio === -1) colIndexes.ratio = cIdx;
+      });
+      if (colIndexes.dept !== -1 && (colIndexes.adm !== -1 || colIndexes.app !== -1 || colIndexes.ratio !== -1)) {
+        headerRowIdx = rIdx;
+        break;
+      }
+    }
+
+    if (headerRowIdx === -1) return;
+
+    const departments = [];
+    const tableRows = [];
+    
+    // Header HTML
+    const headerCells = rawRows[headerRowIdx].map(c => `<th>${e(String(c))}</th>`).join('');
+    tableRows.push(`<tr>${headerCells}</tr>`);
+
+    for (let r = headerRowIdx + 1; r < rawRows.length; r++) {
+      const row = rawRows[r];
+      if (!row || row.every(c => !c)) continue;
+      
+      const deptName = String(row[colIndexes.dept] || '').trim();
+      if (!deptName || /소계|총계|합계|모집단위|전형명|학과|전공|구분/.test(deptName)) {
+        const rowCells = row.map(c => `<td>${e(String(c))}</td>`).join('');
+        tableRows.push(`<tr>${rowCells}</tr>`);
+        continue;
+      }
+
+      const admCount = colIndexes.adm !== -1 ? String(row[colIndexes.adm] || '').trim() : '';
+      const appCount = colIndexes.app !== -1 ? String(row[colIndexes.app] || '').trim() : '';
+      let compRatio = colIndexes.ratio !== -1 ? String(row[colIndexes.ratio] || '').trim() : '';
+      
+      if (!compRatio && admCount && appCount && Number(admCount) > 0) {
+        compRatio = (Number(appCount) / Number(admCount)).toFixed(2) + ' : 1';
+      }
+
+      departments.push({
+        table_title: sheetName,
+        department_name: deptName,
+        admission_count: admCount,
+        applicant_count: appCount,
+        competition_ratio: compRatio
+      });
+
+      const rowCells = row.map(c => `<td>${e(String(c))}</td>`).join('');
+      tableRows.push(`<tr>${rowCells}</tr>`);
+    }
+
+    if (departments.length > 0) {
+      sheetsData.push({
+        title: sheetName,
+        table_html: `<table>${tableRows.join('')}</table>`,
+        departments: departments
+      });
+    }
+  });
+
+  if (sheetsData.length === 0) return null;
+
+  return {
+    name: fileUnivName,
+    year: fileYear,
+    admission_type: fileAdm,
+    capacity_type: '구분없음',
+    url: '',
+    scraped_data: {
+      titles: sheetsData.map(s => s.title),
+      tables_html: sheetsData.map(s => s.table_html),
+      parsed_departments: sheetsData.flatMap(s => s.departments)
+    },
+    departments: sheetsData.flatMap(s => s.departments)
+  };
+}
+
 function handleAdminFileSelect(input) {
   if (input.files && input.files[0]) {
     handleAdminFile(input.files[0]);
@@ -1228,6 +1341,7 @@ function handleAdminFileSelect(input) {
 
 function handleAdminFile(file) {
   SELECTED_ADMIN_FILE = file;
+  DIRECT_ADMIN_PARSED_DATA = null;
   const dropzoneText = document.getElementById('adminDropzoneText');
   const uploadBtn = document.getElementById('adminUploadBtn');
   const previewArea = document.getElementById('adminFilePreviewArea');
@@ -1236,6 +1350,32 @@ function handleAdminFile(file) {
     dropzoneText.innerHTML = `<b>선택된 파일:</b><br><span style="color:var(--primary-color);font-weight:700;">${e(file.name)}</span> (${(file.size / 1024).toFixed(1)} KB)`;
   }
   if (uploadBtn) uploadBtn.style.display = 'inline-flex';
+
+  // Handle JSON backup import
+  if (file.name.endsWith('.json')) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const payload = JSON.parse(evt.target.result);
+        const univs = payload.universities || (Array.isArray(payload) ? payload : [payload]);
+        if (previewArea) {
+          previewArea.style.display = 'block';
+          previewArea.innerHTML = `
+            <div style="font-weight:700;color:var(--success-color);margin-bottom:0.3rem;">💾 JSON 데이터 백업 감지</div>
+            <div>총 <strong>${univs.length}개</strong> 대학 데이터 즉시 반영 대기</div>
+          `;
+        }
+        if (uploadBtn) uploadBtn.innerText = '📥 대시보드에 즉시 반영하기';
+      } catch(err) {
+        if (previewArea) {
+          previewArea.style.display = 'block';
+          previewArea.innerHTML = `<span style="color:var(--danger-color);">JSON 파일 읽기 오류: ${err.message}</span>`;
+        }
+      }
+    };
+    reader.readAsText(file);
+    return;
+  }
 
   // Excel parsing preview via SheetJS
   ensureXLSXLoaded().then(() => {
@@ -1246,6 +1386,24 @@ function handleAdminFile(file) {
           if (typeof XLSX === 'undefined') return;
           const data = new Uint8Array(evt.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
+          
+          // 1. Direct Data Check
+          const directData = parseDirectExcelData(workbook, file.name);
+          if (directData) {
+            DIRECT_ADMIN_PARSED_DATA = directData;
+            if (previewArea) {
+              previewArea.style.display = 'block';
+              previewArea.innerHTML = `
+                <div style="font-weight:700;color:var(--primary-color);margin-bottom:0.3rem;">📊 엑셀 경쟁률 데이터 자동 감지</div>
+                <div>대학: <strong>${e(directData.name)}</strong> (${e(directData.year)} ${e(directData.admission_type)})</div>
+                <div style="color:var(--text-secondary);font-size:0.82rem;margin-top:0.2rem;">총 <strong>${directData.departments.length}개</strong> 학과 / ${directData.scraped_data.tables_html.length}개 전형 표가 포함되어 있습니다.</div>
+              `;
+            }
+            if (uploadBtn) uploadBtn.innerText = '📥 대시보드에 즉시 등록하기';
+            return;
+          }
+
+          // 2. URL List Check
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
           const validRows = rows.slice(1).filter(r => r && r[3]); // URL exists
@@ -1253,11 +1411,12 @@ function handleAdminFile(file) {
           if (previewArea) {
             previewArea.style.display = 'block';
             previewArea.innerHTML = `
-              <div style="font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;">📋 엑셀 감지 내용</div>
+              <div style="font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;">📋 엑셀 URL 목록 감지</div>
               <div>총 <strong>${validRows.length}개</strong> 대학 등록 대기</div>
               <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.2rem;">${validRows.slice(0, 3).map(r => r[2] || '대학').join(', ')}${validRows.length > 3 ? ' 외 ' + (validRows.length - 3) + '개' : ''}</div>
             `;
           }
+          if (uploadBtn) uploadBtn.innerText = '🚀 업로드 및 스크래핑 시작';
         } catch (err) {
           console.warn('SheetJS preview error:', err);
         }
@@ -1269,11 +1428,49 @@ function handleAdminFile(file) {
 
 async function executeAdminExcelUpload() {
   if (!SELECTED_ADMIN_FILE) {
-    alert('업로드할 엑셀 파일을 먼저 선택해 주세요.');
+    alert('업로드할 파일을 먼저 선택해 주세요.');
     return;
   }
 
-  // Set file to engine and run engine scrape
+  // If JSON file
+  if (SELECTED_ADMIN_FILE.name.endsWith('.json')) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const payload = JSON.parse(evt.target.result);
+        const univs = payload.universities || (Array.isArray(payload) ? payload : [payload]);
+        if (univs && univs.length > 0) {
+          saveUniversitiesAndRefresh(univs);
+          alert(`🎉 JSON 데이터가 대시보드에 성공적으로 반영되었습니다! (총 ${univs.length}개 대학)`);
+        }
+      } catch(err) {
+        alert('JSON 적용 오류: ' + err.message);
+      }
+    };
+    reader.readAsText(SELECTED_ADMIN_FILE);
+    return;
+  }
+
+  // If Direct Parsed Data exists
+  if (DIRECT_ADMIN_PARSED_DATA) {
+    const maxId = ALL_UNIVS.reduce((max, u) => Math.max(max, u.id || 0), 0);
+    const newRec = {
+      id: maxId + 1,
+      ...DIRECT_ADMIN_PARSED_DATA
+    };
+
+    const updatedAll = [...ALL_UNIVS];
+    const idx = updatedAll.findIndex(u => u.name === newRec.name && u.year === newRec.year && u.admission_type === newRec.admission_type);
+    if (idx !== -1) updatedAll[idx] = newRec;
+    else updatedAll.unshift(newRec);
+
+    saveUniversitiesAndRefresh(updatedAll);
+    alert(`🎉 엑셀 데이터가 대시보드에 즉시 등록되었습니다!\n\n대학명: ${newRec.name}\n학년도: ${newRec.year} ${newRec.admission_type}\n추출된 학과수: ${newRec.departments.length}개`);
+    showUnivDetail(newRec.id, true);
+    return;
+  }
+
+  // Fallback to URL Scraper
   ENGINE_EXCEL_FILE = SELECTED_ADMIN_FILE;
   openScraperEngineModal();
   switchScraperTab('tabExcelScrape', document.querySelectorAll('#scraperEngineModal .tab-btn')[2]);
@@ -1618,15 +1815,27 @@ async function handleEngineDirectScrape(e) {
 }
 
 // ── Excel Scraping Engine ─────────────────────────────────────
+let DIRECT_ENGINE_PARSED_DATA = null;
+
 function handleEngineExcelFileSelect(input) {
   if (input.files && input.files[0]) {
     ENGINE_EXCEL_FILE = input.files[0];
+    DIRECT_ENGINE_PARSED_DATA = null;
     const dropText = document.getElementById('engExcelDropzoneText');
     const preview = document.getElementById('engExcelPreviewArea');
     const startBtn = document.getElementById('engExcelStartBtn');
 
-    if (dropText) dropText.innerHTML = `<b>선택된 파일:</b><br><span style="color:var(--primary-color);font-weight:700;">${e(ENGINE_EXCEL_FILE.name)}</span>`;
+    if (dropText) dropText.innerHTML = `<b>선택된 파일:</b><br><span style="color:var(--primary-color);font-weight:700;">${e(ENGINE_EXCEL_FILE.name)}</span> (${(ENGINE_EXCEL_FILE.size / 1024).toFixed(1)} KB)`;
     if (startBtn) startBtn.style.display = 'inline-flex';
+
+    if (ENGINE_EXCEL_FILE.name.endsWith('.json')) {
+      if (preview) {
+        preview.style.display = 'block';
+        preview.innerHTML = `<div style="color:var(--success-color);font-weight:700;">💾 JSON 데이터 파일 감지: 즉시 대시보드에 반영 가능합니다.</div>`;
+      }
+      if (startBtn) startBtn.innerText = '📥 대시보드에 즉시 반영하기';
+      return;
+    }
 
     ensureXLSXLoaded().then(() => {
       try {
@@ -1636,12 +1845,31 @@ function handleEngineExcelFileSelect(input) {
             if (typeof XLSX === 'undefined') return;
             const data = new Uint8Array(evt.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
+
+            // 1. Direct Data Check
+            const directData = parseDirectExcelData(workbook, ENGINE_EXCEL_FILE.name);
+            if (directData) {
+              DIRECT_ENGINE_PARSED_DATA = directData;
+              if (preview) {
+                preview.style.display = 'block';
+                preview.innerHTML = `
+                  <div style="font-weight:700;color:var(--primary-color);margin-bottom:0.25rem;">📊 엑셀 경쟁률 데이터 직접 등록 모드</div>
+                  <div>대학명: <strong>${e(directData.name)}</strong> (${e(directData.year)} ${e(directData.admission_type)})</div>
+                  <div style="color:var(--text-secondary);font-size:0.82rem;margin-top:0.2rem;">총 <strong>${directData.departments.length}개</strong> 학과 데이터가 포함되어 있어 스크래핑 없이 즉시 등록됩니다.</div>
+                `;
+              }
+              if (startBtn) startBtn.innerText = '📥 대시보드에 즉시 등록하기';
+              return;
+            }
+
+            // 2. URL List Check
             const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
             const valid = rows.slice(1).filter(r => r && r[3]);
             if (preview) {
               preview.style.display = 'block';
-              preview.innerHTML = `총 <strong>${valid.length}개</strong> 대학 스크래핑 대기 중: ${valid.slice(0, 4).map(r => r[2] || '대학').join(', ')}${valid.length > 4 ? ' 외 ' + (valid.length - 4) + '개' : ''}`;
+              preview.innerHTML = `총 <strong>${valid.length}개</strong> 대학 URL 스크래핑 대기 중: ${valid.slice(0, 4).map(r => r[2] || '대학').join(', ')}${valid.length > 4 ? ' 외 ' + (valid.length - 4) + '개' : ''}`;
             }
+            if (startBtn) startBtn.innerText = '🚀 엑셀 전체 스크래핑 실행';
           } catch (e) {}
         };
         reader.readAsArrayBuffer(ENGINE_EXCEL_FILE);
@@ -1653,6 +1881,48 @@ function handleEngineExcelFileSelect(input) {
 async function startEngineExcelScrape() {
   if (!ENGINE_EXCEL_FILE) {
     alert('엑셀 파일을 먼저 선택해 주세요.');
+    return;
+  }
+
+  // Handle JSON
+  if (ENGINE_EXCEL_FILE.name.endsWith('.json')) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const payload = JSON.parse(evt.target.result);
+        const univs = payload.universities || (Array.isArray(payload) ? payload : [payload]);
+        if (univs && univs.length > 0) {
+          saveUniversitiesAndRefresh(univs);
+          appendEngineLog(`🎉 JSON 데이터 적용 완료 (총 ${univs.length}개 대학)`, 'success');
+          alert(`🎉 JSON 데이터가 대시보드에 성공적으로 반영되었습니다! (총 ${univs.length}개 대학)`);
+          closeScraperEngineModal();
+        }
+      } catch(err) {
+        alert('JSON 적용 오류: ' + err.message);
+      }
+    };
+    reader.readAsText(ENGINE_EXCEL_FILE);
+    return;
+  }
+
+  // Handle Direct Excel Data
+  if (DIRECT_ENGINE_PARSED_DATA) {
+    const maxId = ALL_UNIVS.reduce((max, u) => Math.max(max, u.id || 0), 0);
+    const newRec = {
+      id: maxId + 1,
+      ...DIRECT_ENGINE_PARSED_DATA
+    };
+
+    const updatedAll = [...ALL_UNIVS];
+    const idx = updatedAll.findIndex(u => u.name === newRec.name && u.year === newRec.year && u.admission_type === newRec.admission_type);
+    if (idx !== -1) updatedAll[idx] = newRec;
+    else updatedAll.unshift(newRec);
+
+    saveUniversitiesAndRefresh(updatedAll);
+    appendEngineLog(`🎉 [직접 등록] ${newRec.name} (${newRec.year} ${newRec.admission_type}) ${newRec.departments.length}개 학과 등록 완료`, 'success');
+    alert(`🎉 엑셀 데이터가 대시보드에 즉시 등록되었습니다!\n\n대학명: ${newRec.name}\n학년도: ${newRec.year} ${newRec.admission_type}\n등록된 학과수: ${newRec.departments.length}개`);
+    showUnivDetail(newRec.id, true);
+    closeScraperEngineModal();
     return;
   }
 
@@ -1743,11 +2013,17 @@ async function startEngineExcelScrape() {
       }
 
       updateEngineProgress(100);
-      setEngineStatus('완료', '#10b981');
-      saveUniversitiesAndRefresh(updatedAll);
-      appendEngineLog(`🎉 엑셀 스크래핑 완료! (성공: ${success}개, 실패: ${failed}개)`, 'success');
-      alert(`엑셀 스크래핑 완료!\n\n성공: ${success}개 대학\n실패: ${failed}개 대학\n대시보드에 반영되었습니다.`);
-      closeScraperEngineModal();
+      if (success > 0) {
+        setEngineStatus('완료', '#10b981');
+        saveUniversitiesAndRefresh(updatedAll);
+        appendEngineLog(`🎉 엑셀 스크래핑 완료! (성공: ${success}개, 실패: ${failed}개)`, 'success');
+        alert(`엑셀 스크래핑 완료!\n\n성공: ${success}개 대학\n실패: ${failed}개 대학\n대시보드에 반영되었습니다.`);
+        closeScraperEngineModal();
+      } else {
+        setEngineStatus('차단됨', '#ef4444');
+        appendEngineLog(`⚠️ 웹 브라우저에서는 대학 사이트 보안 방화벽으로 실시간 URL 스크래핑이 차단되었습니다. 로컬에서 start.bat 또는 scrape_excel.bat 을 실행해 주세요.`, 'error');
+        alert(`웹 브라우저 스크래핑 알림:\n\n대학 입시 서버의 보안 방화벽(CORS/해외IP 차단)으로 인해 웹 환경에서는 실시간 URL 스크래핑이 제한됩니다.\n\n👉 해결 방법:\n1. 경쟁률 데이터가 작성된 엑셀 파일 직접 업로드\n2. 컴퓨터에서 scrape_excel.bat 또는 start.bat 실행 후 자동 배포`);
+      }
     } catch (err) {
       appendEngineLog(`❌ 엑셀 처리 오류: ${err.message}`, 'error');
       alert(`엑셀 처리 오류: ${err.message}`);
