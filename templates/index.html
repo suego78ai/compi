@@ -333,11 +333,20 @@
 let ALL_UNIVS = [], TREE = {}, CHART_INSTANCE = null;
 
 // ── SheetJS Dynamic Loader with Fallbacks ─────────────────────
+function getXLSX() {
+  if (typeof window !== 'undefined' && window.XLSX) return window.XLSX;
+  if (typeof globalThis !== 'undefined' && globalThis.XLSX) return globalThis.XLSX;
+  if (typeof XLSX !== 'undefined') return XLSX;
+  return null;
+}
+
 async function ensureXLSXLoaded() {
-  if (typeof XLSX !== 'undefined') return true;
+  if (getXLSX()) return true;
   const sources = [
+    'xlsx.full.min.js',
     './xlsx.full.min.js',
     './static/xlsx.full.min.js',
+    'static/xlsx.full.min.js',
     '/static/xlsx.full.min.js',
     'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
     'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
@@ -348,14 +357,15 @@ async function ensureXLSXLoaded() {
       await new Promise((resolve, reject) => {
         const s = document.createElement('script');
         s.src = src;
+        s.async = false;
         s.onload = () => resolve();
         s.onerror = () => reject();
         document.head.appendChild(s);
       });
-      if (typeof XLSX !== 'undefined') return true;
+      if (getXLSX()) return true;
     } catch (e) {}
   }
-  return typeof XLSX !== 'undefined';
+  return !!getXLSX();
 }
 
 // ── Boot ─────────────────────────────────────────────────────
@@ -1224,6 +1234,8 @@ let DIRECT_ADMIN_PARSED_DATA = null;
 
 // Smart Direct Excel Parser (Scans sheets for competition ratio data)
 function parseDirectExcelData(workbook, fileName) {
+  const xlsx = getXLSX();
+  if (!xlsx) return null;
   const baseName = fileName.replace(/\.xlsx?$/i, '').trim();
   
   // Extract year from filename (e.g. 2024, 2025, 2026, 2027)
@@ -1246,7 +1258,7 @@ function parseDirectExcelData(workbook, fileName) {
 
   workbook.SheetNames.forEach(sheetName => {
     const sheet = workbook.Sheets[sheetName];
-    const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    const rawRows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '' });
     if (!rawRows || rawRows.length < 2) return;
 
     let headerRowIdx = -1;
@@ -1380,12 +1392,13 @@ function handleAdminFile(file) {
   // Excel parsing preview via SheetJS
   ensureXLSXLoaded().then(() => {
     try {
+      const xlsx = getXLSX();
+      if (!xlsx) return;
       const reader = new FileReader();
       reader.onload = function(evt) {
         try {
-          if (typeof XLSX === 'undefined') return;
           const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
+          const workbook = xlsx.read(data, { type: 'array' });
           
           // 1. Direct Data Check
           const directData = parseDirectExcelData(workbook, file.name);
@@ -1405,7 +1418,7 @@ function handleAdminFile(file) {
 
           // 2. URL List Check
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          const rows = xlsx.utils.sheet_to_json(firstSheet, { header: 1 });
           const validRows = rows.slice(1).filter(r => r && r[3]); // URL exists
           
           if (previewArea) {
@@ -1839,12 +1852,13 @@ function handleEngineExcelFileSelect(input) {
 
     ensureXLSXLoaded().then(() => {
       try {
+        const xlsx = getXLSX();
+        if (!xlsx) return;
         const reader = new FileReader();
         reader.onload = function(evt) {
           try {
-            if (typeof XLSX === 'undefined') return;
             const data = new Uint8Array(evt.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
+            const workbook = xlsx.read(data, { type: 'array' });
 
             // 1. Direct Data Check
             const directData = parseDirectExcelData(workbook, ENGINE_EXCEL_FILE.name);
@@ -1863,7 +1877,7 @@ function handleEngineExcelFileSelect(input) {
             }
 
             // 2. URL List Check
-            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+            const rows = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
             const valid = rows.slice(1).filter(r => r && r[3]);
             if (preview) {
               preview.style.display = 'block';
@@ -1953,7 +1967,8 @@ async function startEngineExcelScrape() {
 
   // Ensure XLSX is ready
   const isLoaded = await ensureXLSXLoaded();
-  if (!isLoaded || typeof XLSX === 'undefined') {
+  const xlsx = getXLSX();
+  if (!isLoaded || !xlsx) {
     appendEngineLog('❌ SheetJS(XLSX) 라이브러리를 로드하지 못했습니다.', 'error');
     alert('엑셀 파싱 라이브러리(SheetJS)를 로드할 수 없습니다. 인터넷 연결 또는 xlsx.full.min.js 파일을 확인해 주세요.');
     setEngineStatus('오류', '#ef4444');
@@ -1964,8 +1979,8 @@ async function startEngineExcelScrape() {
   reader.onload = async function(evt) {
     try {
       const data = new Uint8Array(evt.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+      const workbook = xlsx.read(data, { type: 'array' });
+      const rows = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
       const validRows = rows.slice(1).filter(r => r && r[3] && String(r[3]).trim());
 
       let success = 0, failed = 0;
