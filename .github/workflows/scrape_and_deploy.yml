@@ -1,0 +1,77 @@
+name: Auto Scrape & Deploy to GitHub Pages
+
+on:
+  schedule:
+    # 매일 한국시간 기준 09:00, 18:00 (UTC 00:00, 09:00) 정기 자동 스크래핑
+    - cron: '0 0,9 * * *'
+  workflow_dispatch:
+    inputs:
+      proxy_url:
+        description: '프록시 서버 URL (예: http://user:pass@ip:port / 빈칸 시 공용 게이트웨이 사용)'
+        required: false
+        default: ''
+      excel_file:
+        description: '스크래핑할 엑셀 파일명 (빈칸 시 기본 파일)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  scrape-and-deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Scraper with Proxy
+        env:
+          # GitHub Repository Secret에 PROXY_URL을 등록해두면 자동으로 적용됩니다.
+          PROXY_URL: ${{ secrets.PROXY_URL || github.event.inputs.proxy_url }}
+        run: |
+          if [ -n "${{ github.event.inputs.excel_file }}" ]; then
+            python scrape_excel.py "${{ github.event.inputs.excel_file }}" --no-push
+          else
+            python scrape_excel.py --no-push
+          fi
+
+      - name: Commit updated data.json to repository
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/data.json ipsi.db || true
+          git commit -m "Auto: Update latest scraped competition ratio data [skip ci]" || echo "No changes to commit"
+          git push origin main || echo "No changes to push"
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
