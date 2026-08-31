@@ -47,7 +47,7 @@ jobs:
 
       - name: Run Scraper with Proxy
         env:
-          SECRET_PROXY_URL: ${{ secrets.PROXY_URL }}
+          SECRET_PROXY_URL: ${{ secrets['PROXY_URL'] }}
           INPUT_PROXY_URL: ${{ inputs.proxy_url }}
           INPUT_EXCEL_FILE: ${{ inputs.excel_file }}
         run: |
