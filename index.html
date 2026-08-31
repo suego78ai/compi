@@ -1101,7 +1101,10 @@ function renderDataSummary(){
 
 // ── Admin Auth ───────────────────────────────────────────────
 function isAdminLoggedIn() {
-  return localStorage.getItem('ipsi_admin_logged_in') === 'true';
+  const localVal = localStorage.getItem('ipsi_admin_logged_in');
+  const sessionVal = sessionStorage.getItem('ipsi_admin_logged_in');
+  const hasCookie = document.cookie.includes('ipsi_admin_token');
+  return localVal === 'true' || sessionVal === 'true' || hasCookie;
 }
 
 function openAdminLoginModal() {
@@ -1123,7 +1126,7 @@ function closeAdminLoginModal() {
   if (modal) modal.classList.remove('active');
 }
 
-function handleAdminLoginSubmit(e) {
+async function handleAdminLoginSubmit(e) {
   e.preventDefault();
   const u = document.getElementById('modalAdminUser').value.trim();
   const p = document.getElementById('modalAdminPass').value.trim();
@@ -1131,6 +1134,17 @@ function handleAdminLoginSubmit(e) {
 
   if (u === 'admin' && (p === 'ipsi4774!' || p === 'admin' || p === '1234')) {
     localStorage.setItem('ipsi_admin_logged_in', 'true');
+    sessionStorage.setItem('ipsi_admin_logged_in', 'true');
+    document.cookie = "ipsi_admin_token=ipsi_admin_auth_secret_token_2027; path=/; max-age=86400;";
+    
+    try {
+      await fetch('/api/admin_login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+    } catch(err) {}
+
     closeAdminLoginModal();
     renderAdminUI();
     alert('🛡️ 관리자로 로그인되었습니다.');
@@ -1142,11 +1156,32 @@ function handleAdminLoginSubmit(e) {
   }
 }
 
-function adminLogout() {
+async function adminLogout() {
   if (confirm('관리자 모드에서 로그아웃 하시겠습니까?')) {
+    // 1. Clear all storage keys
     localStorage.removeItem('ipsi_admin_logged_in');
+    localStorage.removeItem('ipsi_admin_token');
+    sessionStorage.removeItem('ipsi_admin_logged_in');
+    sessionStorage.removeItem('ipsi_admin_token');
+
+    // 2. Clear cookies
+    document.cookie = "ipsi_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Max-Age=0;";
+    document.cookie = "ipsi_admin_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Max-Age=0;";
+
+    // 3. Clear backend session if local server is active
+    try {
+      await fetch('/logout', { method: 'POST' });
+    } catch(e) {}
+
+    // 4. Force immediate UI update
     renderAdminUI();
+    if (typeof closeAdminLoginModal === 'function') closeAdminLoginModal();
+    if (typeof closeScraperEngineModal === 'function') closeScraperEngineModal();
+
     alert('🔓 로그아웃 되었습니다.');
+    
+    // 5. Reload page to ensure clean unauthenticated state
+    window.location.reload();
   }
 }
 
