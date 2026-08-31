@@ -115,6 +115,32 @@
   <p style="color:var(--text-secondary);">잠시만 기다려 주세요.</p>
 </div>
 
+<!-- Admin Login Modal -->
+<div id="adminLoginModal" class="loading-overlay" style="background:rgba(15,23,42,0.6);z-index:2000;">
+  <div class="glass-card" style="width:100%;max-width:400px;background:#ffffff;padding:2rem;position:relative;box-shadow:0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);">
+    <button onclick="closeAdminLoginModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-secondary);">✕</button>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <div style="font-size:2.2rem;margin-bottom:0.4rem;">🔐</div>
+      <h2 style="font-size:1.3rem;font-weight:800;">관리자 로그인</h2>
+      <p style="color:var(--text-secondary);font-size:0.85rem;">대학 등록 및 스크래핑 관리</p>
+    </div>
+    <div id="adminModalError" style="display:none;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;padding:0.6rem 0.8rem;border-radius:0.4rem;font-size:0.85rem;margin-bottom:1rem;"></div>
+    <form onsubmit="handleAdminLoginSubmit(event)">
+      <div style="margin-bottom:1rem;">
+        <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.3rem;">관리자 ID</label>
+        <input type="text" id="modalAdminUser" class="form-control" value="admin" required>
+      </div>
+      <div style="margin-bottom:1.25rem;">
+        <label style="display:block;font-size:0.85rem;font-weight:600;margin-bottom:0.3rem;">비밀번호 (Password)</label>
+        <input type="password" id="modalAdminPass" class="form-control" placeholder="비밀번호를 입력하세요" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:0.75rem;">
+        🛡️ 로그인
+      </button>
+    </form>
+  </div>
+</div>
+
 <header class="app-header">
   <div class="header-content">
     <div class="header-title">
@@ -131,6 +157,7 @@
       <button class="btn btn-secondary" onclick="showAdvancedQueryModal(true)">🔎 상세 쿼리</button>
       <button class="btn btn-secondary" onclick="showReportBuilder(false, true)">📊 비교 리포트</button>
       <button class="btn btn-primary" onclick="showRealtimeReportBuilder(true)">🔄 실시간 파싱 리포트</button>
+      <div id="adminHeaderArea" style="display:inline-flex;gap:0.4rem;align-items:center;"></div>
     </div>
   </div>
 </header>
@@ -158,18 +185,7 @@
     <main class="center-col" id="centerCol"></main>
 
     <aside class="right-col">
-      <div class="glass-card">
-        <div class="card-header"><h2>ℹ️ 서비스 안내</h2></div>
-        <div class="notice-box">
-          <span>⚠️</span>
-          <div>이 페이지는 <strong>정적 조회/쿼리 전용</strong>입니다.<br>
-          대학 등록·스크래핑은 로컬 FastAPI 서버에서만 가능합니다.<br><br>
-          <strong>로컬 실행:</strong><br>
-          <code style="background:#1e293b;color:#e2e8f0;padding:0.2rem 0.5rem;border-radius:0.3rem;font-size:0.82rem;">start.bat</code>
-          → <a href="http://127.0.0.1:26240" target="_blank" style="color:var(--primary-color);font-weight:700;">127.0.0.1:26240</a>
-          </div>
-        </div>
-      </div>
+      <div id="adminRightColArea"></div>
       <div class="glass-card">
         <div class="card-header"><h2>📝 엑셀 템플릿 다운로드</h2></div>
         <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.9rem;">
@@ -192,6 +208,7 @@ let ALL_UNIVS = [], TREE = {}, CHART_INSTANCE = null;
 
 // ── Boot ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  renderAdminUI();
   showLoading(true);
   try {
     const res = await fetch('data/data.json');
@@ -917,6 +934,100 @@ function renderDataSummary(){
       <div>📋 총 레코드: <strong>${ALL_UNIVS.length}건</strong></div>
       <div>📅 연도: <strong>${years.join(', ')}</strong></div>
     </div>`;
+}
+
+// ── Admin Auth ───────────────────────────────────────────────
+function isAdminLoggedIn() {
+  return localStorage.getItem('ipsi_admin_logged_in') === 'true';
+}
+
+function renderAdminUI() {
+  const isAdm = isAdminLoggedIn();
+  const headerArea = document.getElementById('adminHeaderArea');
+  const rightArea = document.getElementById('adminRightColArea');
+
+  if (headerArea) {
+    if (isAdm) {
+      headerArea.innerHTML = `
+        <span style="display:inline-flex;align-items:center;gap:0.35rem;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:0.35rem 0.65rem;border-radius:0.4rem;font-size:0.82rem;font-weight:700;">
+          🛡️ 관리자(admin)
+        </span>
+        <button class="btn btn-secondary" onclick="adminLogout()" style="font-size:0.82rem;padding:0.35rem 0.65rem;">🔓 로그아웃</button>
+      `;
+    } else {
+      headerArea.innerHTML = `
+        <button class="btn btn-secondary" onclick="openAdminLoginModal()" style="font-size:0.85rem;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;">
+          🔐 관리자 로그인
+        </button>
+      `;
+    }
+  }
+
+  if (rightArea) {
+    if (isAdm) {
+      rightArea.innerHTML = `
+        <div class="glass-card">
+          <div class="card-header"><h2>🛡️ 관리자(admin) 스크래핑 제어</h2></div>
+          <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.8rem;">
+            관리자 계정으로 인증되었습니다.<br>
+            새로운 대학 등록 및 엑셀 일괄 스크래핑은 <strong>로컬 관리자 서버</strong>에서 안전하게 실행됩니다.
+          </p>
+          <a href="http://127.0.0.1:26240" target="_blank" class="btn btn-primary" style="width:100%;margin-bottom:0.5rem;justify-content:center;">
+            🚀 로컬 관리자 서버 열기 (127.0.0.1:26240)
+          </a>
+          <div style="font-size:0.8rem;color:var(--text-secondary);background:#f1f5f9;padding:0.5rem;border-radius:0.4rem;text-align:center;">
+            서버 실행: <code>start.bat</code> 더블클릭
+          </div>
+        </div>
+      `;
+    } else {
+      rightArea.innerHTML = `
+        <div class="glass-card">
+          <div class="card-header"><h2>🔒 관리자 전용 기능</h2></div>
+          <div class="notice-box" style="margin-bottom:0.9rem;">
+            <span>ℹ️</span>
+            <div>대학 신규 등록 및 엑셀 스크래핑은 <strong>관리자(admin)</strong> 전용 기능입니다.</div>
+          </div>
+          <button class="btn btn-secondary" onclick="openAdminLoginModal()" style="width:100%;font-weight:700;border-color:var(--primary-color);color:var(--primary-color);">
+            🔐 관리자 로그인 (admin)
+          </button>
+        </div>
+      `;
+    }
+  }
+}
+
+function openAdminLoginModal() {
+  document.getElementById('adminModalError').style.display = 'none';
+  document.getElementById('modalAdminPass').value = '';
+  document.getElementById('adminLoginModal').style.display = 'flex';
+}
+
+function closeAdminLoginModal() {
+  document.getElementById('adminLoginModal').style.display = 'none';
+}
+
+function handleAdminLoginSubmit(e) {
+  e.preventDefault();
+  const u = document.getElementById('modalAdminUser').value.trim();
+  const p = document.getElementById('modalAdminPass').value.trim();
+
+  if (u === 'admin' && p === 'ipsi4774!') {
+    localStorage.setItem('ipsi_admin_logged_in', 'true');
+    closeAdminLoginModal();
+    renderAdminUI();
+    alert('관리자(admin)로 로그인되었습니다.');
+  } else {
+    const err = document.getElementById('adminModalError');
+    err.innerText = '아이디 또는 비밀번호가 올바르지 않습니다.';
+    err.style.display = 'block';
+  }
+}
+
+function adminLogout() {
+  localStorage.removeItem('ipsi_admin_logged_in');
+  renderAdminUI();
+  alert('로그아웃되었습니다.');
 }
 
 // ── Helpers ───────────────────────────────────────────────────

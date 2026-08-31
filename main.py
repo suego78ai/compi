@@ -11,10 +11,27 @@ from database import SessionLocal, engine, Base, University, DepartmentData
 from scraper_service import scrape_university_data
 from export_data import export_to_json
 
+import hmac
+import hashlib
+
 app = FastAPI()
 
 # Mount templates
 templates = Jinja2Templates(directory="templates")
+
+# Admin Authentication
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "ipsi4774!"
+AUTH_SECRET = "ipsi_admin_auth_secret_token_2027"
+
+def create_admin_token() -> str:
+    return hmac.new(AUTH_SECRET.encode(), ADMIN_USERNAME.encode(), hashlib.sha256).hexdigest()
+
+def is_admin_authenticated(request: Request) -> bool:
+    token = request.cookies.get("ipsi_admin_token")
+    if not token:
+        return False
+    return hmac.compare_digest(token, create_admin_token())
 
 # Dependency
 def get_db():
@@ -241,6 +258,56 @@ def get_multi_year_chart_data(db: Session):
         
     return json.dumps(chart_data)
 
+@app.get("/login", response_class=HTMLResponse)
+async def login_page(request: Request, error: Optional[str] = None, next: Optional[str] = "/"):
+    if is_admin_authenticated(request):
+        return RedirectResponse(url=next or "/", status_code=303)
+    
+    error_msg = None
+    if error == "invalid_credentials":
+        error_msg = "아이디 또는 비밀번호가 일치하지 않습니다."
+    elif error == "auth_required":
+        error_msg = "대학 등록 및 스크래핑을 위해 관리자 로그인이 필요합니다."
+        
+    return templates.TemplateResponse(request=request, name="login.html", context={
+        "request": request,
+        "error_msg": error_msg,
+        "next": next or "/",
+        "is_admin": False
+    })
+
+@app.post("/login")
+async def process_login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    next: Optional[str] = Form("/")
+):
+    if username.strip() == ADMIN_USERNAME and password.strip() == ADMIN_PASSWORD:
+        response = RedirectResponse(url=next or "/", status_code=303)
+        response.set_cookie(
+            key="ipsi_admin_token",
+            value=create_admin_token(),
+            httponly=True,
+            max_age=86400 * 7, # 7 days
+            samesite="lax"
+        )
+        return response
+    else:
+        return templates.TemplateResponse(request=request, name="login.html", context={
+            "request": request,
+            "error_msg": "아이디 또는 비밀번호가 올바르지 않습니다.",
+            "next": next or "/",
+            "is_admin": False
+        }, status_code=400)
+
+@app.get("/logout")
+@app.post("/logout")
+async def process_logout():
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie(key="ipsi_admin_token")
+    return response
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request, db: Session = Depends(get_db)):
     universities = db.query(University).order_by(University.created_at.desc()).all()
@@ -254,13 +321,15 @@ async def read_root(request: Request, db: Session = Depends(get_db)):
     selected_data = None
         
     return templates.TemplateResponse(request=request, name="index.html", context={
+        "request": request,
         "tree_data": tree_data,
         "unique_univ_names": unique_univ_names,
         "insights": insights,
         "chart_data_json": chart_data_json,
         "selected_univ": selected_univ,
         "selected_data": selected_data,
-        "is_compare_mode": False
+        "is_compare_mode": False,
+        "is_admin": is_admin_authenticated(request)
     })
 
 @app.get("/univ/{univ_id}", response_class=HTMLResponse)
@@ -274,12 +343,31 @@ async def get_univ(request: Request, univ_id: int, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="University not found")
         
     return templates.TemplateResponse(request=request, name="index.html", context={
+        "request": request,
         "tree_data": tree_data,
         "unique_univ_names": unique_univ_names,
         "selected_univ": selected_univ,
         "selected_data": json.loads(selected_univ.scraped_data),
-        "is_compare_mode": False
+        "is_compare_mode": False,
+        "is_admin": is_admin_authenticated(request)
     })
+
+@app.post("/univ/{univ_id}/delete")
+async def delete_univ(request: Request, univ_id: int, db: Session = Depends(get_db)):
+    if not is_admin_authenticated(request):
+        return RedirectResponse(url="/login?error=auth_required", status_code=303)
+    
+    target = db.query(University).filter(University.id == univ_id).first()
+    if target:
+        db.query(DepartmentData).filter(DepartmentData.university_id == univ_id).delete()
+        db.delete(target)
+        db.commit()
+        try:
+            export_to_json(db)
+        except Exception as ex:
+            print(f"[경고] JSON 자동 갱신 실패: {ex}")
+            
+    return RedirectResponse(url="/", status_code=303)
 
 @app.get("/compare", response_class=HTMLResponse)
 async def get_compare(request: Request, year: str = None, adm_type: str = None, cap_type: str = None, db: Session = Depends(get_db)):
@@ -324,11 +412,15 @@ async def get_compare(request: Request, year: str = None, adm_type: str = None, 
         "unique_univ_names": unique_univ_names,
         "is_compare_mode": True,
         "compare_data": compare_data,
-        "compare_title": compare_title
+        "compare_title": compare_title,
+        "is_admin": is_admin_authenticated(request)
     })
 
 @app.post("/scrape")
 async def scrape_url(request: Request, name: str = Form(...), year: str = Form(...), admission_type: str = Form(...), capacity_type: str = Form(...), url: str = Form(...), db: Session = Depends(get_db)):
+    if not is_admin_authenticated(request):
+        return RedirectResponse(url="/login?error=auth_required", status_code=303)
+        
     try:
         # Scrape the URL
         scraped_data = scrape_university_data(url)
@@ -376,9 +468,11 @@ async def scrape_url(request: Request, name: str = Form(...), year: str = Form(.
         all_univs = db.query(University).order_by(University.created_at.desc()).all()
         unique_univ_names = sorted(list(set([u.name for u in all_univs])))
         return templates.TemplateResponse(request=request, name="index.html", context={
+            "request": request,
             "tree_data": build_tree(all_univs),
             "unique_univ_names": unique_univ_names,
-            "error_msg": str(e)
+            "error_msg": str(e),
+            "is_admin": is_admin_authenticated(request)
         }, status_code=400)
 
 @app.get("/template.xlsx")
@@ -426,6 +520,9 @@ async def download_template():
 
 @app.post("/upload_excel")
 async def upload_excel(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not is_admin_authenticated(request):
+        return RedirectResponse(url="/login?error=auth_required", status_code=303)
+        
     try:
         contents = await file.read()
         df = pd.read_excel(io.BytesIO(contents))
@@ -554,7 +651,8 @@ async def search_departments(
             "univ_name": univ_name,
             "ratio": ratio
         },
-        "search_results": results
+        "search_results": results,
+        "is_admin": is_admin_authenticated(request)
     })
 
 @app.get("/report", response_class=HTMLResponse)
@@ -586,13 +684,15 @@ async def custom_report(
         all_univs_by_criteria = {k: sort_names_inha_first(list(v)) for k, v in all_univs_by_criteria.items()}
             
         return templates.TemplateResponse(request=request, name="index.html", context={
+            "request": request,
             "tree_data": tree_data,
             "unique_univ_names": unique_univ_names,
             "is_report_builder": True,
             "builder_mode": mode,
             "all_years": all_years,
             "all_adm_types": all_adm_types,
-            "all_univs_by_criteria": all_univs_by_criteria
+            "all_univs_by_criteria": all_univs_by_criteria,
+            "is_admin": is_admin_authenticated(request)
         })
         
     selected_names = [n.strip() for n in univs.split(",") if n.strip()]
@@ -709,11 +809,13 @@ async def custom_report(
         data["diff_ratio"] = round(data["ratio"][y_latest] - data["ratio"][y_prev], 2)
 
     return templates.TemplateResponse(request=request, name="index.html", context={
+        "request": request,
         "tree_data": tree_data,
         "unique_univ_names": unique_univ_names,
         "is_report_view": True,
         "is_realtime_view": realtime,
-        "report_data": report_data
+        "report_data": report_data,
+        "is_admin": is_admin_authenticated(request)
     })
 
 if __name__ == "__main__":

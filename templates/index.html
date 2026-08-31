@@ -329,6 +329,14 @@
             <div class="header-actions">
                 <a href="/report" class="btn btn-secondary">📊 맞춤형 비교 리포트</a>
                 <a href="/report?mode=realtime_builder" class="btn btn-primary">🔄 실시간 파싱 리포트</a>
+                {% if is_admin %}
+                <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 0.35rem 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; font-weight: 700;">
+                    🛡️ 관리자(admin)
+                </span>
+                <a href="/logout" class="btn btn-secondary" style="border-color: #cbd5e1; color: #64748b;">🔓 로그아웃</a>
+                {% else %}
+                <a href="/login" class="btn btn-secondary" style="border-color: var(--primary-color); color: var(--primary-color); font-weight: 700;">🔐 관리자 로그인</a>
+                {% endif %}
             </div>
         </div>
     </header>
@@ -806,10 +814,11 @@
                     </a>
                 </div>
 
-                <!-- 2. 엑셀 파일 업로드 & 드롭존 카드 -->
+                {% if is_admin %}
+                <!-- 2. 엑셀 파일 업로드 & 드롭존 카드 (관리자 전용) -->
                 <div class="glass-card">
                     <div class="card-header">
-                        <h2>📤 엑셀 파일 업로드</h2>
+                        <h2>📤 엑셀 파일 업로드 <span style="font-size: 0.75rem; background: #e0e7ff; color: #4338ca; padding: 0.2rem 0.5rem; border-radius: 0.3rem;">관리자</span></h2>
                     </div>
                     <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.25rem;">
                         작성한 엑셀 파일(.xlsx)을 드래그하여 등록하면 자동으로 스크래핑이 실행됩니다.
@@ -838,10 +847,10 @@
                     </script>
                 </div>
 
-                <!-- 3. 개별 URL 직접 등록 카드 -->
+                <!-- 3. 개별 URL 직접 등록 카드 (관리자 전용) -->
                 <div class="glass-card">
                     <div class="card-header">
-                        <h2>🌐 개별 대학 URL 직접 등록</h2>
+                        <h2>🌐 개별 대학 URL 직접 등록 <span style="font-size: 0.75rem; background: #e0e7ff; color: #4338ca; padding: 0.2rem 0.5rem; border-radius: 0.3rem;">관리자</span></h2>
                     </div>
                     <form action="/scrape" method="POST" onsubmit="showLoading()">
                         <div class="form-group">
@@ -851,7 +860,7 @@
                         <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                             <div style="flex: 1;">
                                 <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; display: block;">학년도</label>
-                                <input type="text" name="year" value="2026" required class="form-control">
+                                <input type="text" name="year" value="2027" required class="form-control">
                             </div>
                             <div style="flex: 1;">
                                 <label style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; display: block;">모집시기</label>
@@ -860,7 +869,7 @@
                         </div>
                         <div class="form-group">
                             <label>정원구분</label>
-                            <input type="text" name="capacity_type" value="정원내" required class="form-control">
+                            <input type="text" name="capacity_type" value="구분없음" required class="form-control">
                         </div>
                         <div class="form-group">
                             <label>경쟁률 페이지 URL</label>
@@ -871,6 +880,24 @@
                         </button>
                     </form>
                 </div>
+                {% else %}
+                <!-- 관리자 로그인 안내 카드 (비로그인 상태) -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h2>🔒 관리자 전용 기능</h2>
+                    </div>
+                    <div style="background: #f8fafc; border: 1px solid var(--border-color); border-radius: 0.75rem; padding: 1.25rem; text-align: center; margin-bottom: 1.25rem;">
+                        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">🛡️</div>
+                        <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem;">대학 등록 & 스크래핑</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4;">
+                            개별 대학 URL 등록 및 엑셀 일괄 스크래핑은 <strong>관리자(admin)</strong> 전용 기능입니다.
+                        </p>
+                    </div>
+                    <a href="/login" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                        🔐 관리자 로그인
+                    </a>
+                </div>
+                {% endif %}
 
             </aside>
 
