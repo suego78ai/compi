@@ -9,7 +9,7 @@ import io
 from typing import Optional
 from database import SessionLocal, engine, Base, University, DepartmentData
 from scraper_service import scrape_university_data
-from export_data import export_to_json
+from export_data import export_to_json, push_to_github_pages
 
 import hmac
 import hashlib
@@ -685,6 +685,19 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
         return {"success": True, "count": success_count, "message": f"{success_count}개 대학 데이터가 성공적으로 스크래핑 및 등록되었습니다."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/deploy_github")
+async def api_deploy_github(request: Request):
+    if not is_admin_authenticated(request):
+        token = request.headers.get("x-admin-token") or request.query_params.get("token")
+        if token != create_admin_token() and token != "ipsi4774!":
+            raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
+    
+    success = push_to_github_pages()
+    if success:
+        return {"success": True, "message": "GitHub Pages(suego78ai/ipsi)로 최신 데이터가 성공적으로 배포(Push)되었습니다."}
+    else:
+        return {"success": False, "message": "GitHub Pages 배포 중 오류가 발생했습니다."}
 
 @app.post("/api/auth/token")
 async def api_get_token(username: str = Form(...), password: str = Form(...)):

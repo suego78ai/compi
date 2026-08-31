@@ -1,16 +1,8 @@
-"""
-export_data.py
---------------
-ipsi.db 데이터를 data/data.json 으로 export 합니다.
-GitHub Pages 정적 대시보드용 데이터 파일을 생성합니다.
-
-사용법:
-    python export_data.py
-"""
-
 import json
 import os
 import sys
+import subprocess
+import shutil
 from pathlib import Path
 
 try:
@@ -22,9 +14,11 @@ except ImportError as e:
     print("      pip install -r requirements.txt 를 먼저 실행하세요.")
     sys.exit(1)
 
-DB_PATH = Path(__file__).parent / "ipsi.db"
-OUT_DIR  = Path(__file__).parent / "data"
+ROOT_DIR = Path(__file__).parent
+DB_PATH = ROOT_DIR / "ipsi.db"
+OUT_DIR  = ROOT_DIR / "data"
 OUT_FILE = OUT_DIR / "data.json"
+IPSI_REPO_DIR = ROOT_DIR / "ipsi_repo"
 
 def export_to_json(db=None):
     close_db = False
@@ -80,14 +74,50 @@ def export_to_json(db=None):
 
         size_kb = OUT_FILE.stat().st_size / 1024
         print(f"[성공] JSON export 완료: {OUT_FILE} ({len(records)}개 대학, {size_kb:.1f} KB)")
+
+        # Sync to ipsi_repo if exists
+        if IPSI_REPO_DIR.exists() and (IPSI_REPO_DIR / ".git").exists():
+            target_data_dir = IPSI_REPO_DIR / "data"
+            target_data_dir.mkdir(exist_ok=True)
+            shutil.copy2(OUT_FILE, target_data_dir / "data.json")
+            if (ROOT_DIR / "index.html").exists():
+                shutil.copy2(ROOT_DIR / "index.html", IPSI_REPO_DIR / "index.html")
+            if (ROOT_DIR / "xlsx.full.min.js").exists():
+                shutil.copy2(ROOT_DIR / "xlsx.full.min.js", IPSI_REPO_DIR / "xlsx.full.min.js")
+            print(f"[동기화] ipsi_repo 저장소로 최신 파일 동기화 완료.")
+
         return True
     finally:
         if close_db:
             db.close()
 
+def push_to_github_pages(commit_msg="Update latest ipsi data (data.json)"):
+    export_to_json()
+    if not (IPSI_REPO_DIR.exists() and (IPSI_REPO_DIR / ".git").exists()):
+        print(f"[경고] ipsi_repo 폴더를 찾을 수 없습니다: {IPSI_REPO_DIR}")
+        return False
+
+    try:
+        subprocess.run(["git", "add", "data/data.json", "index.html", "xlsx.full.min.js"], cwd=IPSI_REPO_DIR, check=True)
+        # Check if there are changes to commit
+        status = subprocess.run(["git", "status", "--porcelain"], cwd=IPSI_REPO_DIR, capture_output=True, text=True)
+        if status.stdout.strip():
+            subprocess.run(["git", "commit", "-m", commit_msg], cwd=IPSI_REPO_DIR, check=True)
+            subprocess.run(["git", "push", "origin", "main"], cwd=IPSI_REPO_DIR, check=True)
+            print("[배포 성공] GitHub Pages(suego78ai/ipsi)로 푸시 완료! 약 1분 후 반영됩니다.")
+        else:
+            print("[배포] 변경된 데이터가 없어 푸시를 건너뜁니다.")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"[오류] Git 배포 중 에러 발생: {e}")
+        return False
+
 def main():
     print("[1/2] DB 데이터 읽는 중...")
-    export_to_json()
+    if "--push" in sys.argv or "-p" in sys.argv:
+        push_to_github_pages()
+    else:
+        export_to_json()
     print("[2/2] 완료되었습니다.")
 
 if __name__ == "__main__":
