@@ -47,11 +47,19 @@ jobs:
 
       - name: Run Scraper with Proxy
         env:
-          # GitHub Repository Secret에 PROXY_URL을 등록해두면 자동으로 적용됩니다.
-          PROXY_URL: ${{ secrets.PROXY_URL || github.event.inputs.proxy_url }}
+          SECRET_PROXY_URL: ${{ secrets.PROXY_URL }}
+          INPUT_PROXY_URL: ${{ inputs.proxy_url }}
+          INPUT_EXCEL_FILE: ${{ inputs.excel_file }}
         run: |
-          if [ -n "${{ github.event.inputs.excel_file }}" ]; then
-            python scrape_excel.py "${{ github.event.inputs.excel_file }}" --no-push
+          # Secret이 있으면 우선 사용하고, 없으면 수동 입력된 proxy_url 사용
+          TARGET_PROXY="${SECRET_PROXY_URL:-$INPUT_PROXY_URL}"
+          if [ -n "$TARGET_PROXY" ]; then
+            export PROXY_URL="$TARGET_PROXY"
+            echo "Proxy configuration applied."
+          fi
+          
+          if [ -n "$INPUT_EXCEL_FILE" ]; then
+            python scrape_excel.py "$INPUT_EXCEL_FILE" --no-push
           else
             python scrape_excel.py --no-push
           fi
