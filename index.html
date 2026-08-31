@@ -137,6 +137,121 @@
     </form>
   </div>
 </div>
+<!-- Scraper Engine Modal -->
+<div id="scraperEngineModal" class="loading-overlay" style="background:rgba(15,23,42,0.75);z-index:2000;padding:1rem;">
+  <div class="glass-card" style="width:100%;max-width:760px;background:#ffffff;padding:1.75rem;position:relative;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);max-height:90vh;overflow-y:auto;">
+    <button onclick="closeScraperEngineModal()" style="position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-secondary);">✕</button>
+    <div style="margin-bottom:1.25rem;">
+      <h2 style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:0.5rem;">
+        ⚡ 웹 스크래핑 엔진 제어 센터
+      </h2>
+      <p style="color:var(--text-secondary);font-size:0.85rem;margin-top:0.2rem;">
+        웹 브라우저 내장 스크래핑 엔진을 통해 진학사/유웨이 입시 경쟁률 데이터를 실시간 수집 및 갱신합니다.
+      </p>
+    </div>
+
+    <div class="tabs" style="margin-bottom:1rem;">
+      <button class="tab-btn active" onclick="switchScraperTab('tabBatchScrape', this)">🔄 전체 대학 재스크래핑</button>
+      <button class="tab-btn" onclick="switchScraperTab('tabDirectScrape', this)">🌐 단일 URL 스크래핑</button>
+      <button class="tab-btn" onclick="switchScraperTab('tabExcelScrape', this)">📤 엑셀 일괄 스크래핑</button>
+      <button class="tab-btn" onclick="switchScraperTab('tabDataExport', this)">💾 데이터 백업 & 다운로드</button>
+    </div>
+
+    <!-- Tab 1: Batch Scrape -->
+    <div id="tabBatchScrape" class="scraper-tab-content">
+      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
+        현재 대시보드에 등록된 대학들의 경쟁률 페이지 URL을 순차적으로 실시간 웹 스크래핑하여 최신 경쟁률로 전수 갱신합니다.
+      </p>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;">
+          <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">대상 연도 선택</label>
+          <select id="engineBatchYear" class="form-control">
+            <option value="ALL">전체 연도 대학</option>
+            <option value="2027" selected>2027학년도</option>
+            <option value="2026">2026학년도</option>
+            <option value="2025">2025학년도</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:180px;display:flex;align-items:flex-end;">
+          <button class="btn btn-primary" style="width:100%;padding:0.65rem;justify-content:center;background:linear-gradient(135deg,#7c3aed,#4f46e5);" onclick="startBatchScrapingEngine()">
+            ⚡ 전체 재스크래핑 시작
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Direct Scrape -->
+    <div id="tabDirectScrape" class="scraper-tab-content" style="display:none;">
+      <form onsubmit="handleEngineDirectScrape(event)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+          <div>
+            <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">대학명</label>
+            <input type="text" id="engDirectUniv" placeholder="예: 인하공업전문대학" required class="form-control">
+          </div>
+          <div>
+            <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">학년도</label>
+            <input type="text" id="engDirectYear" value="2027" required class="form-control">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+          <div>
+            <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">모집시기</label>
+            <input type="text" id="engDirectAdm" value="수시1차" required class="form-control">
+          </div>
+          <div>
+            <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">정원구분</label>
+            <input type="text" id="engDirectCap" value="구분없음" required class="form-control">
+          </div>
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">진학사 / 유웨이 경쟁률 URL</label>
+          <input type="url" id="engDirectUrl" placeholder="https://addon.jinhakapply.com/..." required class="form-control">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:0.65rem;">
+          🔍 즉시 스크래핑 및 등록
+        </button>
+      </form>
+    </div>
+
+    <!-- Tab 3: Excel Scrape -->
+    <div id="tabExcelScrape" class="scraper-tab-content" style="display:none;">
+      <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.75rem;">
+        엑셀 서식 파일(.xlsx)을 업로드하면 브라우저 스크래핑 엔진이 모든 행의 대학 URL을 자동으로 파싱합니다.
+      </p>
+      <div class="dropzone" id="engExcelDropzone" onclick="document.getElementById('engExcelFileInput').click()">
+        <input type="file" id="engExcelFileInput" accept=".xlsx" style="display:none;" onchange="handleEngineExcelFileSelect(this)">
+        <div style="font-size:2rem;margin-bottom:0.3rem;">📊</div>
+        <p id="engExcelDropzoneText">클릭하거나 엑셀 파일(.xlsx)을 드래그 앤 드롭 하세요.</p>
+      </div>
+      <div id="engExcelPreviewArea" style="display:none;margin-top:0.75rem;padding:0.75rem;background:#f8fafc;border-radius:0.5rem;border:1px solid var(--border-color);font-size:0.85rem;"></div>
+      <button type="button" class="btn btn-primary" style="display:none;width:100%;margin-top:0.75rem;justify-content:center;" id="engExcelStartBtn" onclick="startEngineExcelScrape()">
+        🚀 엑셀 전체 스크래핑 실행
+      </button>
+    </div>
+
+    <!-- Tab 4: Data Export -->
+    <div id="tabDataExport" class="scraper-tab-content" style="display:none;">
+      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
+        현재 수집·스크래핑된 모든 대학 데이터(학과별 모집/지원/경쟁률)를 <strong>`data.json`</strong> 파일로 내보내어 백업하거나 저장소에 반영할 수 있습니다.
+      </p>
+      <button class="btn btn-secondary" style="width:100%;justify-content:center;padding:0.75rem;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;" onclick="downloadCurrentDataJson()">
+        📥 data.json 파일 다운로드
+      </button>
+    </div>
+
+    <!-- Live Console & Progress -->
+    <div id="engineConsoleArea" style="margin-top:1.5rem;background:#0f172a;color:#f8fafc;border-radius:0.6rem;padding:1rem;font-family:monospace;font-size:0.82rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;color:#94a3b8;font-size:0.78rem;">
+        <span>💻 SCRAPING ENGINE CONSOLE</span>
+        <span id="engineStatusBadge" style="background:#1e293b;color:#38bdf8;padding:0.15rem 0.5rem;border-radius:0.3rem;">대기 중</span>
+      </div>
+      <div id="engineProgressBarContainer" style="display:none;width:100%;height:8px;background:#334155;border-radius:4px;overflow:hidden;margin-bottom:0.75rem;">
+        <div id="engineProgressBar" style="width:0%;height:100%;background:#38bdf8;transition:width 0.2s;"></div>
+      </div>
+      <div id="engineConsoleLogs" style="max-height:160px;overflow-y:auto;line-height:1.5;color:#e2e8f0;white-space:pre-wrap;">스크래핑 엔진이 준비되었습니다. 상단 탭에서 원하는 작업을 실행하세요.</div>
+    </div>
+  </div>
+</div>
 
 <header class="app-header">
   <div class="header-content">
@@ -154,6 +269,7 @@
       <button class="btn btn-secondary" onclick="showAdvancedQueryModal(true)">🔎 상세 쿼리</button>
       <button class="btn btn-secondary" onclick="showReportBuilder(false, true)">📊 비교 리포트</button>
       <button class="btn btn-primary" onclick="showRealtimeReportBuilder(true)">🔄 실시간 파싱 리포트</button>
+      <button class="btn btn-primary" onclick="openScraperEngineModal()" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;box-shadow:0 2px 8px rgba(124,58,237,0.3);">⚡ 스크래핑 엔진</button>
       <div id="adminHeaderArea" style="display:inline-flex;gap:0.4rem;align-items:center;"></div>
     </div>
   </div>
@@ -173,6 +289,7 @@
         <div style="display:flex;flex-direction:column;gap:0.6rem;">
           <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showHome(true)">🏠 메인 대시보드</button>
           <button class="btn btn-primary" style="width:100%;justify-content:flex-start;" onclick="showRealtimeReportBuilder(true)">🔄 당해년도 실시간 파싱 리포트</button>
+          <button class="btn btn-primary" style="width:100%;justify-content:flex-start;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;" onclick="openScraperEngineModal()">⚡ 스크래핑 엔진 실행 센터</button>
           <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showReportBuilder(false, true)">📊 전형별 맞춤 비교 리포트</button>
           <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showAdvancedQueryModal(true)">🔎 조건별 상세 쿼리 검색</button>
         </div>
@@ -1114,35 +1231,15 @@ async function executeAdminExcelUpload() {
     return;
   }
 
-  showLoading(true);
-  const formData = new FormData();
-  formData.append('file', SELECTED_ADMIN_FILE);
-
-  try {
-    // 1. Try local FastAPI server
-    const res = await fetch('http://127.0.0.1:26240/api/upload_excel', {
-      method: 'POST',
-      headers: {
-        'x-admin-token': 'ipsi4774!'
-      },
-      body: formData
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      alert(data.message || '엑셀 업로드 및 스크래핑이 완료되었습니다.');
-      SELECTED_ADMIN_FILE = null;
-      await reloadLatestData();
-    } else {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.detail || 'HTTP ' + res.status);
-    }
-  } catch (e) {
-    // If local server is not responding
-    alert('로컬 스크래핑 서버(http://127.0.0.1:26240)와 연결 중입니다.\n\n스크래핑 엔진 실행을 위해 start.bat을 실행해 주세요.\n오류: ' + e.message);
-  } finally {
-    showLoading(false);
-  }
+  // Set file to engine and run engine scrape
+  ENGINE_EXCEL_FILE = SELECTED_ADMIN_FILE;
+  openScraperEngineModal();
+  switchScraperTab('tabExcelScrape', document.querySelectorAll('#scraperEngineModal .tab-btn')[2]);
+  const dropText = document.getElementById('engExcelDropzoneText');
+  if (dropText) dropText.innerHTML = `<b>선택된 파일:</b><br><span style="color:var(--primary-color);font-weight:700;">${e(ENGINE_EXCEL_FILE.name)}</span>`;
+  const startBtn = document.getElementById('engExcelStartBtn');
+  if (startBtn) startBtn.style.display = 'inline-flex';
+  startEngineExcelScrape();
 }
 
 async function handleAdminDirectScrape(e) {
@@ -1153,64 +1250,439 @@ async function handleAdminDirectScrape(e) {
   const cap = document.getElementById('directCap').value.trim();
   const url = document.getElementById('directUrl').value.trim();
 
-  showLoading(true);
-  const formData = new FormData();
-  formData.append('name', name);
-  formData.append('year', year);
-  formData.append('admission_type', adm);
-  formData.append('capacity_type', cap);
-  formData.append('url', url);
+  openScraperEngineModal();
+  switchScraperTab('tabDirectScrape', document.querySelectorAll('#scraperEngineModal .tab-btn')[1]);
+  document.getElementById('engDirectUniv').value = name;
+  document.getElementById('engDirectYear').value = year;
+  document.getElementById('engDirectAdm').value = adm;
+  document.getElementById('engDirectCap').value = cap;
+  document.getElementById('engDirectUrl').value = url;
 
+  handleEngineDirectScrape(e);
+}
+
+// ── Web Scraping Engine (Client & Hybrid) ───────────────────
+let ENGINE_EXCEL_FILE = null;
+
+function openScraperEngineModal() {
+  document.getElementById('scraperEngineModal').style.display = 'flex';
+}
+
+function closeScraperEngineModal() {
+  document.getElementById('scraperEngineModal').style.display = 'none';
+}
+
+function switchScraperTab(tabId, btn) {
+  document.querySelectorAll('.scraper-tab-content').forEach(el => el.style.display = 'none');
+  const target = document.getElementById(tabId);
+  if (target) target.style.display = 'block';
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function appendEngineLog(msg, type = 'info') {
+  const logs = document.getElementById('engineConsoleLogs');
+  if (!logs) return;
+  const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+  let prefix = `[${time}] `;
+  if (type === 'success') prefix += '✅ ';
+  else if (type === 'error') prefix += '❌ ';
+  else if (type === 'warn') prefix += '⚠️ ';
+  else prefix += 'ℹ️ ';
+  logs.innerHTML += `\n${prefix}${e(msg)}`;
+  logs.scrollTop = logs.scrollHeight;
+}
+
+function setEngineStatus(statusText, color = '#38bdf8') {
+  const badge = document.getElementById('engineStatusBadge');
+  if (badge) {
+    badge.innerText = statusText;
+    badge.style.color = color;
+  }
+}
+
+function updateEngineProgress(percent, isVisible = true) {
+  const container = document.getElementById('engineProgressBarContainer');
+  const bar = document.getElementById('engineProgressBar');
+  if (container && bar) {
+    container.style.display = isVisible ? 'block' : 'none';
+    bar.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+  }
+}
+
+// Multi-Proxy HTML Fetcher (Local Fast Proxy -> Public Fallback Proxies)
+async function fetchHtmlWithProxies(targetUrl) {
+  // 1. Try local server proxy (superfast & no cors)
   try {
-    const res = await fetch('http://127.0.0.1:26240/scrape', {
-      method: 'POST',
-      body: formData
+    const localRes = await fetch(`http://127.0.0.1:26240/api/proxy?url=${encodeURIComponent(targetUrl)}`, { signal: AbortSignal.timeout(2500) });
+    if (localRes.ok) {
+      const text = await localRes.text();
+      if (text && text.length > 500) return text;
+    }
+  } catch (e) {}
+
+  // 2. Public CORS Proxies with timeout
+  const proxies = [
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+  ];
+
+  for (const getProxyUrl of proxies) {
+    try {
+      const pUrl = getProxyUrl(targetUrl);
+      const res = await fetch(pUrl, { signal: AbortSignal.timeout(9000) });
+      if (res.ok) {
+        const text = await res.text();
+        if (text && text.length > 500) return text;
+      }
+    } catch (err) {
+      console.warn("Proxy attempt error:", err);
+    }
+  }
+  throw new Error("경쟁률 HTML 페이지를 불러올 수 없습니다.");
+}
+
+// Client-Side DOMParser Scraping Engine (100% matched with Python scraper_service.py)
+function parseUniversityHtml(htmlText, domainHint = '') {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlText, 'text/html');
+  const tables = doc.querySelectorAll('table');
+  
+  const result = {
+    titles: [],
+    tables_html: [],
+    parsed_departments: []
+  };
+
+  tables.forEach((table, idx) => {
+    const classes = table.className || '';
+    const isJinhak = classes.includes('tableRatio2') || classes.includes('tableRatio3');
+    const tableText = table.textContent || '';
+    const hasIpsiKeywords = tableText.includes('경쟁률') || tableText.includes('지원') || tableText.includes('모집');
+    
+    if (!isJinhak && !hasIpsiKeywords && idx > 5) return;
+
+    // Nearest header title search (h1~h4, div, p)
+    let headerTitle = `표 ${result.tables_html.length + 1}`;
+    let prev = table.previousElementSibling;
+    while (prev) {
+      if (['H1', 'H2', 'H3', 'H4', 'DIV', 'P'].includes(prev.tagName) && prev.textContent.trim()) {
+        headerTitle = prev.textContent.trim().replace(/\s+/g, ' ');
+        break;
+      }
+      prev = prev.previousElementSibling;
+    }
+
+    const cleanTableHtml = table.outerHTML
+      .replace(/style="[^"]*"/gi, '')
+      .replace(/class="[^"]*"/gi, '')
+      .replace(/border="[^"]*"/gi, '');
+
+    result.titles.push(headerTitle);
+    result.tables_html.push(cleanTableHtml);
+
+    // Extract structured department rows
+    const rows = table.querySelectorAll('tr');
+    let colIndexes = { dept: -1, adm: -1, app: -1, ratio: -1 };
+
+    rows.forEach(tr => {
+      const ths = tr.querySelectorAll('th, td');
+      ths.forEach((cell, cIdx) => {
+        const txt = cell.textContent.trim();
+        if (/모집단위|전형명|학과|전공|구분/.test(txt) && colIndexes.dept === -1) colIndexes.dept = cIdx;
+        if (/모집인원|총모집인원/.test(txt) && colIndexes.adm === -1) colIndexes.adm = cIdx;
+        if (/지원인원|지원자수|지원자/.test(txt) && colIndexes.app === -1) colIndexes.app = cIdx;
+        if (/경쟁률/.test(txt) && colIndexes.ratio === -1) colIndexes.ratio = cIdx;
+      });
     });
 
-    if (res.ok || res.redirected) {
-      alert(`${name} 대학의 스크래핑 및 등록이 완료되었습니다.`);
-      await reloadLatestData();
-    } else {
-      throw new Error('HTTP ' + res.status);
+    if (colIndexes.dept !== -1) {
+      rows.forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        if (tds.length > colIndexes.dept) {
+          const deptName = (tds[colIndexes.dept]?.textContent || '').trim();
+          if (!deptName || /소계|총계|합계|모집단위|전형명|학과/.test(deptName)) return;
+
+          const admCount = colIndexes.adm !== -1 ? (tds[colIndexes.adm]?.textContent || '').trim() : '';
+          const appCount = colIndexes.app !== -1 ? (tds[colIndexes.app]?.textContent || '').trim() : '';
+          const compRatio = colIndexes.ratio !== -1 ? (tds[colIndexes.ratio]?.textContent || '').trim() : '';
+
+          result.parsed_departments.push({
+            table_title: headerTitle,
+            department_name: deptName,
+            admission_count: admCount,
+            applicant_count: appCount,
+            competition_ratio: compRatio
+          });
+        }
+      });
     }
-  } catch (err) {
-    alert('로컬 서버 연결 필요: start.bat을 실행한 후 다시 시도해 주세요.\n' + err.message);
-  } finally {
-    showLoading(false);
+  });
+
+  return result;
+}
+
+function saveUniversitiesAndRefresh(updatedList) {
+  ALL_UNIVS = updatedList;
+  try {
+    localStorage.setItem('ipsi_custom_universities', JSON.stringify(ALL_UNIVS));
+  } catch (e) {}
+  buildTree();
+  renderDataSummary();
+}
+
+// ── Batch Scraping Engine ─────────────────────────────────────
+async function startBatchScrapingEngine() {
+  const selectedYear = document.getElementById('engineBatchYear').value;
+  const targetUnivs = ALL_UNIVS.filter(u => u.url && (selectedYear === 'ALL' || u.year === selectedYear));
+
+  if (!targetUnivs.length) {
+    alert(`해당 조건(${selectedYear}학년도)에 URL이 등록된 대학이 없습니다.`);
+    return;
   }
+
+  appendEngineLog(`🚀 [배치 스크래핑] ${targetUnivs.length}개 대학 실시간 수집을 시작합니다... (대상: ${selectedYear})`);
+  setEngineStatus('스크래핑 중...', '#eab308');
+  updateEngineProgress(0, true);
+
+  let success = 0, failed = 0;
+  const updatedAll = [...ALL_UNIVS];
+
+  for (let i = 0; i < targetUnivs.length; i++) {
+    const u = targetUnivs[i];
+    const percent = Math.round(((i) / targetUnivs.length) * 100);
+    updateEngineProgress(percent);
+    appendEngineLog(`[${i + 1}/${targetUnivs.length}] ${u.name} (${u.year} ${u.admission_type}) 파싱 중...`);
+
+    try {
+      const html = await fetchHtmlWithProxies(u.url);
+      const parsed = parseUniversityHtml(html, u.url);
+
+      if (!parsed.tables_html.length) throw new Error("유효한 경쟁률 표를 찾지 못함");
+
+      const idx = updatedAll.findIndex(item => item.id === u.id || (item.name === u.name && item.year === u.year && item.admission_type === u.admission_type && item.capacity_type === u.capacity_type));
+      const updatedRecord = {
+        ...u,
+        scraped_data: parsed,
+        departments: parsed.parsed_departments
+      };
+
+      if (idx !== -1) updatedAll[idx] = updatedRecord;
+      else updatedAll.push(updatedRecord);
+
+      success++;
+      appendEngineLog(`✔ ${u.name} 성공 (${parsed.parsed_departments.length}개 학과 추출)`, 'success');
+    } catch (err) {
+      failed++;
+      appendEngineLog(`✖ ${u.name} 실패: ${err.message}`, 'warn');
+    }
+  }
+
+  updateEngineProgress(100);
+  setEngineStatus('완료', '#10b981');
+  saveUniversitiesAndRefresh(updatedAll);
+  appendEngineLog(`🎉 배치 스크래핑 완료! (성공: ${success}개, 실패/건너뜀: ${failed}개)`, 'success');
+  alert(`스크래핑 완료!\n\n성공: ${success}개 대학\n실패: ${failed}개 대학\n대시보드 데이터가 최신으로 갱신되었습니다.`);
 }
 
-function openAdminLoginModal() {
-  document.getElementById('adminModalError').style.display = 'none';
-  document.getElementById('modalAdminPass').value = '';
-  document.getElementById('adminLoginModal').style.display = 'flex';
-}
-
-function closeAdminLoginModal() {
-  document.getElementById('adminLoginModal').style.display = 'none';
-}
-
-function handleAdminLoginSubmit(e) {
+// ── Direct URL Scraping Engine ────────────────────────────────
+async function handleEngineDirectScrape(e) {
   e.preventDefault();
-  const u = document.getElementById('modalAdminUser').value.trim();
-  const p = document.getElementById('modalAdminPass').value.trim();
+  const name = document.getElementById('engDirectUniv').value.trim();
+  const year = document.getElementById('engDirectYear').value.trim();
+  const adm = document.getElementById('engDirectAdm').value.trim();
+  const cap = document.getElementById('engDirectCap').value.trim();
+  const url = document.getElementById('engDirectUrl').value.trim();
 
-  if (u === 'admin' && p === 'ipsi4774!') {
-    localStorage.setItem('ipsi_admin_logged_in', 'true');
-    closeAdminLoginModal();
-    renderAdminUI();
-    alert('관리자(admin)로 로그인되었습니다.');
-  } else {
-    const err = document.getElementById('adminModalError');
-    err.innerText = '아이디 또는 비밀번호가 올바르지 않습니다.';
-    err.style.display = 'block';
+  appendEngineLog(`🔍 [단일 스크래핑] ${name} (${url}) 수집 시작...`);
+  setEngineStatus('스크래핑 중...', '#eab308');
+  updateEngineProgress(30, true);
+
+  try {
+    const html = await fetchHtmlWithProxies(url);
+    updateEngineProgress(70);
+    const parsed = parseUniversityHtml(html, url);
+
+    if (!parsed.tables_html.length) throw new Error("웹페이지에서 경쟁률 테이블을 추출하지 못했습니다.");
+
+    const maxId = ALL_UNIVS.reduce((max, u) => Math.max(max, u.id || 0), 0);
+    const newRecord = {
+      id: maxId + 1,
+      name: name,
+      year: year,
+      admission_type: adm,
+      capacity_type: cap,
+      url: url,
+      scraped_data: parsed,
+      departments: parsed.parsed_departments
+    };
+
+    const updatedAll = [...ALL_UNIVS];
+    const idx = updatedAll.findIndex(u => u.name === name && u.year === year && u.admission_type === adm && u.capacity_type === cap);
+    if (idx !== -1) updatedAll[idx] = newRecord;
+    else updatedAll.unshift(newRecord);
+
+    saveUniversitiesAndRefresh(updatedAll);
+    updateEngineProgress(100);
+    setEngineStatus('완료', '#10b981');
+    appendEngineLog(`🎉 ${name} 등록 완료! (${parsed.parsed_departments.length}개 학과 추출됨)`, 'success');
+    alert(`${name} 대학이 성공적으로 스크래핑 및 등록되었습니다!`);
+    showUnivDetail(newRecord.id, true);
+    closeScraperEngineModal();
+  } catch (err) {
+    updateEngineProgress(0, false);
+    setEngineStatus('오류', '#ef4444');
+    appendEngineLog(`❌ 스크래핑 실패: ${err.message}`, 'error');
+    alert(`스크래핑 실패: ${err.message}`);
   }
 }
 
-function adminLogout() {
-  localStorage.removeItem('ipsi_admin_logged_in');
-  renderAdminUI();
-  alert('로그아웃되었습니다.');
+// ── Excel Scraping Engine ─────────────────────────────────────
+function handleEngineExcelFileSelect(input) {
+  if (input.files && input.files[0]) {
+    ENGINE_EXCEL_FILE = input.files[0];
+    const dropText = document.getElementById('engExcelDropzoneText');
+    const preview = document.getElementById('engExcelPreviewArea');
+    const startBtn = document.getElementById('engExcelStartBtn');
+
+    if (dropText) dropText.innerHTML = `<b>선택된 파일:</b><br><span style="color:var(--primary-color);font-weight:700;">${e(ENGINE_EXCEL_FILE.name)}</span>`;
+    if (startBtn) startBtn.style.display = 'inline-flex';
+
+    try {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+          const valid = rows.slice(1).filter(r => r && r[3]);
+          if (preview) {
+            preview.style.display = 'block';
+            preview.innerHTML = `총 <strong>${valid.length}개</strong> 대학 스크래핑 대기 중: ${valid.slice(0, 4).map(r => r[2] || '대학').join(', ')}${valid.length > 4 ? ' 외 ' + (valid.length - 4) + '개' : ''}`;
+          }
+        } catch (e) {}
+      };
+      reader.readAsArrayBuffer(ENGINE_EXCEL_FILE);
+    } catch (e) {}
+  }
+}
+
+async function startEngineExcelScrape() {
+  if (!ENGINE_EXCEL_FILE) {
+    alert('엑셀 파일을 먼저 선택해 주세요.');
+    return;
+  }
+
+  // If local server is reachable, execute local batch API first
+  try {
+    const formData = new FormData();
+    formData.append('file', ENGINE_EXCEL_FILE);
+    const localRes = await fetch('http://127.0.0.1:26240/api/upload_excel', {
+      method: 'POST',
+      headers: { 'x-admin-token': 'ipsi4774!' },
+      body: formData,
+      signal: AbortSignal.timeout(3000)
+    });
+    if (localRes.ok) {
+      const result = await localRes.json();
+      appendEngineLog(`🚀 [로컬 고속 엔진] ${result.message}`, 'success');
+      alert(result.message || '엑셀 스크래핑이 완료되었습니다.');
+      await reloadLatestData();
+      closeScraperEngineModal();
+      return;
+    }
+  } catch (e) {}
+
+  // Fallback to client browser engine parsing
+  appendEngineLog(`📊 엑셀 파일을 브라우저 스크래핑 엔진으로 실행합니다...`);
+  setEngineStatus('스크래핑 중...', '#eab308');
+  updateEngineProgress(0, true);
+
+  const reader = new FileReader();
+  reader.onload = async function(evt) {
+    try {
+      const data = new Uint8Array(evt.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+      const validRows = rows.slice(1).filter(r => r && r[3] && String(r[3]).trim());
+
+      let success = 0, failed = 0;
+      const updatedAll = [...ALL_UNIVS];
+      let curMaxId = updatedAll.reduce((max, u) => Math.max(max, u.id || 0), 0);
+
+      for (let i = 0; i < validRows.length; i++) {
+        const row = validRows[i];
+        const y = String(row[0] || '2027').trim();
+        const a = String(row[1] || '수시1차').trim();
+        const n = String(row[2] || '대학').trim();
+        const u = String(row[3]).trim();
+        const c = String(row[4] || '구분없음').trim();
+
+        updateEngineProgress(Math.round((i / validRows.length) * 100));
+        appendEngineLog(`[${i + 1}/${validRows.length}] ${n} (${y} ${a}) 수집 중...`);
+
+        try {
+          const html = await fetchHtmlWithProxies(u);
+          const parsed = parseUniversityHtml(html, u);
+          if (!parsed.tables_html.length) throw new Error("테이블 없음");
+
+          curMaxId++;
+          const rec = {
+            id: curMaxId,
+            name: n,
+            year: y,
+            admission_type: a,
+            capacity_type: c,
+            url: u,
+            scraped_data: parsed,
+            departments: parsed.parsed_departments
+          };
+
+          const idx = updatedAll.findIndex(item => item.name === n && item.year === y && item.admission_type === a && item.capacity_type === c);
+          if (idx !== -1) updatedAll[idx] = rec;
+          else updatedAll.unshift(rec);
+
+          success++;
+          appendEngineLog(`✔ ${n} 성공 (${parsed.parsed_departments.length}개 학과)`, 'success');
+        } catch (err) {
+          failed++;
+          appendEngineLog(`✖ ${n} 실패: ${err.message}`, 'warn');
+        }
+      }
+
+      updateEngineProgress(100);
+      setEngineStatus('완료', '#10b981');
+      saveUniversitiesAndRefresh(updatedAll);
+      appendEngineLog(`🎉 엑셀 스크래핑 완료! (성공: ${success}개, 실패: ${failed}개)`, 'success');
+      alert(`엑셀 스크래핑 완료!\n\n성공: ${success}개 대학\n실패: ${failed}개 대학\n대시보드에 반영되었습니다.`);
+      closeScraperEngineModal();
+    } catch (err) {
+      appendEngineLog(`❌ 엑셀 처리 오류: ${err.message}`, 'error');
+      alert(`엑셀 처리 오류: ${err.message}`);
+    }
+  };
+  reader.readAsArrayBuffer(ENGINE_EXCEL_FILE);
+}
+
+// ── Data Export ───────────────────────────────────────────────
+function downloadCurrentDataJson() {
+  const payload = {
+    exported_at: new Date().toISOString(),
+    total_universities: ALL_UNIVS.length,
+    universities: ALL_UNIVS
+  };
+  const jsonStr = JSON.stringify(payload, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `data_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  appendEngineLog(`📥 data.json 파일 다운로드가 완료되었습니다.`, 'success');
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -1225,6 +1697,19 @@ async function reloadLatestData() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const payload = await res.json();
     ALL_UNIVS = payload.universities || [];
+    
+    // Merge custom localStorage data if any
+    try {
+      const custom = JSON.parse(localStorage.getItem('ipsi_custom_universities') || '[]');
+      if (custom && custom.length) {
+        custom.forEach(cu => {
+          const idx = ALL_UNIVS.findIndex(u => u.name === cu.name && u.year === cu.year && u.admission_type === cu.admission_type && u.capacity_type === cu.capacity_type);
+          if (idx !== -1) ALL_UNIVS[idx] = cu;
+          else ALL_UNIVS.unshift(cu);
+        });
+      }
+    } catch (err) {}
+
     buildTree();
     renderDataSummary();
     handleUrlParams();

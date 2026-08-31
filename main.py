@@ -46,6 +46,16 @@ def is_admin_authenticated(request: Request) -> bool:
         return False
     return hmac.compare_digest(token, create_admin_token())
 
+@app.get("/api/proxy")
+async def api_proxy(url: str):
+    import requests
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.encoding = resp.apparent_encoding
+        return HTMLResponse(content=resp.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Dependency
 def get_db():
     db = SessionLocal()
