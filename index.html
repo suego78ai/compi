@@ -244,15 +244,23 @@
     </div>
 
     <!-- Live Console & Progress -->
-    <div id="engineConsoleArea" style="margin-top:1.5rem;background:#0f172a;color:#f8fafc;border-radius:0.6rem;padding:1rem;font-family:monospace;font-size:0.82rem;">
+    <div id="engineConsoleArea" style="margin-top:1.5rem;background:#0f172a;color:#f8fafc;border-radius:0.6rem;padding:1rem;font-family:monospace;font-size:0.82rem;border:1px solid #1e293b;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;color:#94a3b8;font-size:0.78rem;">
-        <span>💻 SCRAPING ENGINE CONSOLE</span>
-        <span id="engineStatusBadge" style="background:#1e293b;color:#38bdf8;padding:0.15rem 0.5rem;border-radius:0.3rem;">대기 중</span>
+        <span style="font-weight:700;letter-spacing:0.05em;display:flex;align-items:center;gap:0.45rem;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#38bdf8;" id="engineConsoleDot"></span>
+          💻 SCRAPING ENGINE CONSOLE
+        </span>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <button onclick="clearEngineLogs()" style="background:#1e293b;border:1px solid #334155;color:#94a3b8;font-size:0.72rem;padding:0.15rem 0.5rem;border-radius:0.3rem;cursor:pointer;transition:all 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">로그 지우기</button>
+          <span id="engineStatusBadge" style="background:#1e293b;color:#38bdf8;padding:0.15rem 0.55rem;border-radius:0.3rem;font-weight:600;">대기 중</span>
+        </div>
       </div>
       <div id="engineProgressBarContainer" style="display:none;width:100%;height:8px;background:#334155;border-radius:4px;overflow:hidden;margin-bottom:0.75rem;">
         <div id="engineProgressBar" style="width:0%;height:100%;background:#38bdf8;transition:width 0.2s;"></div>
       </div>
-      <div id="engineConsoleLogs" style="max-height:160px;overflow-y:auto;line-height:1.5;color:#e2e8f0;white-space:pre-wrap;">스크래핑 엔진이 준비되었습니다. 상단 탭에서 원하는 작업을 실행하세요.</div>
+      <div id="engineConsoleLogs" style="max-height:180px;overflow-y:auto;line-height:1.6;color:#e2e8f0;background:#090d16;padding:0.75rem;border-radius:0.4rem;border:1px solid #1e293b;font-size:0.8rem;">
+        <div style="color:#94a3b8;">스크래핑 엔진이 준비되었습니다. 상단 탭에서 원하는 작업을 실행하세요.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1314,24 +1322,49 @@ function switchScraperTab(tabId, btn) {
   btn.classList.add('active');
 }
 
+function clearEngineLogs() {
+  const logs = document.getElementById('engineConsoleLogs');
+  if (logs) {
+    logs.innerHTML = '<div style="color:#94a3b8;">로그가 초기화되었습니다.</div>';
+  }
+}
+
 function appendEngineLog(msg, type = 'info') {
   const logs = document.getElementById('engineConsoleLogs');
   if (!logs) return;
   const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
   let prefix = `[${time}] `;
-  if (type === 'success') prefix += '✅ ';
-  else if (type === 'error') prefix += '❌ ';
-  else if (type === 'warn') prefix += '⚠️ ';
-  else prefix += 'ℹ️ ';
-  logs.innerHTML += `\n${prefix}${e(msg)}`;
+  let color = '#93c5fd';
+  if (type === 'success') {
+    prefix += '✅ ';
+    color = '#4ade80';
+  } else if (type === 'error') {
+    prefix += '❌ ';
+    color = '#f87171';
+  } else if (type === 'warn') {
+    prefix += '⚠️ ';
+    color = '#fbbf24';
+  } else {
+    prefix += 'ℹ️ ';
+    color = '#93c5fd';
+  }
+  const line = document.createElement('div');
+  line.style.color = color;
+  line.style.marginTop = '0.2rem';
+  line.textContent = `${prefix}${msg}`;
+  logs.appendChild(line);
   logs.scrollTop = logs.scrollHeight;
 }
 
 function setEngineStatus(statusText, color = '#38bdf8') {
   const badge = document.getElementById('engineStatusBadge');
+  const dot = document.getElementById('engineConsoleDot');
   if (badge) {
     badge.innerText = statusText;
     badge.style.color = color;
+  }
+  if (dot) {
+    dot.style.background = color;
   }
 }
 
@@ -1344,21 +1377,33 @@ function updateEngineProgress(percent, isVisible = true) {
   }
 }
 
+// Decode HTML with EUC-KR / CP949 / UTF-8 automatic detection
+async function decodeHtmlResponse(res) {
+  const buffer = await res.arrayBuffer();
+  let text = new TextDecoder('utf-8').decode(buffer);
+  if (/charset=["']?(euc-kr|ks_c_5601-1987|cp949)/i.test(text)) {
+    try {
+      text = new TextDecoder('euc-kr').decode(buffer);
+    } catch (e) {}
+  }
+  return text;
+}
+
 // Multi-Proxy HTML Fetcher (Local Fast Proxy -> Public Fallback Proxies)
 async function fetchHtmlWithProxies(targetUrl) {
   // 1. Try local server proxy (superfast & no cors)
   try {
     const localRes = await fetch(`http://127.0.0.1:26240/api/proxy?url=${encodeURIComponent(targetUrl)}`, { signal: AbortSignal.timeout(2500) });
     if (localRes.ok) {
-      const text = await localRes.text();
+      const text = await decodeHtmlResponse(localRes);
       if (text && text.length > 500) return text;
     }
   } catch (e) {}
 
-  // 2. Public CORS Proxies with timeout
+  // 2. Public CORS Proxies with timeout & charset handling
   const proxies = [
-    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     url => `https://corsproxy.io/?url=${encodeURIComponent(url)}`,
+    url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
   ];
 
@@ -1367,14 +1412,14 @@ async function fetchHtmlWithProxies(targetUrl) {
       const pUrl = getProxyUrl(targetUrl);
       const res = await fetch(pUrl, { signal: AbortSignal.timeout(9000) });
       if (res.ok) {
-        const text = await res.text();
+        const text = await decodeHtmlResponse(res);
         if (text && text.length > 500) return text;
       }
     } catch (err) {
       console.warn("Proxy attempt error:", err);
     }
   }
-  throw new Error("경쟁률 HTML 페이지를 불러올 수 없습니다.");
+  throw new Error("경쟁률 HTML 페이지를 불러올 수 없습니다 (모든 프록시 연결 시간 초과 또는 차단).");
 }
 
 // Client-Side DOMParser Scraping Engine (100% matched with Python scraper_service.py)
@@ -1391,7 +1436,7 @@ function parseUniversityHtml(htmlText, domainHint = '') {
 
   tables.forEach((table, idx) => {
     const classes = table.className || '';
-    const isJinhak = classes.includes('tableRatio2') || classes.includes('tableRatio3');
+    const isJinhak = classes.includes('tableRatio2') || classes.includes('tableRatio3') || classes.includes('tableRatio');
     const tableText = table.textContent || '';
     const hasIpsiKeywords = tableText.includes('경쟁률') || tableText.includes('지원') || tableText.includes('모집');
     
@@ -1424,10 +1469,10 @@ function parseUniversityHtml(htmlText, domainHint = '') {
       const ths = tr.querySelectorAll('th, td');
       ths.forEach((cell, cIdx) => {
         const txt = cell.textContent.trim();
-        if (/모집단위|전형명|학과|전공|구분/.test(txt) && colIndexes.dept === -1) colIndexes.dept = cIdx;
-        if (/모집인원|총모집인원/.test(txt) && colIndexes.adm === -1) colIndexes.adm = cIdx;
-        if (/지원인원|지원자수|지원자/.test(txt) && colIndexes.app === -1) colIndexes.app = cIdx;
-        if (/경쟁률/.test(txt) && colIndexes.ratio === -1) colIndexes.ratio = cIdx;
+        if (/모집단위|전형명|학과|전공|모집학부|학부|계열|구분/.test(txt) && colIndexes.dept === -1) colIndexes.dept = cIdx;
+        if (/모집인원|총모집인원|모집 정원|모집/.test(txt) && colIndexes.adm === -1) colIndexes.adm = cIdx;
+        if (/지원인원|지원자수|지원인원수|지원자|지원/.test(txt) && colIndexes.app === -1) colIndexes.app = cIdx;
+        if (/경쟁률|지원경쟁률/.test(txt) && colIndexes.ratio === -1) colIndexes.ratio = cIdx;
       });
     });
 
@@ -1436,7 +1481,7 @@ function parseUniversityHtml(htmlText, domainHint = '') {
         const tds = tr.querySelectorAll('td');
         if (tds.length > colIndexes.dept) {
           const deptName = (tds[colIndexes.dept]?.textContent || '').trim();
-          if (!deptName || /소계|총계|합계|모집단위|전형명|학과/.test(deptName)) return;
+          if (!deptName || /소계|총계|합계|모집단위|전형명|학과|전공|구분/.test(deptName)) return;
 
           const admCount = colIndexes.adm !== -1 ? (tds[colIndexes.adm]?.textContent || '').trim() : '';
           const appCount = colIndexes.app !== -1 ? (tds[colIndexes.app]?.textContent || '').trim() : '';
