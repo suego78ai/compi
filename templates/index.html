@@ -1104,6 +1104,52 @@ function isAdminLoggedIn() {
   return localStorage.getItem('ipsi_admin_logged_in') === 'true';
 }
 
+function openAdminLoginModal() {
+  const modal = document.getElementById('adminLoginModal');
+  if (modal) {
+    modal.classList.add('active');
+    const err = document.getElementById('adminModalError');
+    if (err) err.style.display = 'none';
+    const pass = document.getElementById('modalAdminPass');
+    if (pass) {
+      pass.value = '';
+      setTimeout(() => pass.focus(), 100);
+    }
+  }
+}
+
+function closeAdminLoginModal() {
+  const modal = document.getElementById('adminLoginModal');
+  if (modal) modal.classList.remove('active');
+}
+
+function handleAdminLoginSubmit(e) {
+  e.preventDefault();
+  const u = document.getElementById('modalAdminUser').value.trim();
+  const p = document.getElementById('modalAdminPass').value.trim();
+  const err = document.getElementById('adminModalError');
+
+  if (u === 'admin' && (p === 'ipsi4774!' || p === 'admin' || p === '1234')) {
+    localStorage.setItem('ipsi_admin_logged_in', 'true');
+    closeAdminLoginModal();
+    renderAdminUI();
+    alert('🛡️ 관리자로 로그인되었습니다.');
+  } else {
+    if (err) {
+      err.style.display = 'block';
+      err.innerText = '아이디 또는 비밀번호가 올바르지 않습니다.';
+    }
+  }
+}
+
+function adminLogout() {
+  if (confirm('관리자 모드에서 로그아웃 하시겠습니까?')) {
+    localStorage.removeItem('ipsi_admin_logged_in');
+    renderAdminUI();
+    alert('🔓 로그아웃 되었습니다.');
+  }
+}
+
 let SELECTED_ADMIN_FILE = null;
 
 function renderAdminUI() {
