@@ -7,6 +7,10 @@
   <meta name="description" content="수도권 전문대학 입시 경쟁률 데이터 대시보드 - 연도별 추이, 학과 검색, 3개년 비교 리포트 및 당해년도 실시간 파싱 리포트">
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="./xlsx.full.min.js"></script>
+  <script src="./static/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
       --bg-color: #f1f5f9;
@@ -320,8 +324,35 @@
 <script>
 let ALL_UNIVS = [], TREE = {}, CHART_INSTANCE = null;
 
+// ── SheetJS Dynamic Loader with Fallbacks ─────────────────────
+async function ensureXLSXLoaded() {
+  if (typeof XLSX !== 'undefined') return true;
+  const sources = [
+    './xlsx.full.min.js',
+    './static/xlsx.full.min.js',
+    '/static/xlsx.full.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ];
+  for (const src of sources) {
+    try {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = () => resolve();
+        s.onerror = () => reject();
+        document.head.appendChild(s);
+      });
+      if (typeof XLSX !== 'undefined') return true;
+    } catch (e) {}
+  }
+  return typeof XLSX !== 'undefined';
+}
+
 // ── Boot ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  ensureXLSXLoaded();
   renderAdminUI();
   showLoading(true);
   try {
@@ -1199,30 +1230,33 @@ function handleAdminFile(file) {
   if (uploadBtn) uploadBtn.style.display = 'inline-flex';
 
   // Excel parsing preview via SheetJS
-  try {
-    const reader = new FileReader();
-    reader.onload = function(evt) {
-      try {
-        const data = new Uint8Array(evt.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-        const validRows = rows.slice(1).filter(r => r && r[3]); // URL exists
-        
-        if (previewArea) {
-          previewArea.style.display = 'block';
-          previewArea.innerHTML = `
-            <div style="font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;">📋 엑셀 감지 내용</div>
-            <div>총 <strong>${validRows.length}개</strong> 대학 등록 대기</div>
-            <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.2rem;">${validRows.slice(0, 3).map(r => r[2] || '대학').join(', ')}${validRows.length > 3 ? ' 외 ' + (validRows.length - 3) + '개' : ''}</div>
-          `;
+  ensureXLSXLoaded().then(() => {
+    try {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          if (typeof XLSX === 'undefined') return;
+          const data = new Uint8Array(evt.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          const validRows = rows.slice(1).filter(r => r && r[3]); // URL exists
+          
+          if (previewArea) {
+            previewArea.style.display = 'block';
+            previewArea.innerHTML = `
+              <div style="font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;">📋 엑셀 감지 내용</div>
+              <div>총 <strong>${validRows.length}개</strong> 대학 등록 대기</div>
+              <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.2rem;">${validRows.slice(0, 3).map(r => r[2] || '대학').join(', ')}${validRows.length > 3 ? ' 외 ' + (validRows.length - 3) + '개' : ''}</div>
+            `;
+          }
+        } catch (err) {
+          console.warn('SheetJS preview error:', err);
         }
-      } catch (err) {
-        console.warn('SheetJS preview error:', err);
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  } catch (err) {}
+      };
+      reader.readAsArrayBuffer(file);
+    } catch (err) {}
+  });
 }
 
 async function executeAdminExcelUpload() {
@@ -1549,22 +1583,25 @@ function handleEngineExcelFileSelect(input) {
     if (dropText) dropText.innerHTML = `<b>선택된 파일:</b><br><span style="color:var(--primary-color);font-weight:700;">${e(ENGINE_EXCEL_FILE.name)}</span>`;
     if (startBtn) startBtn.style.display = 'inline-flex';
 
-    try {
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        try {
-          const data = new Uint8Array(evt.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-          const valid = rows.slice(1).filter(r => r && r[3]);
-          if (preview) {
-            preview.style.display = 'block';
-            preview.innerHTML = `총 <strong>${valid.length}개</strong> 대학 스크래핑 대기 중: ${valid.slice(0, 4).map(r => r[2] || '대학').join(', ')}${valid.length > 4 ? ' 외 ' + (valid.length - 4) + '개' : ''}`;
-          }
-        } catch (e) {}
-      };
-      reader.readAsArrayBuffer(ENGINE_EXCEL_FILE);
-    } catch (e) {}
+    ensureXLSXLoaded().then(() => {
+      try {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          try {
+            if (typeof XLSX === 'undefined') return;
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+            const valid = rows.slice(1).filter(r => r && r[3]);
+            if (preview) {
+              preview.style.display = 'block';
+              preview.innerHTML = `총 <strong>${valid.length}개</strong> 대학 스크래핑 대기 중: ${valid.slice(0, 4).map(r => r[2] || '대학').join(', ')}${valid.length > 4 ? ' 외 ' + (valid.length - 4) + '개' : ''}`;
+            }
+          } catch (e) {}
+        };
+        reader.readAsArrayBuffer(ENGINE_EXCEL_FILE);
+      } catch (e) {}
+    });
   }
 }
 
@@ -1598,6 +1635,15 @@ async function startEngineExcelScrape() {
   appendEngineLog(`📊 엑셀 파일을 브라우저 스크래핑 엔진으로 실행합니다...`);
   setEngineStatus('스크래핑 중...', '#eab308');
   updateEngineProgress(0, true);
+
+  // Ensure XLSX is ready
+  const isLoaded = await ensureXLSXLoaded();
+  if (!isLoaded || typeof XLSX === 'undefined') {
+    appendEngineLog('❌ SheetJS(XLSX) 라이브러리를 로드하지 못했습니다.', 'error');
+    alert('엑셀 파싱 라이브러리(SheetJS)를 로드할 수 없습니다. 인터넷 연결 또는 xlsx.full.min.js 파일을 확인해 주세요.');
+    setEngineStatus('오류', '#ef4444');
+    return;
+  }
 
   const reader = new FileReader();
   reader.onload = async function(evt) {

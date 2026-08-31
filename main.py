@@ -26,8 +26,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount templates
+# Mount templates and static files
 templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Admin Authentication
 ADMIN_USERNAME = "admin"
