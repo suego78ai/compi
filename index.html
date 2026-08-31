@@ -65,36 +65,33 @@
     .insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;}
     .insight-card{background:#f8fafc;border:1px solid var(--border-color);border-radius:0.85rem;padding:1.25rem;transition:transform 0.2s,border-color 0.2s;}
     .insight-card:hover{transform:translateY(-2px);border-color:var(--primary-color);}
-    .insight-icon{font-size:1.6rem;margin-bottom:0.3rem;display:block;}
-    .insight-label{color:var(--text-secondary);font-size:0.85rem;font-weight:600;margin-bottom:0.3rem;}
-    .insight-univ{color:var(--text-primary);font-size:1.1rem;font-weight:700;margin-bottom:0.4rem;}
-    .insight-value{color:var(--primary-color);font-size:0.95rem;font-weight:700;background:#e0e7ff;display:inline-block;padding:0.15rem 0.5rem;border-radius:0.5rem;}
-    .table-container{border:1px solid var(--border-color);background:#fff;border-radius:0.5rem;max-height:550px;overflow:auto;margin-bottom:1rem;}
-    table{border-collapse:collapse;width:100%;min-width:500px;text-align:left;}
-    th,td{border-bottom:1px solid var(--border-color);border-right:1px solid var(--border-color);padding:0.65rem 0.85rem;font-size:0.9rem;}
-    th{z-index:10;background-color:#f8fafc;font-weight:600;position:sticky;top:0;color:var(--text-primary);}
-    tbody tr:hover{background:var(--row-hover);}
-    .inha-purple-row{background-color:var(--purple-bg)!important;border-left:4px solid var(--purple-primary)!important;}
-    .inha-purple-row td{color:var(--purple-text)!important;}
-    .inha-purple-row:hover{background-color:var(--purple-light)!important;}
+    .tree-container summary{font-size:0.92rem;font-weight:600;cursor:pointer;padding:0.35rem 0.5rem;border-radius:0.4rem;user-select:none;display:flex;align-items:center;color:var(--text-primary);}
+    .tree-container summary:hover{background:#f8fafc;}
+    .tree-content{padding-left:0.75rem;margin-top:0.25rem;border-left:2px solid var(--border-color);margin-left:0.5rem;}
+    .tree-link{display:block;padding:0.35rem 0.6rem;font-size:0.86rem;color:var(--text-secondary);text-decoration:none;border-radius:0.4rem;cursor:pointer;margin-bottom:0.2rem;transition:all 0.15s;}
+    .tree-link:hover{background:#f1f5f9;color:var(--text-primary);}
+    .tree-link.active{background:rgba(79,70,229,0.1);color:var(--primary-color);font-weight:700;}
+    .inha-tree-link{background:var(--purple-bg)!important;color:var(--purple-primary)!important;font-weight:700!important;border:1px solid var(--purple-border)!important;}
+    .table-container{width:100%;overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;font-size:0.88rem;text-align:left;}
+    th,td{padding:0.6rem 0.8rem;border:1px solid var(--border-color);}
+    th{background:#f8fafc;font-weight:600;color:var(--text-primary);}
+    tr:hover{background:var(--row-hover);}
+    .inha-purple-row{background:var(--purple-bg)!important;font-weight:600;}
+    .inha-purple-row td{border-color:var(--purple-border)!important;}
     .inha-badge{background:linear-gradient(135deg,#7c3aed,#9333ea);color:#fff!important;padding:0.25rem 0.65rem;border-radius:0.4rem;font-size:0.85rem;font-weight:800;display:inline-flex;align-items:center;gap:0.3rem;box-shadow:0 2px 4px rgba(124,58,237,0.25);}
     .tabs{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;}
     .tab-btn{background:#f8fafc;border:1px solid var(--border-color);color:var(--text-secondary);padding:0.5rem 1rem;border-radius:0.5rem;cursor:pointer;font-weight:600;font-size:0.88rem;font-family:inherit;transition:all 0.15s;}
     .tab-btn.active{background:var(--primary-color);color:white;border-color:var(--primary-color);}
     .tab-content{display:none;}
     .tab-content.active{display:block;}
-    .text-purple{color:var(--purple-primary);}
-    .text-pc{color:var(--primary-color);}
-    .text-danger{color:var(--danger-color);}
-    .fw-bold{font-weight:bold;}
-    .alert{border-radius:0.5rem;padding:1rem;margin-bottom:1rem;display:flex;gap:0.75rem;align-items:flex-start;}
-    .alert-error{color:#991b1b;background:#fef2f2;border:1px solid #ef4444;}
-    .alert-info{color:#1e40af;background:#eff6ff;border:1px solid #93c5fd;}
     .loading-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.85);backdrop-filter:blur(6px);z-index:1000;justify-content:center;align-items:center;flex-direction:column;}
     .spinner{border:4px solid var(--border-color);border-top:4px solid var(--primary-color);border-radius:50%;width:44px;height:44px;animation:spin 1s linear infinite;margin-bottom:1rem;}
     @keyframes spin{0%{transform:rotate(0);}100%{transform:rotate(360deg);}}
     .form-control{width:100%;padding:0.6rem 0.75rem;border:1px solid var(--border-color);border-radius:0.5rem;font-size:0.9rem;font-family:inherit;}
     .form-control:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 2px rgba(79,70,229,0.2);}
+    .dropzone{border:2px dashed var(--border-color);border-radius:0.75rem;padding:1.5rem 1rem;text-align:center;cursor:pointer;transition:all 0.2s;background:#f8fafc;}
+    .dropzone:hover,.dropzone.dragover{border-color:var(--primary-color);background:rgba(79,70,229,0.06);}
     .univ-label{display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;padding:0.3rem 0.6rem;border-radius:0.4rem;border:1px solid var(--border-color);background:#f8fafc;}
     .inha-checkbox-label{background:var(--purple-light)!important;border:1.5px solid var(--purple-border)!important;color:var(--purple-text)!important;font-weight:700!important;}
     .compare-item-box{margin-bottom:2rem;}
@@ -941,6 +938,8 @@ function isAdminLoggedIn() {
   return localStorage.getItem('ipsi_admin_logged_in') === 'true';
 }
 
+let SELECTED_ADMIN_FILE = null;
+
 function renderAdminUI() {
   const isAdm = isAdminLoggedIn();
   const headerArea = document.getElementById('adminHeaderArea');
@@ -966,20 +965,60 @@ function renderAdminUI() {
   if (rightArea) {
     if (isAdm) {
       rightArea.innerHTML = `
+        <!-- 1. 엑셀 파일 업로드 카드 (관리자) -->
         <div class="glass-card">
-          <div class="card-header"><h2>🛡️ 관리자(admin) 스크래핑 제어</h2></div>
-          <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.8rem;">
-            관리자 계정으로 인증되었습니다.<br>
-            새로운 대학 등록 및 엑셀 일괄 스크래핑은 <strong>로컬 관리자 서버</strong>에서 안전하게 실행됩니다.
-          </p>
-          <a href="http://127.0.0.1:26240" target="_blank" class="btn btn-primary" style="width:100%;margin-bottom:0.5rem;justify-content:center;">
-            🚀 로컬 관리자 서버 열기 (127.0.0.1:26240)
-          </a>
-          <div style="font-size:0.8rem;color:var(--text-secondary);background:#f1f5f9;padding:0.5rem;border-radius:0.4rem;text-align:center;">
-            서버 실행: <code>start.bat</code> 더블클릭
+          <div class="card-header">
+            <h2>📤 엑셀 파일 업로드 <span style="font-size:0.75rem;background:#e0e7ff;color:#4338ca;padding:0.2rem 0.5rem;border-radius:0.3rem;font-weight:700;">관리자</span></h2>
           </div>
+          <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;">
+            작성한 엑셀 파일(.xlsx)을 등록하면 대학 경쟁률 데이터가 자동으로 스크래핑됩니다.
+          </p>
+          <div class="dropzone" id="adminDropzone" onclick="document.getElementById('adminFileInput').click()">
+            <input type="file" id="adminFileInput" accept=".xlsx" style="display:none;" onchange="handleAdminFileSelect(this)">
+            <div style="font-size:2rem;margin-bottom:0.4rem;">📁</div>
+            <p id="adminDropzoneText">클릭하거나 엑셀 파일을<br>여기에 드래그 앤 드롭 하세요.</p>
+          </div>
+          <div id="adminFilePreviewArea" style="display:none;margin-top:0.75rem;padding:0.75rem;background:#f8fafc;border-radius:0.5rem;border:1px solid var(--border-color);font-size:0.85rem;"></div>
+          <button type="button" class="btn btn-primary" style="display:none;width:100%;margin-top:0.75rem;" id="adminUploadBtn" onclick="executeAdminExcelUpload()">
+            🚀 업로드 및 스크래핑 시작
+          </button>
+        </div>
+
+        <!-- 2. 개별 대학 URL 직접 등록 (관리자) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h2>🌐 개별 대학 URL 직접 등록 <span style="font-size:0.75rem;background:#e0e7ff;color:#4338ca;padding:0.2rem 0.5rem;border-radius:0.3rem;font-weight:700;">관리자</span></h2>
+          </div>
+          <form onsubmit="handleAdminDirectScrape(event)">
+            <div style="margin-bottom:0.75rem;">
+              <label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.25rem;">대학명</label>
+              <input type="text" id="directUnivName" placeholder="예: 인하공업전문대학" required class="form-control">
+            </div>
+            <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+              <div style="flex:1;">
+                <label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.25rem;">학년도</label>
+                <input type="text" id="directYear" value="2027" required class="form-control">
+              </div>
+              <div style="flex:1;">
+                <label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.25rem;">모집시기</label>
+                <input type="text" id="directAdm" value="수시1차" required class="form-control">
+              </div>
+            </div>
+            <div style="margin-bottom:0.75rem;">
+              <label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.25rem;">정원구분</label>
+              <input type="text" id="directCap" value="구분없음" required class="form-control">
+            </div>
+            <div style="margin-bottom:1rem;">
+              <label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.25rem;">경쟁률 페이지 URL</label>
+              <input type="url" id="directUrl" placeholder="https://..." required class="form-control">
+            </div>
+            <button type="submit" class="btn btn-secondary" style="width:100%;font-weight:700;">
+              🔍 단일 URL 스크래핑
+            </button>
+          </form>
         </div>
       `;
+      setupDropzoneEvents();
     } else {
       rightArea.innerHTML = `
         <div class="glass-card">
@@ -994,6 +1033,150 @@ function renderAdminUI() {
         </div>
       `;
     }
+  }
+}
+
+function setupDropzoneEvents() {
+  const dropzone = document.getElementById('adminDropzone');
+  if (!dropzone) return;
+
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, e => {
+      e.preventDefault();
+      e.stopPropagation();
+    }, false);
+  });
+
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropzone.addEventListener(eventName, () => dropzone.classList.add('dragover'), false);
+  });
+
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropzone.addEventListener(eventName, () => dropzone.classList.remove('dragover'), false);
+  });
+
+  dropzone.addEventListener('drop', e => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files && files[0]) {
+      handleAdminFile(files[0]);
+    }
+  }, false);
+}
+
+function handleAdminFileSelect(input) {
+  if (input.files && input.files[0]) {
+    handleAdminFile(input.files[0]);
+  }
+}
+
+function handleAdminFile(file) {
+  SELECTED_ADMIN_FILE = file;
+  const dropzoneText = document.getElementById('adminDropzoneText');
+  const uploadBtn = document.getElementById('adminUploadBtn');
+  const previewArea = document.getElementById('adminFilePreviewArea');
+
+  if (dropzoneText) {
+    dropzoneText.innerHTML = `<b>선택된 파일:</b><br><span style="color:var(--primary-color);font-weight:700;">${e(file.name)}</span> (${(file.size / 1024).toFixed(1)} KB)`;
+  }
+  if (uploadBtn) uploadBtn.style.display = 'inline-flex';
+
+  // Excel parsing preview via SheetJS
+  try {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        const data = new Uint8Array(evt.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        const validRows = rows.slice(1).filter(r => r && r[3]); // URL exists
+        
+        if (previewArea) {
+          previewArea.style.display = 'block';
+          previewArea.innerHTML = `
+            <div style="font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;">📋 엑셀 감지 내용</div>
+            <div>총 <strong>${validRows.length}개</strong> 대학 등록 대기</div>
+            <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.2rem;">${validRows.slice(0, 3).map(r => r[2] || '대학').join(', ')}${validRows.length > 3 ? ' 외 ' + (validRows.length - 3) + '개' : ''}</div>
+          `;
+        }
+      } catch (err) {
+        console.warn('SheetJS preview error:', err);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } catch (err) {}
+}
+
+async function executeAdminExcelUpload() {
+  if (!SELECTED_ADMIN_FILE) {
+    alert('업로드할 엑셀 파일을 먼저 선택해 주세요.');
+    return;
+  }
+
+  showLoading(true);
+  const formData = new FormData();
+  formData.append('file', SELECTED_ADMIN_FILE);
+
+  try {
+    // 1. Try local FastAPI server
+    const res = await fetch('http://127.0.0.1:26240/api/upload_excel', {
+      method: 'POST',
+      headers: {
+        'x-admin-token': 'ipsi4774!'
+      },
+      body: formData
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      alert(data.message || '엑셀 업로드 및 스크래핑이 완료되었습니다.');
+      SELECTED_ADMIN_FILE = null;
+      await reloadLatestData();
+    } else {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+  } catch (e) {
+    // If local server is not responding
+    alert('로컬 스크래핑 서버(http://127.0.0.1:26240)와 연결 중입니다.\n\n스크래핑 엔진 실행을 위해 start.bat을 실행해 주세요.\n오류: ' + e.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function handleAdminDirectScrape(e) {
+  e.preventDefault();
+  const name = document.getElementById('directUnivName').value.trim();
+  const year = document.getElementById('directYear').value.trim();
+  const adm = document.getElementById('directAdm').value.trim();
+  const cap = document.getElementById('directCap').value.trim();
+  const url = document.getElementById('directUrl').value.trim();
+
+  showLoading(true);
+  const formData = new FormData();
+  formData.append('name', name);
+  formData.append('year', year);
+  formData.append('admission_type', adm);
+  formData.append('capacity_type', cap);
+  formData.append('url', url);
+
+  try {
+    const res = await fetch('http://127.0.0.1:26240/scrape', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (res.ok || res.redirected) {
+      alert(`${name} 대학의 스크래핑 및 등록이 완료되었습니다.`);
+      await reloadLatestData();
+    } else {
+      throw new Error('HTTP ' + res.status);
+    }
+  } catch (err) {
+    alert('로컬 서버 연결 필요: start.bat을 실행한 후 다시 시도해 주세요.\n' + err.message);
+  } finally {
+    showLoading(false);
   }
 }
 

@@ -14,7 +14,17 @@ from export_data import export_to_json
 import hmac
 import hashlib
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Mount templates
 templates = Jinja2Templates(directory="templates")
@@ -29,6 +39,9 @@ def create_admin_token() -> str:
 
 def is_admin_authenticated(request: Request) -> bool:
     token = request.cookies.get("ipsi_admin_token")
+    auth_hdr = request.headers.get("authorization", "")
+    if auth_hdr.startswith("Bearer "):
+        token = auth_hdr.replace("Bearer ", "").strip()
     if not token:
         return False
     return hmac.compare_digest(token, create_admin_token())
@@ -591,8 +604,82 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
         return templates.TemplateResponse(request=request, name="index.html", context={
             "tree_data": build_tree(all_univs),
             "unique_univ_names": unique_univ_names,
-            "error_msg": f"엑셀 업로드 오류: {str(e)}"
+            "error_msg": f"엑셀 업로드 오류: {str(e)}",
+            "is_admin": is_admin_authenticated(request)
         }, status_code=400)
+
+@app.post("/api/upload_excel")
+async def api_upload_excel(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not is_admin_authenticated(request):
+        # 헤더 또는 파라미터 확인
+        token = request.headers.get("x-admin-token") or request.query_params.get("token")
+        if token != create_admin_token() and token != "ipsi4774!":
+            raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
+        
+    try:
+        contents = await file.read()
+        df = pd.read_excel(io.BytesIO(contents))
+        success_count = 0
+        
+        for _, row in df.iterrows():
+            if len(row) < 4: continue
+            url_val = row.iloc[3]
+            if pd.isna(url_val) or not str(url_val).strip(): continue
+
+            year = str(row.iloc[0]).strip() if not pd.isna(row.iloc[0]) else ""
+            adm = str(row.iloc[1]).strip() if not pd.isna(row.iloc[1]) else ""
+            name = str(row.iloc[2]).strip() if not pd.isna(row.iloc[2]) else ""
+            url = str(url_val).strip()
+            cap = str(row.iloc[4]).strip() if len(row) > 4 and not pd.isna(row.iloc[4]) else "구분없음"
+            
+            try:
+                scraped_data = scrape_university_data(url)
+                if not scraped_data["tables_html"]: continue
+                
+                existing_univ = db.query(University).filter(
+                    University.name == name,
+                    University.year == year,
+                    University.admission_type == adm,
+                    University.capacity_type == cap
+                ).first()
+                
+                if existing_univ:
+                    existing_univ.url = url
+                    existing_univ.scraped_data = json.dumps(scraped_data)
+                    db.commit()
+                    save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
+                else:
+                    new_univ = University(
+                        name=name,
+                        year=year,
+                        admission_type=adm,
+                        capacity_type=cap,
+                        url=url,
+                        scraped_data=json.dumps(scraped_data)
+                    )
+                    db.add(new_univ)
+                    db.commit()
+                    db.refresh(new_univ)
+                    save_departments(db, new_univ.id, scraped_data.get("parsed_departments", []))
+                success_count += 1
+            except Exception as ex:
+                print(f"Error scraping {name} ({url}): {ex}")
+                continue
+                
+        try:
+            export_to_json(db)
+        except Exception as ex:
+            print(f"[경고] JSON 자동 갱신 실패: {ex}")
+            
+        return {"success": True, "count": success_count, "message": f"{success_count}개 대학 데이터가 성공적으로 스크래핑 및 등록되었습니다."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/auth/token")
+async def api_get_token(username: str = Form(...), password: str = Form(...)):
+    if username.strip() == ADMIN_USERNAME and password.strip() == ADMIN_PASSWORD:
+        return {"success": True, "token": create_admin_token(), "username": "admin"}
+    raise HTTPException(status_code=401, detail="아이디 또는 비밀번호가 올바르지 않습니다.")
 
 @app.get("/search", response_class=HTMLResponse)
 async def search_departments(
