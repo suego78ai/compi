@@ -160,6 +160,7 @@
       <button class="tab-btn" onclick="switchScraperTab('tabDirectScrape', this)">🌐 단일 URL 스크래핑</button>
       <button class="tab-btn" onclick="switchScraperTab('tabExcelScrape', this)">📤 엑셀 일괄 스크래핑</button>
       <button class="tab-btn" onclick="switchScraperTab('tabDataExport', this)">💾 데이터 백업 & 다운로드</button>
+      <button class="tab-btn" onclick="switchScraperTab('tabDataReset', this)" style="color:#dc2626;">🗑️ 데이터 초기화/관리</button>
     </div>
 
     <!-- Tab 1: Batch Scrape -->
@@ -247,6 +248,21 @@
       </button>
     </div>
 
+    <!-- Tab 5: Data Reset -->
+    <div id="tabDataReset" class="scraper-tab-content" style="display:none;">
+      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
+        수집된 대학 경쟁률 데이터를 <strong>일부 선택하여 삭제</strong>하거나 <strong>전체 초기화</strong>할 수 있습니다.
+      </p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <button class="btn btn-secondary" style="justify-content:center;padding:0.75rem;border-color:#fca5a5;color:#b91c1c;background:#fff5f5;font-weight:700;" onclick="closeScraperEngineModal();openDataResetModal('selective')">
+          🎯 선택 대학 초기화/관리
+        </button>
+        <button class="btn btn-secondary" style="justify-content:center;padding:0.75rem;background:#dc2626;color:#fff;border:none;font-weight:700;" onclick="closeScraperEngineModal();openDataResetModal('full')">
+          💥 전체 데이터 일괄 초기화
+        </button>
+      </div>
+    </div>
+
     <!-- Live Console & Progress -->
     <div id="engineConsoleArea" style="margin-top:1.5rem;background:#0f172a;color:#f8fafc;border-radius:0.6rem;padding:1rem;font-family:monospace;font-size:0.82rem;border:1px solid #1e293b;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;color:#94a3b8;font-size:0.78rem;">
@@ -269,6 +285,99 @@
   </div>
 </div>
 
+<!-- Data Reset Modal -->
+<div id="dataResetModal" class="loading-overlay" style="background:rgba(15,23,42,0.75);z-index:2000;padding:1rem;">
+  <div class="glass-card" style="width:100%;max-width:860px;background:#ffffff;padding:1.75rem;position:relative;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);max-height:92vh;overflow-y:auto;">
+    <button onclick="closeDataResetModal()" style="position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-secondary);">✕</button>
+    <div style="margin-bottom:1.25rem;border-bottom:1px solid var(--border-color);padding-bottom:0.75rem;">
+      <h2 style="font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:0.5rem;color:#b91c1c;">
+        🗑️ 대학 대시보드 경쟁률 초기화 및 관리
+      </h2>
+      <p style="color:var(--text-secondary);font-size:0.85rem;margin-top:0.2rem;">
+        등록된 대학 데이터를 <strong>전체 초기화</strong>하거나 <strong>원하는 대학만 선택하여 개별/일괄 삭제</strong>할 수 있습니다.
+      </p>
+    </div>
+
+    <div class="tabs" style="margin-bottom:1.25rem;">
+      <button class="tab-btn active" id="resetTabBtn1" onclick="switchResetTab('tabSelectiveReset', this)">🎯 선택 대학 초기화 / 개별 관리</button>
+      <button class="tab-btn" id="resetTabBtn2" onclick="switchResetTab('tabFullReset', this)" style="color:#dc2626;">💥 전체 데이터 완전 초기화</button>
+    </div>
+
+    <!-- Tab 1: Selective Reset -->
+    <div id="tabSelectiveReset">
+      <div style="background:#f8fafc;padding:0.9rem;border-radius:0.5rem;border:1px solid var(--border-color);margin-bottom:0.9rem;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 2fr;gap:0.6rem;margin-bottom:0.65rem;">
+          <div>
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.2rem;">학년도</label>
+            <select id="resetFilterYear" class="form-control" onchange="renderResetUnivTable()">
+              <option value="ALL">전체 학년도</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.2rem;">모집시기</label>
+            <select id="resetFilterAdm" class="form-control" onchange="renderResetUnivTable()">
+              <option value="ALL">전체 모집시기</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.2rem;">대학명 검색</label>
+            <input type="text" id="resetFilterName" class="form-control" placeholder="대학명 검색..." oninput="renderResetUnivTable()">
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+          <div style="display:flex;gap:0.4rem;">
+            <button type="button" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.6rem;" onclick="toggleAllResetCheckboxes(true)">☑️ 전체 선택</button>
+            <button type="button" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.6rem;" onclick="toggleAllResetCheckboxes(false)">☐ 전체 해제</button>
+          </div>
+          <span id="resetSelectedCountLabel" style="font-size:0.85rem;color:var(--text-secondary);font-weight:700;">선택된 대학: 0개</span>
+        </div>
+      </div>
+
+      <div style="max-height:360px;overflow-y:auto;border:1px solid var(--border-color);border-radius:0.5rem;margin-bottom:1rem;background:#fff;">
+        <table style="width:100%;font-size:0.85rem;border-collapse:collapse;" id="resetUnivTable">
+          <thead style="position:sticky;top:0;background:#f1f5f9;z-index:2;border-bottom:2px solid var(--border-color);">
+            <tr>
+              <th style="width:40px;text-align:center;padding:0.5rem;"><input type="checkbox" id="resetTableMasterCheckbox" onchange="toggleAllResetCheckboxes(this.checked)"></th>
+              <th style="padding:0.5rem;">학년도</th>
+              <th style="padding:0.5rem;">모집시기</th>
+              <th style="padding:0.5rem;">대학명</th>
+              <th style="padding:0.5rem;text-align:center;">무료/중복</th>
+              <th style="padding:0.5rem;">정원구분</th>
+              <th style="padding:0.5rem;text-align:center;">학과수</th>
+              <th style="padding:0.5rem;text-align:center;width:70px;">삭제</th>
+            </tr>
+          </thead>
+          <tbody id="resetUnivTableBody"></tbody>
+        </table>
+      </div>
+
+      <button class="btn btn-secondary" id="btnExecSelectiveReset" onclick="executeSelectiveReset()" style="width:100%;padding:0.75rem;justify-content:center;background:#ef4444;color:#fff;border:none;font-weight:700;font-size:0.95rem;box-shadow:0 2px 6px rgba(239,68,68,0.3);">
+        🗑️ 선택한 대학 데이터 초기화/삭제
+      </button>
+    </div>
+
+    <!-- Tab 2: Full Reset -->
+    <div id="tabFullReset" style="display:none;">
+      <div style="background:#fef2f2;border:1.5px solid #fca5a5;padding:1.25rem;border-radius:0.75rem;margin-bottom:1.25rem;">
+        <h3 style="color:#b91c1c;font-size:1.05rem;font-weight:800;margin-bottom:0.5rem;display:flex;align-items:center;gap:0.4rem;">
+          ⚠️ 전체 데이터 초기화 주의사항
+        </h3>
+        <p style="color:#7f1d1d;font-size:0.88rem;line-height:1.6;margin-bottom:0.75rem;">
+          현재 시스템에 등록된 <strong>모든 대학 및 학과별 경쟁률 데이터를 완전히 삭제</strong>합니다.<br>
+          이 작업은 로컬 데이터베이스 및 data.json 파일을 즉시 초기화하며, 실행 후 복구할 수 없습니다.
+        </p>
+        <div style="background:#fff;padding:0.75rem;border-radius:0.5rem;border:1px solid #fee2e2;color:#991b1b;font-size:0.82rem;">
+          💡 백업이 필요한 경우 먼저 상단의 <strong>[📥 엑셀 다운로드]</strong>를 통해 현재 데이터를 백업해 두세요.
+        </div>
+      </div>
+
+      <button class="btn btn-secondary" onclick="executeFullReset()" style="width:100%;padding:0.85rem;justify-content:center;background:#dc2626;color:#fff;border:none;font-weight:800;font-size:1rem;box-shadow:0 4px 12px rgba(220,38,38,0.35);">
+        💥 전체 대학 경쟁률 데이터 완전 초기화
+      </button>
+    </div>
+  </div>
+</div>
+
 <header class="app-header">
   <div class="header-content">
     <div class="header-title">
@@ -287,6 +396,7 @@
       <button class="btn btn-primary" onclick="showRealtimeReportBuilder(true)">🔄 실시간 파싱 리포트</button>
       <button class="btn btn-success" onclick="downloadCurrentDataExcel()" style="border:none;" title="전체 데이터를 엑셀로 다운로드">📥 엑셀 다운로드</button>
       <button class="btn btn-primary" onclick="openScraperEngineModal()" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;box-shadow:0 2px 8px rgba(124,58,237,0.3);">⚡ 스크래핑 엔진</button>
+      <button class="btn btn-secondary" onclick="openDataResetModal()" style="border-color:#fca5a5;color:#dc2626;background:#fff5f5;font-weight:700;" title="경쟁률 데이터 전체 또는 선택 초기화">🗑️ 데이터 초기화</button>
       <div id="adminHeaderArea" style="display:inline-flex;gap:0.4rem;align-items:center;"></div>
     </div>
   </div>
@@ -307,6 +417,7 @@
           <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showHome(true)">🏠 메인 대시보드</button>
           <button class="btn btn-primary" style="width:100%;justify-content:flex-start;" onclick="showRealtimeReportBuilder(true)">🔄 당해년도 실시간 파싱 리포트</button>
           <button class="btn btn-primary" style="width:100%;justify-content:flex-start;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;" onclick="openScraperEngineModal()">⚡ 스크래핑 엔진 실행 센터</button>
+          <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;color:#dc2626;" onclick="openDataResetModal()">🗑️ 경쟁률 데이터 초기화/관리</button>
           <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showReportBuilder(false, true)">📊 전형별 맞춤 비교 리포트</button>
           <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showAdvancedQueryModal(true)">🔎 조건별 상세 쿼리 검색</button>
         </div>
@@ -804,9 +915,16 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
 
   document.getElementById('centerCol').innerHTML = `
     <div class="glass-card">
-      <div class="card-header">
-        <h2>${isInha ? '<span class="inha-badge">⭐ ' + e(uName) + '</span>' : '🏫 ' + e(uName)}${headerBadges} 경쟁률 현황</h2>
-        <span style="font-size:0.85rem;color:var(--text-secondary);">${e(uYear)}학년도 › <strong>${e(uAdm)}</strong> › ${e(uCap)}</span>
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.75rem;">
+        <div>
+          <h2 style="display:flex;align-items:center;flex-wrap:wrap;gap:0.4rem;">
+            ${isInha ? '<span class="inha-badge">⭐ ' + e(uName) + '</span>' : '🏫 ' + e(uName)}${headerBadges} 경쟁률 현황
+          </h2>
+          <span style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;display:inline-block;">${e(uYear)}학년도 › <strong>${e(uAdm)}</strong> › ${e(uCap)}</span>
+        </div>
+        <button class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;color:#dc2626;border-color:#fca5a5;background:#fff5f5;font-weight:700;" onclick="confirmDeleteSingleUniv(${id}, '${e(uName)}', '${e(uYear)}', '${e(uAdm)}')">
+          🗑️ 이 대학 데이터 초기화(삭제)
+        </button>
       </div>
       ${first.url ? `<div style="margin-bottom:1rem;"><a href="${e(first.url)}" target="_blank" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">🔗 원본 실시간 경쟁률 페이지 바로가기 (새창)</a></div>` : ''}
       <div class="tabs">${tabs}</div>
@@ -2456,6 +2574,300 @@ async function downloadCurrentDataExcel() {
   } finally {
     showLoading(false);
   }
+}
+
+// ── Data Reset & Management Engine ───────────────────────────
+function openDataResetModal(initialTab = 'selective') {
+  const modal = document.getElementById('dataResetModal');
+  if (!modal) return;
+
+  // Populate Year filter
+  const yearSelect = document.getElementById('resetFilterYear');
+  if (yearSelect) {
+    const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+    yearSelect.innerHTML = `<option value="ALL">전체 학년도 (${ALL_UNIVS.length ? years.length + '개년' : '0'})</option>` +
+      years.map(y => `<option value="${e(y)}">${e(y)}학년도</option>`).join('');
+  }
+
+  // Populate Admission filter
+  const admSelect = document.getElementById('resetFilterAdm');
+  if (admSelect) {
+    const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort();
+    admSelect.innerHTML = `<option value="ALL">전체 모집시기</option>` +
+      adms.map(a => `<option value="${e(a)}">${e(a)}</option>`).join('');
+  }
+
+  const nameInput = document.getElementById('resetFilterName');
+  if (nameInput) nameInput.value = '';
+
+  if (initialTab === 'full') {
+    switchResetTab('tabFullReset', document.getElementById('resetTabBtn2'));
+  } else {
+    switchResetTab('tabSelectiveReset', document.getElementById('resetTabBtn1'));
+  }
+
+  renderResetUnivTable();
+  modal.style.display = 'flex';
+}
+
+function closeDataResetModal() {
+  const modal = document.getElementById('dataResetModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function switchResetTab(tabId, btn) {
+  document.getElementById('tabSelectiveReset').style.display = tabId === 'tabSelectiveReset' ? 'block' : 'none';
+  document.getElementById('tabFullReset').style.display = tabId === 'tabFullReset' ? 'block' : 'none';
+  const tabBtns = document.querySelectorAll('#dataResetModal .tab-btn');
+  tabBtns.forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function getDistinctUnivList() {
+  const map = new Map();
+  for (const u of ALL_UNIVS) {
+    const key = `${u.name}_${u.year}_${u.admission_type || u.adm_type}_${u.capacity_type || u.cap_type}`;
+    if (!map.has(key)) {
+      map.set(key, {
+        id: u.id,
+        name: u.name,
+        year: u.year,
+        admission_type: u.admission_type || u.adm_type || '',
+        capacity_type: u.capacity_type || u.cap_type || '',
+        free_apply: u.free_apply || u.is_free_apply || '',
+        multi_apply: u.multi_apply || u.is_multi_apply || '',
+        dept_count: 0
+      });
+    }
+    map.get(key).dept_count++;
+  }
+  return inhaFirst([...map.values()]);
+}
+
+function renderResetUnivTable() {
+  const tbody = document.getElementById('resetUnivTableBody');
+  if (!tbody) return;
+
+  const filterYear = document.getElementById('resetFilterYear')?.value || 'ALL';
+  const filterAdm = document.getElementById('resetFilterAdm')?.value || 'ALL';
+  const filterName = (document.getElementById('resetFilterName')?.value || '').trim().toLowerCase();
+
+  const distinctUnivs = getDistinctUnivList();
+  const filtered = distinctUnivs.filter(u => {
+    if (filterYear !== 'ALL' && u.year !== filterYear) return false;
+    if (filterAdm !== 'ALL' && u.admission_type !== filterAdm) return false;
+    if (filterName && !u.name.toLowerCase().includes(filterName)) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-secondary);padding:2rem;">검색 또는 필터 조건과 일치하는 대학이 없습니다.</td></tr>`;
+    updateResetSelectedCount();
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(u => {
+    const isInha = u.name.includes('인하공업전문대학');
+    const isFree = u.free_apply === 'F' || String(u.name).endsWith('F') || String(u.name).includes('(F)');
+    const isMulti = u.multi_apply === 'M' || String(u.name).endsWith('M') || String(u.name).includes('(M)') || String(u.name).includes('[M]');
+    
+    let badges = '';
+    if (isFree) badges += `<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0.05rem 0.35rem;border-radius:0.25rem;font-size:0.72rem;font-weight:700;margin-right:0.2rem;">🆓 F</span>`;
+    if (isMulti) badges += `<span style="background:#fef3c7;color:#b45309;border:1px solid #fde68a;padding:0.05rem 0.35rem;border-radius:0.25rem;font-size:0.72rem;font-weight:700;">🔄 M</span>`;
+    if (!badges) badges = '<span style="color:var(--text-secondary);">-</span>';
+
+    return `
+      <tr style="border-bottom:1px solid var(--border-color);${isInha ? 'background:#faf5ff;' : ''}">
+        <td style="text-align:center;padding:0.5rem;">
+          <input type="checkbox" class="reset-univ-checkbox" 
+            data-id="${u.id || ''}" 
+            data-name="${e(u.name)}" 
+            data-year="${e(u.year)}" 
+            data-adm="${e(u.admission_type)}" 
+            data-cap="${e(u.capacity_type)}"
+            onchange="updateResetSelectedCount()">
+        </td>
+        <td style="padding:0.5rem;font-weight:600;">${e(u.year)}</td>
+        <td style="padding:0.5rem;">${e(u.admission_type)}</td>
+        <td style="padding:0.5rem;font-weight:700;${isInha ? 'color:var(--purple-primary);' : ''}">${isInha ? '⭐ ' : ''}${e(u.name)}</td>
+        <td style="padding:0.5rem;text-align:center;">${badges}</td>
+        <td style="padding:0.5rem;color:var(--text-secondary);">${e(u.capacity_type || '구분없음')}</td>
+        <td style="padding:0.5rem;text-align:center;font-weight:700;">${u.dept_count}개</td>
+        <td style="padding:0.5rem;text-align:center;">
+          <button type="button" class="btn btn-secondary" style="font-size:0.75rem;padding:0.2rem 0.45rem;color:#dc2626;border-color:#fca5a5;background:#fff;" onclick="confirmDeleteSingleUniv(${u.id || 'null'}, '${e(u.name)}', '${e(u.year)}', '${e(u.admission_type)}')">
+            삭제
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  updateResetSelectedCount();
+}
+
+function toggleAllResetCheckboxes(check) {
+  const checkboxes = document.querySelectorAll('.reset-univ-checkbox');
+  checkboxes.forEach(cb => cb.checked = check);
+  const master = document.getElementById('resetTableMasterCheckbox');
+  if (master) master.checked = check;
+  updateResetSelectedCount();
+}
+
+function updateResetSelectedCount() {
+  const checked = document.querySelectorAll('.reset-univ-checkbox:checked');
+  const label = document.getElementById('resetSelectedCountLabel');
+  if (label) label.innerText = `선택된 대학: ${checked.length}개`;
+  const btn = document.getElementById('btnExecSelectiveReset');
+  if (btn) btn.innerText = `🗑️ 선택한 대학 (${checked.length}개) 데이터 초기화/삭제`;
+}
+
+async function executeSelectiveReset() {
+  const checkedBoxes = Array.from(document.querySelectorAll('.reset-univ-checkbox:checked'));
+  if (!checkedBoxes.length) {
+    alert('초기화(삭제)할 대학을 최소 1개 이상 선택해 주세요.');
+    return;
+  }
+
+  const count = checkedBoxes.length;
+  if (!confirm(`선택한 ${count}개 대학의 모든 학과 및 경쟁률 데이터를 완전히 삭제(초기화)하시겠습니까?\n\n이 작업은 즉시 데이터베이스 및 대시보드에 반영됩니다.`)) {
+    return;
+  }
+
+  const ids = [];
+  const names = [];
+  const items = [];
+
+  checkedBoxes.forEach(cb => {
+    const rawId = cb.getAttribute('data-id');
+    const id = rawId && rawId !== 'null' && rawId !== 'undefined' ? parseInt(rawId) : null;
+    const name = cb.getAttribute('data-name');
+    const year = cb.getAttribute('data-year');
+    const adm = cb.getAttribute('data-adm');
+    const cap = cb.getAttribute('data-cap');
+
+    if (id) ids.push(id);
+    names.push(name);
+    items.push({ id, name, year, adm, cap });
+  });
+
+  showLoading(true);
+
+  // 1. Try local server API if running
+  try {
+    const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+    const payload = ids.length ? { univ_ids: ids } : { names: names };
+    const res = await fetch('http://127.0.0.1:26240/api/delete_universities', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-token': token,
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(4000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      console.log('Server selective delete success:', data);
+    }
+  } catch (e) {
+    console.log('Local server API bypass/fallback to client memory update:', e);
+  }
+
+  // 2. Client-side memory & storage update
+  const updatedAll = ALL_UNIVS.filter(u => {
+    const isTarget = items.some(item => {
+      if (item.id && u.id === item.id) return true;
+      if (u.name === item.name && u.year === item.year && (u.admission_type === item.adm || u.adm_type === item.adm)) return true;
+      return false;
+    });
+    return !isTarget;
+  });
+
+  saveUniversitiesAndRefresh(updatedAll);
+  renderResetUnivTable();
+  showHome(false);
+  showLoading(false);
+
+  alert(`🎉 선택한 ${count}개 대학 데이터가 성공적으로 초기화(삭제)되었습니다.`);
+}
+
+async function executeFullReset() {
+  if (!confirm("⚠️ [경고] 모든 대학의 입시 경쟁률 데이터를 완전히 초기화하시겠습니까?\n\n이 작업은 모든 대학 및 학과 경쟁률 데이터를 영구 삭제하며 되돌릴 수 없습니다.")) {
+    return;
+  }
+
+  const check = prompt("정말로 모든 데이터를 전체 초기화하려면 아래에 '초기화' 라고 입력해 주세요.");
+  if (check !== "초기화") {
+    alert("초기화 확인 입력이 일치하지 않아 취소되었습니다.");
+    return;
+  }
+
+  showLoading(true);
+
+  // 1. Try server API
+  try {
+    const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+    const res = await fetch('http://127.0.0.1:26240/api/reset_all', {
+      method: 'POST',
+      headers: {
+        'x-admin-token': token,
+        'Authorization': `Bearer ${token}`
+      },
+      signal: AbortSignal.timeout(4000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      console.log('Server reset all success:', data);
+    }
+  } catch (e) {
+    console.log('Server reset bypass:', e);
+  }
+
+  // 2. Client reset
+  saveUniversitiesAndRefresh([]);
+  localStorage.removeItem('ipsi_custom_universities');
+  closeDataResetModal();
+  showHome(false);
+  showLoading(false);
+
+  alert("💥 모든 대학 경쟁률 데이터가 성공적으로 완전 초기화되었습니다.");
+}
+
+async function confirmDeleteSingleUniv(id, name, year, adm) {
+  if (!confirm(`'${name} (${year} ${adm})' 대학의 모든 경쟁률 데이터를 삭제(초기화)하시겠습니까?`)) {
+    return;
+  }
+
+  showLoading(true);
+
+  // Try Server API
+  if (id) {
+    try {
+      const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+      await fetch(`http://127.0.0.1:26240/api/universities/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'x-admin-token': token,
+          'Authorization': `Bearer ${token}`
+        },
+        signal: AbortSignal.timeout(4000)
+      });
+    } catch (e) {}
+  }
+
+  const updatedAll = ALL_UNIVS.filter(u => {
+    if (id && u.id === id) return false;
+    if (u.name === name && u.year === year && (u.admission_type === adm || u.adm_type === adm)) return false;
+    return true;
+  });
+
+  saveUniversitiesAndRefresh(updatedAll);
+  renderResetUnivTable();
+  showHome(true);
+  showLoading(false);
+
+  alert(`✔ '${name}' 대학 데이터가 성공적으로 삭제되었습니다.`);
 }
 </script>
 </body>
