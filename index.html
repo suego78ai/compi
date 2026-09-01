@@ -1104,94 +1104,78 @@ function renderDataSummary(){
     </div>`;
 }
 
-// ── Admin Auth ───────────────────────────────────────────────
+// ── Admin Auth (GitHub Pages 정적 사이트 전용: localStorage 단일 소스) ─────
+// ※ GitHub Pages는 백엔드 서버가 없으므로 쿠키/세션 서버 인증 없이
+//    localStorage만으로 관리자 인증 상태를 관리합니다.
+const ADMIN_STORAGE_KEY = 'ipsi_admin_logged_in';
+
 function isAdminLoggedIn() {
-  const localVal = localStorage.getItem('ipsi_admin_logged_in');
-  const sessionVal = sessionStorage.getItem('ipsi_admin_logged_in');
-  const hasCookie = document.cookie.includes('ipsi_admin_token');
-  return localVal === 'true' || sessionVal === 'true' || hasCookie;
+  // localStorage 단일 소스 - 쿠키나 sessionStorage에 의존하지 않음
+  return localStorage.getItem(ADMIN_STORAGE_KEY) === 'true';
 }
 
 function openAdminLoginModal() {
   const modal = document.getElementById('adminLoginModal');
-  if (modal) {
-    modal.style.display = 'flex';
-    modal.classList.add('active');
-    const err = document.getElementById('adminModalError');
-    if (err) err.style.display = 'none';
-    const pass = document.getElementById('modalAdminPass');
-    if (pass) {
-      pass.value = '';
-      setTimeout(() => pass.focus(), 100);
-    }
-  }
+  if (!modal) return;
+  // style.display로 직접 표시 (CSS .active 클래스 우선순위 문제 방지)
+  modal.style.display = 'flex';
+  const err = document.getElementById('adminModalError');
+  if (err) err.style.display = 'none';
+  const pass = document.getElementById('modalAdminPass');
+  if (pass) { pass.value = ''; setTimeout(() => pass.focus(), 80); }
 }
 
 function closeAdminLoginModal() {
   const modal = document.getElementById('adminLoginModal');
-  if (modal) {
-    modal.style.display = 'none';
-    modal.classList.remove('active');
-  }
+  if (modal) modal.style.display = 'none';
 }
 
-async function handleAdminLoginSubmit(e) {
+function handleAdminLoginSubmit(e) {
+  // async 제거 - fetch 호출 없이 동기 처리로 안정성 확보
   e.preventDefault();
-  const u = document.getElementById('modalAdminUser').value.trim();
-  const p = document.getElementById('modalAdminPass').value.trim();
-  const err = document.getElementById('adminModalError');
+  const u = (document.getElementById('modalAdminUser').value || '').trim();
+  const p = (document.getElementById('modalAdminPass').value || '').trim();
+  const errEl = document.getElementById('adminModalError');
 
-  if (u === 'admin' && (p === 'ipsi4774!' || p === 'admin' || p === '1234')) {
-    localStorage.setItem('ipsi_admin_logged_in', 'true');
-    sessionStorage.setItem('ipsi_admin_logged_in', 'true');
-    document.cookie = "ipsi_admin_token=ipsi_admin_auth_secret_token_2027; path=/; max-age=86400;";
-    
-    try {
-      await fetch('/api/admin_login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, password: p })
-      });
-    } catch(err) {}
+  const VALID_USERS = [
+    { id: 'admin', pw: 'ipsi4774!' },
+    { id: 'admin', pw: 'admin' },
+    { id: 'admin', pw: '1234' }
+  ];
+  const matched = VALID_USERS.some(v => v.id === u && v.pw === p);
 
+  if (matched) {
+    localStorage.setItem(ADMIN_STORAGE_KEY, 'true');
     closeAdminLoginModal();
     renderAdminUI();
     alert('🛡️ 관리자로 로그인되었습니다.');
   } else {
-    if (err) {
-      err.style.display = 'block';
-      err.innerText = '아이디 또는 비밀번호가 올바르지 않습니다.';
+    if (errEl) {
+      errEl.style.display = 'block';
+      errEl.textContent = '아이디 또는 비밀번호가 올바르지 않습니다.';
     }
   }
 }
 
-async function adminLogout() {
-  if (confirm('관리자 모드에서 로그아웃 하시겠습니까?')) {
-    // 1. Clear all storage keys
-    localStorage.removeItem('ipsi_admin_logged_in');
-    localStorage.removeItem('ipsi_admin_token');
-    sessionStorage.removeItem('ipsi_admin_logged_in');
-    sessionStorage.removeItem('ipsi_admin_token');
+function adminLogout() {
+  // async/await 제거 - 동기 처리로 순서 보장
+  if (!confirm('관리자 모드에서 로그아웃 하시겠습니까?')) return;
 
-    // 2. Clear cookies
-    document.cookie = "ipsi_admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Max-Age=0;";
-    document.cookie = "ipsi_admin_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC; Max-Age=0;";
+  // 1. 모든 저장소 완전 삭제
+  localStorage.removeItem(ADMIN_STORAGE_KEY);
+  localStorage.removeItem('ipsi_admin_token');
+  sessionStorage.clear(); // 세션 스토리지 전체 초기화
 
-    // 3. Clear backend session if local server is active
-    try {
-      await fetch('/logout', { method: 'POST' });
-    } catch(e) {}
+  // 2. 클라이언트 쿠키 만료 처리
+  ['ipsi_admin_token', 'ipsi_admin_logged_in'].forEach(name => {
+    document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+    // github.io 도메인 공유 문제 대비 - 상위 도메인도 삭제 시도
+    document.cookie = `${name}=; path=/; domain=.github.io; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT;`;
+  });
 
-    // 4. Force immediate UI update
-    renderAdminUI();
-    if (typeof closeAdminLoginModal === 'function') closeAdminLoginModal();
-    if (typeof closeScraperEngineModal === 'function') closeScraperEngineModal();
-
-    alert('🔓 로그아웃 되었습니다.');
-    
-    // 5. Reload page to ensure clean unauthenticated state
-    window.location.reload();
-  }
+  // 3. UI 즉시 갱신 후 페이지 새로고침 (캐시 무효화)
+  alert('🔓 로그아웃 되었습니다.');
+  window.location.reload();
 }
 
 let SELECTED_ADMIN_FILE = null;
