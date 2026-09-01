@@ -237,8 +237,11 @@
     <!-- Tab 4: Data Export -->
     <div id="tabDataExport" class="scraper-tab-content" style="display:none;">
       <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
-        현재 수집·스크래핑된 모든 대학 데이터(학과별 모집/지원/경쟁률)를 <strong>`data.json`</strong> 파일로 내보내어 백업하거나 저장소에 반영할 수 있습니다.
+        현재 수집·스크래핑된 모든 대학 데이터(학과별 모집/지원/경쟁률)를 <strong>엑셀(.xlsx)</strong> 또는 <strong>JSON</strong> 파일로 내보내어 백업하거나 저장소에 반영할 수 있습니다.
       </p>
+      <button class="btn btn-success" style="width:100%;justify-content:center;padding:0.75rem;margin-bottom:0.65rem;border:none;font-weight:700;" onclick="downloadCurrentDataExcel()">
+        📊 전체 데이터 엑셀(.xlsx) 다운로드
+      </button>
       <button class="btn btn-secondary" style="width:100%;justify-content:center;padding:0.75rem;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;" onclick="downloadCurrentDataJson()">
         📥 data.json 파일 다운로드
       </button>
@@ -282,6 +285,7 @@
       <button class="btn btn-secondary" onclick="showAdvancedQueryModal(true)">🔎 상세 쿼리</button>
       <button class="btn btn-secondary" onclick="showReportBuilder(false, true)">📊 비교 리포트</button>
       <button class="btn btn-primary" onclick="showRealtimeReportBuilder(true)">🔄 실시간 파싱 리포트</button>
+      <button class="btn btn-success" onclick="downloadCurrentDataExcel()" style="border:none;" title="전체 데이터를 엑셀로 다운로드">📥 엑셀 다운로드</button>
       <button class="btn btn-primary" onclick="openScraperEngineModal()" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;box-shadow:0 2px 8px rgba(124,58,237,0.3);">⚡ 스크래핑 엔진</button>
       <div id="adminHeaderArea" style="display:inline-flex;gap:0.4rem;align-items:center;"></div>
     </div>
@@ -2199,6 +2203,109 @@ function openTab(id,btn){
 function setActive(id){ document.querySelectorAll('.tree-link').forEach(el => el.classList.toggle('active', parseInt(el.dataset.uid) === id)); }
 function clearActive(){ document.querySelectorAll('.tree-link').forEach(el => el.classList.remove('active')); }
 function showLoading(v){ document.getElementById('loading').style.display = v ? 'flex' : 'none'; }
+
+// ── Excel & JSON Export ─────────────────────────────────────
+function downloadCurrentDataJson() {
+  if (!ALL_UNIVS || !ALL_UNIVS.length) { alert('다운로드할 데이터가 없습니다.'); return; }
+  const payload = { generated_at: new Date().toISOString(), universities: ALL_UNIVS };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'data_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); document.body.removeChild(a); }, 300);
+}
+
+async function downloadCurrentDataExcel() {
+  if (!ALL_UNIVS || !ALL_UNIVS.length) { alert('다운로드할 데이터가 없습니다.'); return; }
+  showLoading(true);
+  try {
+    const ok = await ensureXLSXLoaded();
+    const XLSX = getXLSX();
+    if (!ok || !XLSX) throw new Error('SheetJS 로드 실패');
+
+    const wb = XLSX.utils.book_new();
+
+    // ── Sheet 1: 전체 데이터 (원시)
+    const allRows = ALL_UNIVS.map(u => ({
+      '대학명': u.name || '',
+      '학년도': u.year || '',
+      '모집시기': u.adm_type || '',
+      '정원구분': u.cap_type || '',
+      '모집단위/학과': u.dept || '',
+      '모집인원': u.recruit_num != null ? u.recruit_num : '',
+      '지원인원': u.applicant_num != null ? u.applicant_num : '',
+      '경쟁률': u.competition_rate || '',
+      '원서 URL': u.url || '',
+      '등록일시': u.created_at || ''
+    }));
+    const ws1 = XLSX.utils.json_to_sheet(allRows);
+    // 컬럼 너비 설정
+    ws1['!cols'] = [20,10,12,12,30,10,10,10,60,20].map(w => ({ wch: w }));
+    XLSX.utils.book_append_sheet(wb, ws1, '전체데이터');
+
+    // ── Sheet 2: 대학별 요약
+    const univMap = {};
+    ALL_UNIVS.forEach(u => {
+      const key = `${u.name}_${u.year}_${u.adm_type}_${u.cap_type}`;
+      if (!univMap[key]) univMap[key] = { name: u.name, year: u.year, adm_type: u.adm_type, cap_type: u.cap_type, rows: [] };
+      univMap[key].rows.push(u);
+    });
+    const summaryRows = Object.values(univMap).map(g => {
+      const totalRecruit = g.rows.reduce((s,r) => s + (parseFloat(r.recruit_num) || 0), 0);
+      const totalApplicant = g.rows.reduce((s,r) => s + (parseFloat(r.applicant_num) || 0), 0);
+      const avgRate = totalRecruit > 0 ? (totalApplicant / totalRecruit) : 0;
+      return {
+        '대학명': g.name,
+        '학년도': g.year,
+        '모집시기': g.adm_type,
+        '정원구분': g.cap_type,
+        '학과수': g.rows.length,
+        '총 모집인원': totalRecruit,
+        '총 지원인원': totalApplicant,
+        '평균 경쟁률': Math.round(avgRate * 100) / 100
+      };
+    });
+    const ws2 = XLSX.utils.json_to_sheet(summaryRows);
+    ws2['!cols'] = [22,10,12,12,8,12,12,12].map(w => ({ wch: w }));
+    XLSX.utils.book_append_sheet(wb, ws2, '대학별요약');
+
+    // ── Sheet 3: 연도별 비교 (대학-학과 기준)
+    const yearSet = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort();
+    if (yearSet.length > 1) {
+      const deptMap = {};
+      ALL_UNIVS.forEach(u => {
+        const key = `${u.name}|${u.adm_type}|${u.cap_type}|${u.dept}`;
+        if (!deptMap[key]) deptMap[key] = { name: u.name, adm_type: u.adm_type, cap_type: u.cap_type, dept: u.dept };
+        deptMap[key][`${u.year}_경쟁률`] = u.competition_rate || '';
+        deptMap[key][`${u.year}_모집`] = u.recruit_num != null ? u.recruit_num : '';
+        deptMap[key][`${u.year}_지원`] = u.applicant_num != null ? u.applicant_num : '';
+      });
+      const yearCols = [];
+      yearSet.forEach(y => { yearCols.push(`${y}_경쟁률`, `${y}_모집`, `${y}_지원`); });
+      const compareRows = Object.values(deptMap).map(row => {
+        const r = { '대학명': row.name, '모집시기': row.adm_type, '정원구분': row.cap_type, '학과': row.dept };
+        yearCols.forEach(c => { r[c] = row[c] || ''; });
+        return r;
+      });
+      const ws3 = XLSX.utils.json_to_sheet(compareRows);
+      const fixedW = [22, 12, 12, 30];
+      yearCols.forEach(() => fixedW.push(12));
+      ws3['!cols'] = fixedW.map(w => ({ wch: w }));
+      XLSX.utils.book_append_sheet(wb, ws3, '연도별비교');
+    }
+
+    const fileName = `입시경쟁률_${new Date().toISOString().slice(0,10)}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+    logEngine(`✅ 엑셀 다운로드 완료: ${fileName} (${ALL_UNIVS.length}건)`);
+  } catch (err) {
+    alert('엑셀 다운로드 오류: ' + err.message);
+    console.error(err);
+  } finally {
+    showLoading(false);
+  }
+}
 </script>
 </body>
 </html>
