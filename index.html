@@ -286,7 +286,7 @@
 </div>
 
 <!-- Data Reset Modal -->
-<div id="dataResetModal" class="loading-overlay" style="background:rgba(15,23,42,0.75);z-index:2000;padding:1rem;">
+<div id="dataResetModal" class="loading-overlay" style="background:rgba(15,23,42,0.75);z-index:2000;padding:1rem;" onclick="if(event.target===this)closeDataResetModal()">
   <div class="glass-card" style="width:100%;max-width:860px;background:#ffffff;padding:1.75rem;position:relative;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25);max-height:92vh;overflow-y:auto;">
     <button onclick="closeDataResetModal()" style="position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-secondary);">✕</button>
     <div style="margin-bottom:1.25rem;border-bottom:1px solid var(--border-color);padding-bottom:0.75rem;">
@@ -447,6 +447,80 @@
 
 <script>
 let ALL_UNIVS = [], TREE = {}, CHART_INSTANCE = null;
+
+// ── Core Helper Utilities ─────────────────────────────────────
+function e(str) {
+  if (str == null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function inhaFirst(list) {
+  if (!Array.isArray(list)) return [];
+  const inha = list.filter(x => typeof x === 'string' ? x.includes('인하공업전문대학') : (x && x.name && x.name.includes('인하공업전문대학')));
+  const others = list.filter(x => typeof x === 'string' ? !x.includes('인하공업전문대학') : (!x || !x.name || !x.name.includes('인하공업전문대학')));
+  return [...inha, ...others];
+}
+
+function pr(str) {
+  if (typeof str === 'number') return str;
+  if (!str) return 0;
+  const match = String(str).replace(/,/g, '').match(/[\d.]+/);
+  return match ? parseFloat(match[0]) : 0;
+}
+
+function showLoading(show) {
+  const el = document.getElementById('loading');
+  if (el) {
+    if (show) el.classList.add('active');
+    else el.classList.remove('active');
+  }
+}
+
+function setActive(uid) {
+  clearActive();
+  const link = document.querySelector(`.tree-link[data-uid="${uid}"]`);
+  if (link) link.classList.add('active');
+}
+
+function clearActive() {
+  document.querySelectorAll('.tree-link.active').forEach(el => el.classList.remove('active'));
+}
+
+function openTab(tabId, btn) {
+  const parent = btn.closest('.glass-card') || document;
+  parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
+}
+
+function renderDataSummary() {
+  const el = document.getElementById('dataSummary');
+  if (!el) return;
+  const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+  const distinctUnivs = new Set(ALL_UNIVS.map(u => u.name)).size;
+  const totalRecords = ALL_UNIVS.length;
+  el.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:0.4rem;">
+      <div style="display:flex;justify-content:space-between;"><span>총 등록 대학</span><strong>${distinctUnivs}개교</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>총 학과 레코드</span><strong>${totalRecords.toLocaleString()}건</strong></div>
+      <div style="display:flex;justify-content:space-between;"><span>보유 학년도</span><strong>${years.join(', ')}</strong></div>
+    </div>
+  `;
+}
+
+function logEngine(msg) {
+  console.log(msg);
+  if (typeof appendEngineLog === 'function') {
+    appendEngineLog(msg);
+  }
+}
 
 // ── SheetJS Dynamic Loader with Fallbacks ─────────────────────
 function getXLSX() {
@@ -2607,12 +2681,16 @@ function openDataResetModal(initialTab = 'selective') {
   }
 
   renderResetUnivTable();
+  modal.classList.add('active');
   modal.style.display = 'flex';
 }
 
 function closeDataResetModal() {
   const modal = document.getElementById('dataResetModal');
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
 }
 
 function switchResetTab(tabId, btn) {
