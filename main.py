@@ -358,23 +358,48 @@ async def read_root(request: Request, db: Session = Depends(get_db)):
 
 from fastapi.responses import JSONResponse
 
+# table_title 우선순위: '전형별 경쟁률 현황'이 전체 요약 테이블로 가장 대표성 있음
+TABLE_PRIORITY = [
+    '전형별 경쟁률 현황',
+    '일반전형 경쟁률 현황',
+    '일반고 경쟁률 현황',
+    '일반고전형 경쟁률 현황',
+    '일반고 전형 경쟁률 현황',
+]
+
+def table_priority_score(title: str) -> int:
+    for i, t in enumerate(TABLE_PRIORITY):
+        if t == title:
+            return i
+    return len(TABLE_PRIORITY)  # 낮은 숫자 = 높은 우선순위
+
 @app.get("/api/data")
-async def api_data(db: Session = Depends(get_db)):
-    """DB의 대학+학과 데이터를 프론트엔드 ALL_UNIVS 포맷(플랫 배열)으로 반환"""
+async def api_data(db: Session = Depends(get_db), detail: bool = False):
+    """DB의 대학+학과 데이터를 프론트엔드 ALL_UNIVS 포맷(플랫 배열)으로 반환.
+    중복 제거: 같은 대학+연도+모집시기+정원구분+학과명 중 table_title 우선순위가 높은 1건만 반환.
+    detail=true 시 모든 table별 행 반환 (원시 데이터).
+    """
     universities = db.query(University).order_by(University.name, University.year).all()
     flat = []
     for u in universities:
         depts = db.query(DepartmentData).filter(DepartmentData.university_id == u.id).all()
-        if depts:
+        if not depts:
+            flat.append({
+                "id": u.id, "name": u.name, "year": u.year,
+                "adm_type": u.admission_type, "cap_type": u.capacity_type,
+                "url": u.url, "dept": "", "table_title": "",
+                "recruit_num": "", "applicant_num": "", "competition_rate": "",
+                "created_at": u.created_at.isoformat() if u.created_at else ""
+            })
+            continue
+
+        if detail:
+            # 원시 전체 반환 (중복 포함)
             for d in depts:
                 flat.append({
-                    "id": u.id,
-                    "name": u.name,
-                    "year": u.year,
-                    "adm_type": u.admission_type,
-                    "cap_type": u.capacity_type,
-                    "url": u.url,
-                    "dept": d.department_name,
+                    "id": u.id, "name": u.name, "year": u.year,
+                    "adm_type": u.admission_type, "cap_type": u.capacity_type,
+                    "url": u.url, "dept": d.department_name,
                     "table_title": d.table_title,
                     "recruit_num": d.admission_count,
                     "applicant_num": d.applicant_count,
@@ -382,22 +407,29 @@ async def api_data(db: Session = Depends(get_db)):
                     "created_at": u.created_at.isoformat() if u.created_at else ""
                 })
         else:
-            # 학과 데이터 없는 경우 대학 자체만 포함
-            flat.append({
-                "id": u.id,
-                "name": u.name,
-                "year": u.year,
-                "adm_type": u.admission_type,
-                "cap_type": u.capacity_type,
-                "url": u.url,
-                "dept": "",
-                "table_title": "",
-                "recruit_num": "",
-                "applicant_num": "",
-                "competition_rate": "",
-                "created_at": u.created_at.isoformat() if u.created_at else ""
-            })
-    return JSONResponse({"universities": flat})
+            # 중복 제거: 같은 학과명 중 우선순위 높은 table_title 1건만 선택
+            # 1단계: 학과명별로 그룹핑
+            dept_map: dict = {}
+            for d in depts:
+                key = d.department_name.strip()
+                score = table_priority_score(d.table_title or '')
+                existing = dept_map.get(key)
+                if existing is None or score < existing[0]:
+                    dept_map[key] = (score, d)
+
+            for dept_name, (_, d) in dept_map.items():
+                flat.append({
+                    "id": u.id, "name": u.name, "year": u.year,
+                    "adm_type": u.admission_type, "cap_type": u.capacity_type,
+                    "url": u.url, "dept": d.department_name,
+                    "table_title": d.table_title,
+                    "recruit_num": d.admission_count,
+                    "applicant_num": d.applicant_count,
+                    "competition_rate": d.competition_ratio,
+                    "created_at": u.created_at.isoformat() if u.created_at else ""
+                })
+
+    return JSONResponse({"universities": flat, "total": len(flat)})
 
 @app.get("/univ/{univ_id}", response_class=HTMLResponse)
 async def get_univ(request: Request, univ_id: int, db: Session = Depends(get_db)):
