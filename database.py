@@ -26,6 +26,7 @@ class University(Base):
     admission_type = Column(String)  # 수시1차, 수시2차, 정시
     capacity_type = Column(String)   # 정원내, 정원외, 구분없음
     is_free_apply = Column(String, default="") # F, 무료, 빈값 등
+    is_multi_apply = Column(String, default="") # M, 중복, 빈값 등
     url = Column(String)
     scraped_data = Column(Text) # Stores JSON: {"titles": [...], "tables_html": [...]}
     created_at = Column(DateTime, default=datetime.datetime.utcnow)

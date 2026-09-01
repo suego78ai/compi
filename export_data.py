@@ -49,14 +49,16 @@ def export_to_json(db=None):
         records = []
         for u in universities:
             depts = u.departments
-            is_free = getattr(u, 'is_free_apply', '') or ('F' if str(u.name or '').endswith(('M', 'F')) else '')
+            is_free = getattr(u, 'is_free_apply', '') or ('F' if str(u.name or '').endswith(('F', '(F)')) else '')
             if is_free == 'M': is_free = 'F'
+            is_multi = getattr(u, 'is_multi_apply', '') or ('M' if str(u.name or '').endswith(('M', '(M)')) else '')
             if not depts:
                 records.append({
                     "id": u.id, "name": u.name or "", "year": str(u.year or ""),
                     "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                     "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
                     "free_apply": is_free, "is_free_apply": is_free,
+                    "multi_apply": is_multi, "is_multi_apply": is_multi,
                     "url": u.url or "", "dept": "", "department_name": "", "table_title": "",
                     "recruit_num": "", "admission_count": "", "applicant_num": "", "applicant_count": "",
                     "competition_rate": "", "competition_ratio": ""
@@ -77,6 +79,7 @@ def export_to_json(db=None):
                     "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                     "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
                     "free_apply": is_free, "is_free_apply": is_free,
+                    "multi_apply": is_multi, "is_multi_apply": is_multi,
                     "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
                     "table_title": d.table_title or "",
                     "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",

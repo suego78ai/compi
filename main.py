@@ -383,14 +383,16 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
     flat = []
     for u in universities:
         depts = db.query(DepartmentData).filter(DepartmentData.university_id == u.id).all()
-        is_free = getattr(u, 'is_free_apply', '') or ('F' if str(u.name or '').endswith(('M', 'F')) else '')
+        is_free = getattr(u, 'is_free_apply', '') or ('F' if str(u.name or '').endswith(('F', '(F)')) else '')
         if is_free == 'M': is_free = 'F'
+        is_multi = getattr(u, 'is_multi_apply', '') or ('M' if str(u.name or '').endswith(('M', '(M)')) else '')
         if not depts:
             flat.append({
                 "id": u.id, "name": u.name, "year": str(u.year or ""),
                 "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                 "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
                 "free_apply": is_free, "is_free_apply": is_free,
+                "multi_apply": is_multi, "is_multi_apply": is_multi,
                 "url": u.url or "", "dept": "", "department_name": "", "table_title": "",
                 "recruit_num": "", "admission_count": "", "applicant_num": "", "applicant_count": "",
                 "competition_rate": "", "competition_ratio": "",
@@ -406,6 +408,7 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
                     "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                     "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
                     "free_apply": is_free, "is_free_apply": is_free,
+                    "multi_apply": is_multi, "is_multi_apply": is_multi,
                     "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
                     "table_title": d.table_title or "",
                     "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
@@ -429,6 +432,7 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
                     "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                     "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
                     "free_apply": is_free, "is_free_apply": is_free,
+                    "multi_apply": is_multi, "is_multi_apply": is_multi,
                     "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
                     "table_title": d.table_title or "",
                     "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
@@ -590,6 +594,7 @@ async def download_template():
             "모집시기": "수시1차",
             "대학명": "인하공업전문대학",
             "무료원서접수": "",
+            "중복지원": "",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41260471.html",
             "정원구분": "정원내"
         },
@@ -598,6 +603,7 @@ async def download_template():
             "모집시기": "수시1차",
             "대학명": "경인여자대학교",
             "무료원서접수": "F",
+            "중복지원": "M",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40180641.html",
             "정원구분": "구분없음"
         },
@@ -606,6 +612,7 @@ async def download_template():
             "모집시기": "수시1차",
             "대학명": "연성대학교",
             "무료원서접수": "F",
+            "중복지원": "M",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40580321.html",
             "정원구분": "구분없음"
         },
@@ -614,6 +621,7 @@ async def download_template():
             "모집시기": "수시2차",
             "대학명": "동양미래대학교",
             "무료원서접수": "",
+            "중복지원": "",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41150241.html",
             "정원구분": "구분없음"
         }
@@ -625,7 +633,7 @@ async def download_template():
         
         # openpyxl 스타일 및 컬럼 너비 자동 조정
         ws = writer.sheets["경쟁률_등록서식"]
-        col_widths = {"A": 12, "B": 14, "C": 22, "D": 16, "E": 65, "F": 14}
+        col_widths = {"A": 12, "B": 14, "C": 22, "D": 16, "E": 14, "F": 65, "G": 14}
         for col, width in col_widths.items():
             ws.column_dimensions[col].width = width
 
@@ -685,14 +693,25 @@ def parse_excel_row_data(row, columns):
 
     # 무료원서접수 ("F" 또는 "무료")
     free_apply = ""
-    for k in ["무료원서접수", "무료원서", "무료", "무료여부", "F여부", "M여부", "F", "M"]:
+    for k in ["무료원서접수", "무료원서", "무료", "무료여부", "F여부", "F"]:
         if k in col_map and not pd.isna(row.iloc[col_map[k]]):
             val = str(row.iloc[col_map[k]]).strip()
-            if val in ["F", "f", "M", "m", "무료", "Y", "y", "O", "o", "true", "True"]:
+            if val in ["F", "f", "무료", "Y", "y", "O", "o", "true", "True"]:
                 free_apply = "F"
             break
-    if not free_apply and name and (name.endswith("F") or name.endswith("(F)") or name.endswith("M") or name.endswith("(M)")):
+    if not free_apply and name and (name.endswith("F") or name.endswith("(F)")):
         free_apply = "F"
+
+    # 중복지원 ("M" 또는 "중복")
+    multi_apply = ""
+    for k in ["중복지원", "중복원서접수", "중복접수", "복수지원", "중복", "중복여부", "M여부", "M"]:
+        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
+            val = str(row.iloc[col_map[k]]).strip()
+            if val in ["M", "m", "중복", "Y", "y", "O", "o", "true", "True"]:
+                multi_apply = "M"
+            break
+    if not multi_apply and name and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
+        multi_apply = "M"
 
     # 정원구분
     cap = "구분없음"
@@ -700,14 +719,15 @@ def parse_excel_row_data(row, columns):
         if k in col_map and not pd.isna(row.iloc[col_map[k]]):
             cap = str(row.iloc[col_map[k]]).strip()
             break
-    if not cap and len(row) > 5 and not pd.isna(row.iloc[5]):
-        cap = str(row.iloc[5]).strip()
+    if not cap and len(row) > 6 and not pd.isna(row.iloc[6]):
+        cap = str(row.iloc[6]).strip()
 
     return {
         "year": year,
         "admission_type": adm,
         "name": name,
         "is_free_apply": free_apply,
+        "is_multi_apply": multi_apply,
         "url": url,
         "capacity_type": cap
     }
@@ -732,6 +752,7 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
             cap = item["capacity_type"]
             url = item["url"]
             free = item["is_free_apply"]
+            multi = item.get("is_multi_apply", "")
             
             try:
                 scraped_data = scrape_university_data(url)
@@ -748,6 +769,7 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
                 if existing_univ:
                     existing_univ.url = url
                     existing_univ.is_free_apply = free
+                    existing_univ.is_multi_apply = multi
                     existing_univ.scraped_data = json.dumps(scraped_data)
                     db.commit()
                     save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
@@ -758,6 +780,7 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
                         admission_type=adm,
                         capacity_type=cap,
                         is_free_apply=free,
+                        is_multi_apply=multi,
                         url=url,
                         scraped_data=json.dumps(scraped_data)
                     )
@@ -765,8 +788,8 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
                     db.commit()
                     db.refresh(new_univ)
                     save_departments(db, new_univ.id, scraped_data.get("parsed_departments", []))
-            except Exception as e:
-                print(f"Error scraping {url}: {e}")
+            except Exception as ex:
+                print(f"Error scraping {url}: {ex}")
                 continue
                 
         # 정적 사이트(JSON)도 자동 동기화
@@ -775,14 +798,12 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
         except Exception as ex:
             print(f"[경고] JSON 자동 갱신 실패: {ex}")
 
-        return RedirectResponse(url="/", status_code=303)
+        return RedirectResponse(url="/?msg=excel_uploaded", status_code=303)
     except Exception as e:
-        all_univs = db.query(University).order_by(University.created_at.desc()).all()
-        unique_univ_names = sorted(list(set([u.name for u in all_univs])))
-        return templates.TemplateResponse(request=request, name="index.html", context={
-            "tree_data": build_tree(all_univs),
-            "unique_univ_names": unique_univ_names,
-            "error_msg": f"엑셀 업로드 오류: {str(e)}",
+        return templates.TemplateResponse("error.html", {
+            "request": request,
+            "error_title": "엑셀 업로드 실패",
+            "error_msg": str(e),
             "is_admin": is_admin_authenticated(request)
         }, status_code=400)
 
@@ -809,6 +830,7 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
             cap = item["capacity_type"]
             url = item["url"]
             free = item["is_free_apply"]
+            multi = item.get("is_multi_apply", "")
             
             try:
                 scraped_data = scrape_university_data(url)
@@ -824,6 +846,7 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
                 if existing_univ:
                     existing_univ.url = url
                     existing_univ.is_free_apply = free
+                    existing_univ.is_multi_apply = multi
                     existing_univ.scraped_data = json.dumps(scraped_data)
                     db.commit()
                     save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
@@ -834,6 +857,7 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
                         admission_type=adm,
                         capacity_type=cap,
                         is_free_apply=free,
+                        is_multi_apply=multi,
                         url=url,
                         scraped_data=json.dumps(scraped_data)
                     )

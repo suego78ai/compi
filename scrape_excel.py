@@ -89,16 +89,24 @@ def detect_and_extract_rows(file_path):
         free_apply = ""
         for i, val in enumerate(row_strs):
             if i != url_col_idx:
-                if val.strip() in ["F", "f", "M", "m", "무료", "Y", "y", "O", "o"]:
+                if val.strip() in ["F", "f", "무료", "Y", "y", "O", "o"]:
                     free_apply = "F"
                     break
 
-        # 6. 대학명 찾기
+        # 6. 중복지원 ("M" 또는 "중복") 찾기
+        multi_apply = ""
+        for i, val in enumerate(row_strs):
+            if i != url_col_idx:
+                if val.strip() in ["M", "m", "중복", "복수지원"]:
+                    multi_apply = "M"
+                    break
+
+        # 7. 대학명 찾기
         name = ""
         for i, val in enumerate(row_strs):
             if i != url_col_idx and val:
-                # 연도, 모집시기, 정원구분, 무료구분, 헤더 텍스트가 아닌 한글 명칭
-                if val == year or val == adm_type or val == cap_type or val == free_apply or val in ["F", "f", "M", "m", "무료", "해당없음", "Y", "N"]:
+                # 연도, 모집시기, 정원구분, 무료구분, 중복구분, 헤더 텍스트가 아닌 한글 명칭
+                if val == year or val == adm_type or val == cap_type or val == free_apply or val == multi_apply or val in ["F", "f", "M", "m", "무료", "중복", "해당없음", "Y", "N"]:
                     continue
                 if any(h in val for h in ["대학", "대학교", "전문대학", "대"]):
                     name = val
@@ -109,19 +117,22 @@ def detect_and_extract_rows(file_path):
         if not name:
             # 위치 기반 Fallback (URL 앞 열)
             for i in range(url_col_idx - 1, -1, -1):
-                if row_strs[i] and row_strs[i] != year and row_strs[i] != adm_type and row_strs[i] != free_apply:
+                if row_strs[i] and row_strs[i] not in [year, adm_type, free_apply, multi_apply]:
                     name = row_strs[i]
                     break
                     
         name = name or "대학"
-        if not free_apply and (name.endswith("F") or name.endswith("(F)") or name.endswith("M") or name.endswith("(M)")):
+        if not free_apply and (name.endswith("F") or name.endswith("(F)")):
             free_apply = "F"
+        if not multi_apply and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
+            multi_apply = "M"
 
         extracted.append({
             "year": year,
             "admission_type": adm_type,
             "name": name,
             "is_free_apply": free_apply,
+            "is_multi_apply": multi_apply,
             "url": url,
             "capacity_type": cap_type
         })
@@ -144,8 +155,9 @@ def process_excel_scrape(file_path, auto_push=True):
         
     print(f"📋 총 {len(rows)}개 대학 경쟁률 URL 감지됨:")
     for idx, r in enumerate(rows, 1):
-        m_tag = " [무료(F)]" if r.get('is_free_apply') == 'F' else ""
-        print(f"   [{idx}/{len(rows)}] {r['name']}{m_tag} ({r['year']} {r['admission_type']}) -> {r['url'][:50]}...")
+        f_tag = " [무료(F)]" if r.get('is_free_apply') == 'F' else ""
+        m_tag = " [중복(M)]" if r.get('is_multi_apply') == 'M' else ""
+        print(f"   [{idx}/{len(rows)}] {r['name']}{f_tag}{m_tag} ({r['year']} {r['admission_type']}) -> {r['url'][:50]}...")
     print("--------------------------------------------------------")
     
     db = SessionLocal()
@@ -159,6 +171,7 @@ def process_excel_scrape(file_path, auto_push=True):
             adm = item["admission_type"]
             cap = item["capacity_type"]
             free = item.get("is_free_apply", "")
+            multi = item.get("is_multi_apply", "")
             url = item["url"]
             
             print(f"[{idx}/{len(rows)}] 🌐 {name} 스크래핑 중...", end=" ", flush=True)
@@ -183,6 +196,7 @@ def process_excel_scrape(file_path, auto_push=True):
                 if existing:
                     existing.url = url
                     existing.is_free_apply = free
+                    existing.is_multi_apply = multi
                     existing.scraped_data = json.dumps(scraped_data)
                     db.commit()
                     univ_id = existing.id
@@ -194,6 +208,8 @@ def process_excel_scrape(file_path, auto_push=True):
                         year=year,
                         admission_type=adm,
                         capacity_type=cap,
+                        is_free_apply=free,
+                        is_multi_apply=multi,
                         url=url,
                         scraped_data=json.dumps(scraped_data)
                     )
