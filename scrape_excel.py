@@ -85,12 +85,20 @@ def detect_and_extract_rows(file_path):
                     cap_type = "정원외"
                     break
                     
-        # 5. 대학명 찾기
+        # 5. 무료원서접수 ("M" 또는 "무료") 찾기
+        free_apply = ""
+        for i, val in enumerate(row_strs):
+            if i != url_col_idx:
+                if val.strip() in ["M", "m", "무료", "Y", "y", "O", "o"]:
+                    free_apply = "M"
+                    break
+
+        # 6. 대학명 찾기
         name = ""
         for i, val in enumerate(row_strs):
             if i != url_col_idx and val:
-                # 연도, 모집시기, 정원구분, 헤더 텍스트가 아닌 한글 명칭
-                if val == year or val == adm_type or val == cap_type:
+                # 연도, 모집시기, 정원구분, 무료구분, 헤더 텍스트가 아닌 한글 명칭
+                if val == year or val == adm_type or val == cap_type or val == free_apply or val in ["M", "m", "무료", "해당없음", "Y", "N"]:
                     continue
                 if any(h in val for h in ["대학", "대학교", "전문대학", "대"]):
                     name = val
@@ -101,15 +109,19 @@ def detect_and_extract_rows(file_path):
         if not name:
             # 위치 기반 Fallback (URL 앞 열)
             for i in range(url_col_idx - 1, -1, -1):
-                if row_strs[i] and row_strs[i] != year and row_strs[i] != adm_type:
+                if row_strs[i] and row_strs[i] != year and row_strs[i] != adm_type and row_strs[i] != free_apply:
                     name = row_strs[i]
                     break
                     
         name = name or "대학"
+        if not free_apply and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
+            free_apply = "M"
+
         extracted.append({
             "year": year,
             "admission_type": adm_type,
             "name": name,
+            "is_free_apply": free_apply,
             "url": url,
             "capacity_type": cap_type
         })
@@ -132,7 +144,8 @@ def process_excel_scrape(file_path, auto_push=True):
         
     print(f"📋 총 {len(rows)}개 대학 경쟁률 URL 감지됨:")
     for idx, r in enumerate(rows, 1):
-        print(f"   [{idx}/{len(rows)}] {r['name']} ({r['year']} {r['admission_type']}) -> {r['url'][:50]}...")
+        m_tag = " [무료(M)]" if r.get('is_free_apply') == 'M' else ""
+        print(f"   [{idx}/{len(rows)}] {r['name']}{m_tag} ({r['year']} {r['admission_type']}) -> {r['url'][:50]}...")
     print("--------------------------------------------------------")
     
     db = SessionLocal()
@@ -145,6 +158,7 @@ def process_excel_scrape(file_path, auto_push=True):
             year = item["year"]
             adm = item["admission_type"]
             cap = item["capacity_type"]
+            free = item.get("is_free_apply", "")
             url = item["url"]
             
             print(f"[{idx}/{len(rows)}] 🌐 {name} 스크래핑 중...", end=" ", flush=True)
@@ -168,6 +182,7 @@ def process_excel_scrape(file_path, auto_push=True):
                 
                 if existing:
                     existing.url = url
+                    existing.is_free_apply = free
                     existing.scraped_data = json.dumps(scraped_data)
                     db.commit()
                     univ_id = existing.id

@@ -383,11 +383,13 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
     flat = []
     for u in universities:
         depts = db.query(DepartmentData).filter(DepartmentData.university_id == u.id).all()
+        is_free = getattr(u, 'is_free_apply', '') or ('M' if str(u.name or '').endswith('M') else '')
         if not depts:
             flat.append({
                 "id": u.id, "name": u.name, "year": str(u.year or ""),
                 "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                 "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                "free_apply": is_free, "is_free_apply": is_free,
                 "url": u.url or "", "dept": "", "department_name": "", "table_title": "",
                 "recruit_num": "", "admission_count": "", "applicant_num": "", "applicant_count": "",
                 "competition_rate": "", "competition_ratio": "",
@@ -402,6 +404,7 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
                     "id": u.id, "name": u.name, "year": str(u.year or ""),
                     "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                     "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                    "free_apply": is_free, "is_free_apply": is_free,
                     "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
                     "table_title": d.table_title or "",
                     "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
@@ -411,7 +414,6 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
                 })
         else:
             # 중복 제거: 같은 학과명 중 우선순위 높은 table_title 1건만 선택
-            # 1단계: 학과명별로 그룹핑
             dept_map: dict = {}
             for d in depts:
                 key = d.department_name.strip()
@@ -425,6 +427,7 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
                     "id": u.id, "name": u.name, "year": str(u.year or ""),
                     "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                     "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                    "free_apply": is_free, "is_free_apply": is_free,
                     "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
                     "table_title": d.table_title or "",
                     "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
@@ -585,20 +588,31 @@ async def download_template():
             "학년도": "2027",
             "모집시기": "수시1차",
             "대학명": "인하공업전문대학",
+            "무료원서접수": "",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41260471.html",
             "정원구분": "정원내"
         },
         {
             "학년도": "2027",
             "모집시기": "수시1차",
-            "대학명": "유한대학교",
-            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41280381.html",
+            "대학명": "경인여자대학교",
+            "무료원서접수": "M",
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40180641.html",
+            "정원구분": "구분없음"
+        },
+        {
+            "학년도": "2027",
+            "모집시기": "수시1차",
+            "대학명": "연성대학교",
+            "무료원서접수": "M",
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40580321.html",
             "정원구분": "구분없음"
         },
         {
             "학년도": "2027",
             "모집시기": "수시2차",
             "대학명": "동양미래대학교",
+            "무료원서접수": "",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41150241.html",
             "정원구분": "구분없음"
         }
@@ -610,7 +624,7 @@ async def download_template():
         
         # openpyxl 스타일 및 컬럼 너비 자동 조정
         ws = writer.sheets["경쟁률_등록서식"]
-        col_widths = {"A": 12, "B": 14, "C": 22, "D": 65, "E": 14}
+        col_widths = {"A": 12, "B": 14, "C": 22, "D": 16, "E": 65, "F": 14}
         for col, width in col_widths.items():
             ws.column_dimensions[col].width = width
 
@@ -621,6 +635,82 @@ async def download_template():
     }
     return StreamingResponse(output, headers=headers, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
+def parse_excel_row_data(row, columns):
+    col_map = {str(c).strip(): i for i, c in enumerate(columns)}
+    
+    # URL 찾기
+    url = ""
+    for k in ["URL", "url", "링크", "경쟁률URL", "경쟁률 링크"]:
+        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
+            u_str = str(row.iloc[col_map[k]]).strip()
+            if u_str.startswith("http"):
+                url = u_str
+                break
+    if not url:
+        for val in row:
+            if not pd.isna(val) and str(val).strip().startswith("http"):
+                url = str(val).strip()
+                break
+
+    if not url:
+        return None
+
+    # 연도
+    year = "2027"
+    for k in ["학년도", "연도", "년도", "year"]:
+        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
+            year = str(row.iloc[col_map[k]]).strip()
+            break
+    if not year and len(row) > 0 and not pd.isna(row.iloc[0]):
+        year = str(row.iloc[0]).strip()
+
+    # 모집시기
+    adm = "수시1차"
+    for k in ["모집시기", "전형", "시기", "admission_type"]:
+        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
+            adm = str(row.iloc[col_map[k]]).strip()
+            break
+    if not adm and len(row) > 1 and not pd.isna(row.iloc[1]):
+        adm = str(row.iloc[1]).strip()
+
+    # 대학명
+    name = ""
+    for k in ["대학명", "대학", "대학교", "학교명", "name"]:
+        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
+            name = str(row.iloc[col_map[k]]).strip()
+            break
+    if not name and len(row) > 2 and not pd.isna(row.iloc[2]):
+        name = str(row.iloc[2]).strip()
+
+    # 무료원서접수 ("M" 또는 "무료")
+    free_apply = ""
+    for k in ["무료원서접수", "무료원서", "무료", "무료여부", "M여부", "모바일접수", "M"]:
+        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
+            val = str(row.iloc[col_map[k]]).strip()
+            if val in ["M", "m", "무료", "Y", "y", "O", "o", "true", "True"]:
+                free_apply = "M"
+            break
+    if not free_apply and name and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
+        free_apply = "M"
+
+    # 정원구분
+    cap = "구분없음"
+    for k in ["정원구분", "정원", "구분", "capacity_type"]:
+        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
+            cap = str(row.iloc[col_map[k]]).strip()
+            break
+    if not cap and len(row) > 5 and not pd.isna(row.iloc[5]):
+        cap = str(row.iloc[5]).strip()
+
+    return {
+        "year": year,
+        "admission_type": adm,
+        "name": name,
+        "is_free_apply": free_apply,
+        "url": url,
+        "capacity_type": cap
+    }
+
 @app.post("/upload_excel")
 async def upload_excel(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
     if not is_admin_authenticated(request):
@@ -630,27 +720,22 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
         contents = await file.read()
         df = pd.read_excel(io.BytesIO(contents))
         
-        # D열을 URL로 인식하도록 컬럼 인덱스로 접근 (0=A, 1=B, 2=C, 3=D, 4=E)
         for _, row in df.iterrows():
-            if len(row) < 4:
-                continue # 최소 D열(URL)까지는 있어야 함
-                
-            url_val = row.iloc[3]
-            if pd.isna(url_val) or not str(url_val).strip():
+            item = parse_excel_row_data(row, df.columns)
+            if not item or not item["url"]:
                 continue
-
-            year = str(row.iloc[0]).strip() if not pd.isna(row.iloc[0]) else ""
-            adm = str(row.iloc[1]).strip() if not pd.isna(row.iloc[1]) else ""
-            name = str(row.iloc[2]).strip() if not pd.isna(row.iloc[2]) else ""
-            url = str(url_val).strip()
-            
-            # E열(정원)이 존재하면 가져오고 없으면 '구분없음'
-            cap = str(row.iloc[4]).strip() if len(row) > 4 and not pd.isna(row.iloc[4]) else "구분없음"
+                
+            name = item["name"]
+            year = item["year"]
+            adm = item["admission_type"]
+            cap = item["capacity_type"]
+            url = item["url"]
+            free = item["is_free_apply"]
             
             try:
                 scraped_data = scrape_university_data(url)
                 if not scraped_data["tables_html"]:
-                    continue # Skip if no tables
+                    continue
                 
                 existing_univ = db.query(University).filter(
                     University.name == name,
@@ -661,6 +746,7 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
                 
                 if existing_univ:
                     existing_univ.url = url
+                    existing_univ.is_free_apply = free
                     existing_univ.scraped_data = json.dumps(scraped_data)
                     db.commit()
                     save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
@@ -670,6 +756,7 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
                         year=year,
                         admission_type=adm,
                         capacity_type=cap,
+                        is_free_apply=free,
                         url=url,
                         scraped_data=json.dumps(scraped_data)
                     )
@@ -701,7 +788,6 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
 @app.post("/api/upload_excel")
 async def api_upload_excel(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
     if not is_admin_authenticated(request):
-        # 헤더 또는 파라미터 확인
         token = request.headers.get("x-admin-token") or request.query_params.get("token")
         if token != create_admin_token() and token != "ipsi4774!":
             raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
@@ -712,15 +798,16 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
         success_count = 0
         
         for _, row in df.iterrows():
-            if len(row) < 4: continue
-            url_val = row.iloc[3]
-            if pd.isna(url_val) or not str(url_val).strip(): continue
-
-            year = str(row.iloc[0]).strip() if not pd.isna(row.iloc[0]) else ""
-            adm = str(row.iloc[1]).strip() if not pd.isna(row.iloc[1]) else ""
-            name = str(row.iloc[2]).strip() if not pd.isna(row.iloc[2]) else ""
-            url = str(url_val).strip()
-            cap = str(row.iloc[4]).strip() if len(row) > 4 and not pd.isna(row.iloc[4]) else "구분없음"
+            item = parse_excel_row_data(row, df.columns)
+            if not item or not item["url"]:
+                continue
+                
+            name = item["name"]
+            year = item["year"]
+            adm = item["admission_type"]
+            cap = item["capacity_type"]
+            url = item["url"]
+            free = item["is_free_apply"]
             
             try:
                 scraped_data = scrape_university_data(url)
@@ -735,6 +822,7 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
                 
                 if existing_univ:
                     existing_univ.url = url
+                    existing_univ.is_free_apply = free
                     existing_univ.scraped_data = json.dumps(scraped_data)
                     db.commit()
                     save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
@@ -744,6 +832,7 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
                         year=year,
                         admission_type=adm,
                         capacity_type=cap,
+                        is_free_apply=free,
                         url=url,
                         scraped_data=json.dumps(scraped_data)
                     )
@@ -755,6 +844,7 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
             except Exception as ex:
                 print(f"Error scraping {name} ({url}): {ex}")
                 continue
+
                 
         try:
             export_to_json(db)

@@ -34,39 +34,59 @@ def export_to_json(db=None):
     try:
         universities = db.query(University).order_by(University.year.desc(), University.name).all()
 
+        TABLE_PRIORITY = [
+            '전형별 경쟁률 현황',
+            '일반전형 경쟁률 현황',
+            '일반고 경쟁률 현황',
+            '일반고전형 경쟁률 현황',
+            '일반고 전형 경쟁률 현황',
+        ]
+        def p_score(t):
+            for i, p in enumerate(TABLE_PRIORITY):
+                if p == (t or ''): return i
+            return len(TABLE_PRIORITY)
+
         records = []
         for u in universities:
-            departments = []
-            for d in u.departments:
-                departments.append({
-                    "table_title":       d.table_title or "",
-                    "department_name":   d.department_name or "",
-                    "admission_count":   d.admission_count or "",
-                    "applicant_count":   d.applicant_count or "",
-                    "competition_ratio": d.competition_ratio or "",
+            depts = u.departments
+            is_free = getattr(u, 'is_free_apply', '') or ('M' if str(u.name or '').endswith('M') else '')
+            if not depts:
+                records.append({
+                    "id": u.id, "name": u.name or "", "year": str(u.year or ""),
+                    "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
+                    "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                    "free_apply": is_free, "is_free_apply": is_free,
+                    "url": u.url or "", "dept": "", "department_name": "", "table_title": "",
+                    "recruit_num": "", "admission_count": "", "applicant_num": "", "applicant_count": "",
+                    "competition_rate": "", "competition_ratio": ""
                 })
+                continue
 
-            scraped = {}
-            try:
-                if u.scraped_data:
-                    scraped = json.loads(u.scraped_data)
-            except Exception:
-                pass
+            dept_map = {}
+            for d in depts:
+                key = (d.department_name or '').strip()
+                score = p_score(d.table_title)
+                existing = dept_map.get(key)
+                if existing is None or score < existing[0]:
+                    dept_map[key] = (score, d)
 
-            records.append({
-                "id":             u.id,
-                "name":           u.name or "",
-                "year":           u.year or "",
-                "admission_type": u.admission_type or "",
-                "capacity_type":  u.capacity_type or "",
-                "url":            u.url or "",
-                "departments":    departments,
-                "scraped_data":   scraped,
-            })
+            for dept_name, (_, d) in dept_map.items():
+                records.append({
+                    "id": u.id, "name": u.name or "", "year": str(u.year or ""),
+                    "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
+                    "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                    "free_apply": is_free, "is_free_apply": is_free,
+                    "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
+                    "table_title": d.table_title or "",
+                    "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
+                    "applicant_num": d.applicant_count or "", "applicant_count": d.applicant_count or "",
+                    "competition_rate": d.competition_ratio or "", "competition_ratio": d.competition_ratio or ""
+                })
 
         OUT_DIR.mkdir(exist_ok=True)
         payload = {
             "universities": records,
+            "total": len(records),
             "exported_at": __import__("datetime").datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         }
         with open(OUT_FILE, "w", encoding="utf-8") as f:

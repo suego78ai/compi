@@ -396,12 +396,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       const rec = (u.admission_count != null && u.admission_count !== '') ? u.admission_count : (u.recruit_num != null ? u.recruit_num : '');
       const app = (u.applicant_count != null && u.applicant_count !== '') ? u.applicant_count : (u.applicant_num != null ? u.applicant_num : '');
       const rate = u.competition_ratio || u.competition_rate || '';
+      const free = u.free_apply || u.is_free_apply || (String(u.name || '').endsWith('M') || String(u.name || '').includes('(M)') ? 'M' : '');
       return {
         ...u,
         admission_type: adm,
         adm_type: adm,
         capacity_type: cap,
         cap_type: cap,
+        free_apply: free,
+        is_free_apply: free,
         department_name: dept,
         dept: dept,
         admission_count: rec,
@@ -520,7 +523,12 @@ function getLatestYear() {
   return years.length ? years[0] : '2027';
 }
 
-// ── Tree (대학별 고유 그룹핑 및 카테고리 정상화) ───────────────
+// ── Tree (대학별 고유 그룹핑 및 카테고리 정상화, 무료원서접수 M 뱃지) ──
+function getFreeApplyBadge(u) {
+  const isFree = (u && (u.is_free_apply === 'M' || u.free_apply === 'M' || String(u.name || '').endsWith('M') || String(u.name || '').includes('(M)')));
+  return isFree ? `<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0.05rem 0.35rem;border-radius:0.25rem;font-size:0.72rem;font-weight:700;margin-left:0.3rem;display:inline-block;" title="무료원서접수 대학 (M)">🆓 무료(M)</span>` : '';
+}
+
 function buildTree() {
   TREE = {};
   // 1. 고유 대학별 그룹핑 (연도 + 모집시기 + 정원구분 + 대학명 기준)
@@ -529,6 +537,7 @@ function buildTree() {
     const y = u.year || '기타';
     const a = u.admission_type || u.adm_type || '수시1차';
     const c = u.capacity_type || u.cap_type || '구분없음';
+    const isFree = u.is_free_apply === 'M' || u.free_apply === 'M' || String(u.name || '').endsWith('M') ? 'M' : '';
     const key = `${y}|${a}|${c}|${u.name}`;
     if (!univMap.has(key)) {
       univMap.set(key, {
@@ -539,6 +548,8 @@ function buildTree() {
         admission_type: a,
         cap_type: c,
         capacity_type: c,
+        free_apply: isFree,
+        is_free_apply: isFree,
         url: u.url,
         departments: []
       });
@@ -581,8 +592,9 @@ function buildTree() {
           onclick="showGroupCompare('${e(y)}','${e(a)}','${e(c)}', true)">📊 그룹 비교하기</button>`;
         for (const u of TREE[y][a][c]) {
           const isInha = u.name.includes('인하공업전문대학');
+          const freeBadge = getFreeApplyBadge(u);
           html += `<span class="tree-link${isInha ? ' inha-tree-link' : ''}" onclick="showUnivDetail(${u.id}, true, '${e(u.name)}', '${e(y)}', '${e(a)}')" data-uid="${u.id}">
-            ${isInha ? '⭐ <strong>' + e(u.name) + '</strong>' : '🏫 ' + e(u.name)}</span>`;
+            ${isInha ? '⭐ <strong>' + e(u.name) + '</strong>' : '🏫 ' + e(u.name)}${freeBadge}</span>`;
         }
       } else {
         // 정원내, 정원외 등 여러 구분이 있는 경우에만 🏷️ 뎁스 표시
@@ -592,8 +604,9 @@ function buildTree() {
             onclick="showGroupCompare('${e(y)}','${e(a)}','${e(c)}', true)">📊 그룹 비교하기</button>`;
           for (const u of TREE[y][a][c]) {
             const isInha = u.name.includes('인하공업전문대학');
+            const freeBadge = getFreeApplyBadge(u);
             html += `<span class="tree-link${isInha ? ' inha-tree-link' : ''}" onclick="showUnivDetail(${u.id}, true, '${e(u.name)}', '${e(y)}', '${e(a)}')" data-uid="${u.id}">
-              ${isInha ? '⭐ <strong>' + e(u.name) + '</strong>' : '🏫 ' + e(u.name)}</span>`;
+              ${isInha ? '⭐ <strong>' + e(u.name) + '</strong>' : '🏫 ' + e(u.name)}${freeBadge}</span>`;
           }
           html += `</div></details>`;
         }
@@ -736,6 +749,8 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
   const uAdm = first.admission_type || first.adm_type || '수시1차';
   const uCap = first.capacity_type || first.cap_type || '구분없음';
   const isInha = uName.includes('인하공업전문대학');
+  const isFree = first.is_free_apply === 'M' || first.free_apply === 'M' || uName.endsWith('M') || uName.includes('(M)');
+  const freeBadgeHeader = isFree ? `<span style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;font-size:0.8rem;padding:0.2rem 0.55rem;border-radius:0.35rem;font-weight:700;margin-left:0.4rem;box-shadow:0 2px 4px rgba(29,78,216,0.25);">🆓 무료원서접수 (M)</span>` : '';
 
   // Group by table_title
   const tableMap = {};
@@ -770,7 +785,7 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
   document.getElementById('centerCol').innerHTML = `
     <div class="glass-card">
       <div class="card-header">
-        <h2>${isInha ? '<span class="inha-badge">⭐ ' + e(uName) + '</span>' : '🏫 ' + e(uName)} 경쟁률 현황</h2>
+        <h2>${isInha ? '<span class="inha-badge">⭐ ' + e(uName) + '</span>' : '🏫 ' + e(uName)}${freeBadgeHeader} 경쟁률 현황</h2>
         <span style="font-size:0.85rem;color:var(--text-secondary);">${e(uYear)}학년도 › <strong>${e(uAdm)}</strong> › ${e(uCap)}</span>
       </div>
       ${first.url ? `<div style="margin-bottom:1rem;"><a href="${e(first.url)}" target="_blank" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">🔗 원본 실시간 경쟁률 페이지 바로가기 (새창)</a></div>` : ''}
@@ -803,6 +818,7 @@ function handleSearch(q, pushUrl = true){
         univ_name: u.name,
         year: u.year,
         admission_type: u.admission_type || u.adm_type || '',
+        free_apply: u.free_apply || u.is_free_apply || (String(u.name||'').endsWith('M') ? 'M' : ''),
         table_title: tTitle,
         department_name: dName,
         admission_count: u.admission_count || u.recruit_num || '',
@@ -824,13 +840,15 @@ function renderSearchResults(title, resList) {
   let html = `<div class="glass-card"><div class="card-header"><h2>${title}</h2></div>`;
   if(resList.length){
     html += `<div class="table-container"><table><thead><tr>
-      <th>연도</th><th>분류</th><th>대학명</th><th>표 제목</th><th>학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
+      <th>연도</th><th>분류</th><th>대학명</th><th>무료원서</th><th>표 제목</th><th>학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
     </tr></thead><tbody>`;
     for(const r of resList){
       const isInha = r.univ_name.includes('인하공업전문대학');
+      const isFree = r.free_apply === 'M' || String(r.univ_name||'').endsWith('M');
       html += `<tr class="${isInha ? 'inha-purple-row' : ''}">
         <td>${e(r.year)}</td><td>${e(r.admission_type)}</td>
         <td><span class="${isInha ? 'inha-badge' : ''}" style="cursor:pointer;${isInha ? '' : 'color:var(--primary-color);font-weight:bold;'}" onclick="showUnivDetail(${r.univ_id}, true, '${e(r.univ_name)}', '${e(r.year)}', '${e(r.admission_type)}')">${isInha ? '⭐ ' : ''} ${e(r.univ_name)}</span></td>
+        <td>${isFree ? '<span style=\"background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0.05rem 0.35rem;border-radius:0.25rem;font-size:0.75rem;font-weight:700;\">🆓 M</span>' : '-'}</td>
         <td style="color:var(--text-secondary);font-size:0.85em;">${e(r.table_title)}</td>
         <td style="font-weight:bold;">${e(r.department_name)}</td>
         <td>${e(r.admission_count)}</td><td>${e(r.applicant_count)}</td>
@@ -965,6 +983,7 @@ function executeAdvancedQuery(qObj, pushUrl = true) {
       univ_name: u.name,
       year: u.year,
       admission_type: u.admission_type || u.adm_type || '',
+      free_apply: u.free_apply || u.is_free_apply || (String(u.name||'').endsWith('M') ? 'M' : ''),
       table_title: u.table_title || '',
       department_name: dName,
       admission_count: u.admission_count || u.recruit_num || '',
@@ -987,13 +1006,15 @@ function executeAdvancedQuery(qObj, pushUrl = true) {
     let html = `<div class="glass-card"><div class="card-header"><h2>📊 쿼리 실행 결과 (${results.length}건)</h2></div>`;
     if(results.length){
       html += `<div class="table-container"><table><thead><tr>
-        <th>연도</th><th>분류</th><th>대학명</th><th>표 제목</th><th>학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
+        <th>연도</th><th>분류</th><th>대학명</th><th>무료원서</th><th>표 제목</th><th>학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
       </tr></thead><tbody>`;
       for(const r of results){
         const isInha = r.univ_name.includes('인하공업전문대학');
+        const isFree = r.free_apply === 'M' || String(r.univ_name||'').endsWith('M');
         html += `<tr class="${isInha ? 'inha-purple-row' : ''}">
           <td>${e(r.year)}</td><td>${e(r.admission_type)}</td>
           <td><span class="${isInha ? 'inha-badge' : ''}" style="cursor:pointer;${isInha ? '' : 'color:var(--primary-color);font-weight:bold;'}" onclick="showUnivDetail(${r.univ_id}, true, '${e(r.univ_name)}', '${e(r.year)}', '${e(r.admission_type)}')">${isInha ? '⭐ ' : ''} ${e(r.univ_name)}</span></td>
+          <td>${isFree ? '<span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0.05rem 0.35rem;border-radius:0.25rem;font-size:0.75rem;font-weight:700;">🆓 M</span>' : '-'}</td>
           <td style="color:var(--text-secondary);font-size:0.85em;">${e(r.table_title)}</td>
           <td style="font-weight:bold;">${e(r.department_name)}</td>
           <td>${e(r.admission_count)}</td><td>${e(r.applicant_count)}</td>
@@ -1017,11 +1038,13 @@ function showGroupCompare(y, a, c, pushUrl = true){
   let tabs = '', contents = '';
   univs.forEach((u, i) => {
     const isInha = u.name.includes('인하공업전문대학');
+    const isFree = u.is_free_apply === 'M' || u.free_apply === 'M' || String(u.name||'').endsWith('M');
     const uRows = ALL_UNIVS.filter(x => x.id === u.id || (x.name === u.name && x.year === y && (x.admission_type === a || x.adm_type === a)));
-    tabs += `<button class="tab-btn${i === 0 ? ' active' : ''}" onclick="openTab('cg${i}',this)">${isInha ? '⭐ ' : ''} ${e(u.name)}</button>`;
+    const freeBadge = isFree ? ' <span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0.05rem 0.35rem;border-radius:0.25rem;font-size:0.72rem;font-weight:700;">🆓 무료(M)</span>' : '';
+    tabs += `<button class="tab-btn${i === 0 ? ' active' : ''}" onclick="openTab('cg${i}',this)">${isInha ? '⭐ ' : ''} ${e(u.name)}${freeBadge}</button>`;
     
     let inner = `<div class="${isInha ? 'inha-compare-card' : 'compare-item-box'}">
-      <h3 class="${isInha ? 'text-purple' : 'text-pc'}" style="margin-bottom:0.75rem;font-size:1.05rem;">${isInha ? '⭐' : '📌'} ${e(u.name)} 학과별 경쟁률</h3>
+      <h3 class="${isInha ? 'text-purple' : 'text-pc'}" style="margin-bottom:0.75rem;font-size:1.05rem;">${isInha ? '⭐' : '📌'} ${e(u.name)}${freeBadge} 학과별 경쟁률</h3>
       <div class="table-container"><table><thead><tr>
         <th>학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
       </tr></thead><tbody>`;
@@ -1092,7 +1115,9 @@ function updateRU(){
   const names = inhaFirst([...new Set(ALL_UNIVS.filter(u => u.year === y && (u.admission_type === a || u.adm_type === a)).map(u => u.name))]);
   document.getElementById('rUL').innerHTML = names.map(n => {
     const isInha = n.includes('인하공업전문대학');
-    return `<label class="univ-label${isInha ? ' inha-checkbox-label' : ''}"><input type="checkbox" class="rc" value="${e(n)}" checked> ${isInha ? '⭐ <strong>' + e(n) + '</strong>' : e(n)}</label>`;
+    const isFree = n.endsWith('M') || n.includes('(M)');
+    const freeBadge = isFree ? ' <span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0.02rem 0.3rem;border-radius:0.2rem;font-size:0.7rem;font-weight:700;">🆓 M</span>' : '';
+    return `<label class="univ-label${isInha ? ' inha-checkbox-label' : ''}"><input type="checkbox" class="rc" value="${e(n)}" checked> ${isInha ? '⭐ <strong>' + e(n) + '</strong>' : e(n)}${freeBadge}</label>`;
   }).join('');
 }
 
@@ -1152,8 +1177,10 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
   let tb = '';
   for(const n of names){
     const isInha = n.includes('인하공업전문대학'), d = ud[n], da = d.da || 0, dr = d.dr || 0;
+    const isFree = n.endsWith('M') || n.includes('(M)');
+    const freeBadge = isFree ? ' <span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0.02rem 0.3rem;border-radius:0.2rem;font-size:0.7rem;font-weight:700;">🆓 M</span>' : '';
     tb += `<tr class="${isInha ? 'inha-purple-row' : ''}">
-      <td style="font-weight:bold;">${isInha ? '<span class="inha-badge">⭐ ' + e(n) + '</span>' : e(n)}</td>
+      <td style="font-weight:bold;">${isInha ? '<span class="inha-badge">⭐ ' + e(n) + '</span>' : e(n)}${freeBadge}</td>
       ${rY.map(ry=>'<td>'+(d.ac[ry]||0).toLocaleString()+'</td>').join('')}
       ${rY.map((ry,i)=>'<td class="'+(i===0?'fw-bold '+(isInha?'text-purple':'text-pc'):'')+'">'+(d.ap[ry]||0).toLocaleString()+'</td>').join('')}
       <td class="fw-bold ${da>0?(isInha?'text-purple':'text-pc'):da<0?'text-danger':''}">${da>0?'+':''}${da.toLocaleString()}</td>
@@ -2322,28 +2349,33 @@ async function downloadCurrentDataExcel() {
     const wb = XLSX.utils.book_new();
 
     // ── Sheet 1: 전체 데이터 (원시)
-    const allRows = ALL_UNIVS.map(u => ({
-      '대학명': u.name || '',
-      '학년도': u.year || '',
-      '모집시기': u.adm_type || '',
-      '정원구분': u.cap_type || '',
-      '모집단위/학과': u.dept || '',
-      '모집인원': u.recruit_num != null ? u.recruit_num : '',
-      '지원인원': u.applicant_num != null ? u.applicant_num : '',
-      '경쟁률': u.competition_rate || '',
-      '원서 URL': u.url || '',
-      '등록일시': u.created_at || ''
-    }));
+    const allRows = ALL_UNIVS.map(u => {
+      const isFree = u.free_apply || u.is_free_apply || (String(u.name || '').endsWith('M') ? 'M' : '');
+      return {
+        '대학명': u.name || '',
+        '무료원서접수': isFree,
+        '학년도': u.year || '',
+        '모집시기': u.adm_type || u.admission_type || '',
+        '정원구분': u.cap_type || u.capacity_type || '',
+        '모집단위/학과': u.dept || u.department_name || '',
+        '모집인원': u.recruit_num != null ? u.recruit_num : '',
+        '지원인원': u.applicant_num != null ? u.applicant_num : '',
+        '경쟁률': u.competition_rate || u.competition_ratio || '',
+        '원서 URL': u.url || '',
+        '등록일시': u.created_at || ''
+      };
+    });
     const ws1 = XLSX.utils.json_to_sheet(allRows);
     // 컬럼 너비 설정
-    ws1['!cols'] = [20,10,12,12,30,10,10,10,60,20].map(w => ({ wch: w }));
+    ws1['!cols'] = [20,12,10,12,12,30,10,10,10,60,20].map(w => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws1, '전체데이터');
 
     // ── Sheet 2: 대학별 요약
     const univMap = {};
     ALL_UNIVS.forEach(u => {
+      const isFree = u.free_apply || u.is_free_apply || (String(u.name || '').endsWith('M') ? 'M' : '');
       const key = `${u.name}_${u.year}_${u.adm_type}_${u.cap_type}`;
-      if (!univMap[key]) univMap[key] = { name: u.name, year: u.year, adm_type: u.adm_type, cap_type: u.cap_type, rows: [] };
+      if (!univMap[key]) univMap[key] = { name: u.name, is_free: isFree, year: u.year, adm_type: u.adm_type, cap_type: u.cap_type, rows: [] };
       univMap[key].rows.push(u);
     });
     const summaryRows = Object.values(univMap).map(g => {
@@ -2352,6 +2384,7 @@ async function downloadCurrentDataExcel() {
       const avgRate = totalRecruit > 0 ? (totalApplicant / totalRecruit) : 0;
       return {
         '대학명': g.name,
+        '무료원서접수': g.is_free || '',
         '학년도': g.year,
         '모집시기': g.adm_type,
         '정원구분': g.cap_type,
@@ -2362,7 +2395,7 @@ async function downloadCurrentDataExcel() {
       };
     });
     const ws2 = XLSX.utils.json_to_sheet(summaryRows);
-    ws2['!cols'] = [22,10,12,12,8,12,12,12].map(w => ({ wch: w }));
+    ws2['!cols'] = [22,12,10,12,12,8,12,12,12].map(w => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws2, '대학별요약');
 
     // ── Sheet 3: 연도별 비교 (대학-학과 기준)
@@ -2370,8 +2403,9 @@ async function downloadCurrentDataExcel() {
     if (yearSet.length > 1) {
       const deptMap = {};
       ALL_UNIVS.forEach(u => {
+        const isFree = u.free_apply || u.is_free_apply || (String(u.name || '').endsWith('M') ? 'M' : '');
         const key = `${u.name}|${u.adm_type}|${u.cap_type}|${u.dept}`;
-        if (!deptMap[key]) deptMap[key] = { name: u.name, adm_type: u.adm_type, cap_type: u.cap_type, dept: u.dept };
+        if (!deptMap[key]) deptMap[key] = { name: u.name, is_free: isFree, adm_type: u.adm_type, cap_type: u.cap_type, dept: u.dept };
         deptMap[key][`${u.year}_경쟁률`] = u.competition_rate || '';
         deptMap[key][`${u.year}_모집`] = u.recruit_num != null ? u.recruit_num : '';
         deptMap[key][`${u.year}_지원`] = u.applicant_num != null ? u.applicant_num : '';
@@ -2379,12 +2413,12 @@ async function downloadCurrentDataExcel() {
       const yearCols = [];
       yearSet.forEach(y => { yearCols.push(`${y}_경쟁률`, `${y}_모집`, `${y}_지원`); });
       const compareRows = Object.values(deptMap).map(row => {
-        const r = { '대학명': row.name, '모집시기': row.adm_type, '정원구분': row.cap_type, '학과': row.dept };
+        const r = { '대학명': row.name, '무료원서접수': row.is_free || '', '모집시기': row.adm_type, '정원구분': row.cap_type, '학과': row.dept };
         yearCols.forEach(c => { r[c] = row[c] || ''; });
         return r;
       });
       const ws3 = XLSX.utils.json_to_sheet(compareRows);
-      const fixedW = [22, 12, 12, 30];
+      const fixedW = [22, 12, 12, 12, 30];
       yearCols.forEach(() => fixedW.push(12));
       ws3['!cols'] = fixedW.map(w => ({ wch: w }));
       XLSX.utils.book_append_sheet(wb, ws3, '연도별비교');
