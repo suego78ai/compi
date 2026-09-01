@@ -593,7 +593,7 @@ async def download_template():
             "학년도": "2027",
             "모집시기": "수시1차",
             "대학명": "인하공업전문대학",
-            "무료원서접수": "",
+            "무료접수": "",
             "중복지원": "",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41260471.html",
             "정원구분": "정원내"
@@ -602,7 +602,7 @@ async def download_template():
             "학년도": "2027",
             "모집시기": "수시1차",
             "대학명": "경인여자대학교",
-            "무료원서접수": "F",
+            "무료접수": "F",
             "중복지원": "M",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40180641.html",
             "정원구분": "구분없음"
@@ -611,7 +611,7 @@ async def download_template():
             "학년도": "2027",
             "모집시기": "수시1차",
             "대학명": "연성대학교",
-            "무료원서접수": "F",
+            "무료접수": "F",
             "중복지원": "M",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40580321.html",
             "정원구분": "구분없음"
@@ -620,7 +620,7 @@ async def download_template():
             "학년도": "2027",
             "모집시기": "수시2차",
             "대학명": "동양미래대학교",
-            "무료원서접수": "",
+            "무료접수": "",
             "중복지원": "",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41150241.html",
             "정원구분": "구분없음"
@@ -633,7 +633,7 @@ async def download_template():
         
         # openpyxl 스타일 및 컬럼 너비 자동 조정
         ws = writer.sheets["경쟁률_등록서식"]
-        col_widths = {"A": 12, "B": 14, "C": 22, "D": 16, "E": 14, "F": 65, "G": 14}
+        col_widths = {"A": 12, "B": 14, "C": 22, "D": 14, "E": 14, "F": 65, "G": 14}
         for col, width in col_widths.items():
             ws.column_dimensions[col].width = width
 
@@ -691,9 +691,9 @@ def parse_excel_row_data(row, columns):
     if not name and len(row) > 2 and not pd.isna(row.iloc[2]):
         name = str(row.iloc[2]).strip()
 
-    # 무료원서접수 ("F" 또는 "무료")
+    # 무료접수 ("F" 또는 "무료")
     free_apply = ""
-    for k in ["무료원서접수", "무료원서", "무료", "무료여부", "F여부", "F"]:
+    for k in ["무료접수", "무료원서접수", "무료원서", "무료", "무료여부", "F여부", "F"]:
         if k in col_map and not pd.isna(row.iloc[col_map[k]]):
             val = str(row.iloc[col_map[k]]).strip()
             if val in ["F", "f", "무료", "Y", "y", "O", "o", "true", "True"]:
@@ -707,7 +707,7 @@ def parse_excel_row_data(row, columns):
     for k in ["중복지원", "중복원서접수", "중복접수", "복수지원", "중복", "중복여부", "M여부", "M"]:
         if k in col_map and not pd.isna(row.iloc[col_map[k]]):
             val = str(row.iloc[col_map[k]]).strip()
-            if val in ["M", "m", "중복", "Y", "y", "O", "o", "true", "True"]:
+            if val in ["M", "m", "중복", "복수", "Y", "y", "O", "o", "true", "True"]:
                 multi_apply = "M"
             break
     if not multi_apply and name and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):

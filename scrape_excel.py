@@ -85,7 +85,7 @@ def detect_and_extract_rows(file_path):
                     cap_type = "정원외"
                     break
                     
-        # 5. 무료원서접수 ("F" 또는 "무료") 찾기
+        # 5. 무료접수 ("F" 또는 "무료") 찾기
         free_apply = ""
         for i, val in enumerate(row_strs):
             if i != url_col_idx:
@@ -97,7 +97,7 @@ def detect_and_extract_rows(file_path):
         multi_apply = ""
         for i, val in enumerate(row_strs):
             if i != url_col_idx:
-                if val.strip() in ["M", "m", "중복", "복수지원"]:
+                if val.strip() in ["M", "m", "중복", "복수", "복수지원"]:
                     multi_apply = "M"
                     break
 
@@ -106,7 +106,7 @@ def detect_and_extract_rows(file_path):
         for i, val in enumerate(row_strs):
             if i != url_col_idx and val:
                 # 연도, 모집시기, 정원구분, 무료구분, 중복구분, 헤더 텍스트가 아닌 한글 명칭
-                if val == year or val == adm_type or val == cap_type or val == free_apply or val == multi_apply or val in ["F", "f", "M", "m", "무료", "중복", "해당없음", "Y", "N"]:
+                if val == year or val == adm_type or val == cap_type or val == free_apply or val == multi_apply or val in ["F", "f", "M", "m", "무료", "중복", "복수", "해당없음", "Y", "N"]:
                     continue
                 if any(h in val for h in ["대학", "대학교", "전문대학", "대"]):
                     name = val
