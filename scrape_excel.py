@@ -85,12 +85,12 @@ def detect_and_extract_rows(file_path):
                     cap_type = "정원외"
                     break
                     
-        # 5. 무료원서접수 ("M" 또는 "무료") 찾기
+        # 5. 무료원서접수 ("F" 또는 "무료") 찾기
         free_apply = ""
         for i, val in enumerate(row_strs):
             if i != url_col_idx:
-                if val.strip() in ["M", "m", "무료", "Y", "y", "O", "o"]:
-                    free_apply = "M"
+                if val.strip() in ["F", "f", "M", "m", "무료", "Y", "y", "O", "o"]:
+                    free_apply = "F"
                     break
 
         # 6. 대학명 찾기
@@ -98,7 +98,7 @@ def detect_and_extract_rows(file_path):
         for i, val in enumerate(row_strs):
             if i != url_col_idx and val:
                 # 연도, 모집시기, 정원구분, 무료구분, 헤더 텍스트가 아닌 한글 명칭
-                if val == year or val == adm_type or val == cap_type or val == free_apply or val in ["M", "m", "무료", "해당없음", "Y", "N"]:
+                if val == year or val == adm_type or val == cap_type or val == free_apply or val in ["F", "f", "M", "m", "무료", "해당없음", "Y", "N"]:
                     continue
                 if any(h in val for h in ["대학", "대학교", "전문대학", "대"]):
                     name = val
@@ -114,8 +114,8 @@ def detect_and_extract_rows(file_path):
                     break
                     
         name = name or "대학"
-        if not free_apply and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
-            free_apply = "M"
+        if not free_apply and (name.endswith("F") or name.endswith("(F)") or name.endswith("M") or name.endswith("(M)")):
+            free_apply = "F"
 
         extracted.append({
             "year": year,
@@ -144,7 +144,7 @@ def process_excel_scrape(file_path, auto_push=True):
         
     print(f"📋 총 {len(rows)}개 대학 경쟁률 URL 감지됨:")
     for idx, r in enumerate(rows, 1):
-        m_tag = " [무료(M)]" if r.get('is_free_apply') == 'M' else ""
+        m_tag = " [무료(F)]" if r.get('is_free_apply') == 'F' else ""
         print(f"   [{idx}/{len(rows)}] {r['name']}{m_tag} ({r['year']} {r['admission_type']}) -> {r['url'][:50]}...")
     print("--------------------------------------------------------")
     

@@ -383,7 +383,8 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
     flat = []
     for u in universities:
         depts = db.query(DepartmentData).filter(DepartmentData.university_id == u.id).all()
-        is_free = getattr(u, 'is_free_apply', '') or ('M' if str(u.name or '').endswith('M') else '')
+        is_free = getattr(u, 'is_free_apply', '') or ('F' if str(u.name or '').endswith(('M', 'F')) else '')
+        if is_free == 'M': is_free = 'F'
         if not depts:
             flat.append({
                 "id": u.id, "name": u.name, "year": str(u.year or ""),
@@ -596,7 +597,7 @@ async def download_template():
             "학년도": "2027",
             "모집시기": "수시1차",
             "대학명": "경인여자대학교",
-            "무료원서접수": "M",
+            "무료원서접수": "F",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40180641.html",
             "정원구분": "구분없음"
         },
@@ -604,7 +605,7 @@ async def download_template():
             "학년도": "2027",
             "모집시기": "수시1차",
             "대학명": "연성대학교",
-            "무료원서접수": "M",
+            "무료원서접수": "F",
             "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40580321.html",
             "정원구분": "구분없음"
         },
@@ -682,16 +683,16 @@ def parse_excel_row_data(row, columns):
     if not name and len(row) > 2 and not pd.isna(row.iloc[2]):
         name = str(row.iloc[2]).strip()
 
-    # 무료원서접수 ("M" 또는 "무료")
+    # 무료원서접수 ("F" 또는 "무료")
     free_apply = ""
-    for k in ["무료원서접수", "무료원서", "무료", "무료여부", "M여부", "모바일접수", "M"]:
+    for k in ["무료원서접수", "무료원서", "무료", "무료여부", "F여부", "M여부", "F", "M"]:
         if k in col_map and not pd.isna(row.iloc[col_map[k]]):
             val = str(row.iloc[col_map[k]]).strip()
-            if val in ["M", "m", "무료", "Y", "y", "O", "o", "true", "True"]:
-                free_apply = "M"
+            if val in ["F", "f", "M", "m", "무료", "Y", "y", "O", "o", "true", "True"]:
+                free_apply = "F"
             break
-    if not free_apply and name and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
-        free_apply = "M"
+    if not free_apply and name and (name.endswith("F") or name.endswith("(F)") or name.endswith("M") or name.endswith("(M)")):
+        free_apply = "F"
 
     # 정원구분
     cap = "구분없음"

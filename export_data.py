@@ -49,7 +49,8 @@ def export_to_json(db=None):
         records = []
         for u in universities:
             depts = u.departments
-            is_free = getattr(u, 'is_free_apply', '') or ('M' if str(u.name or '').endswith('M') else '')
+            is_free = getattr(u, 'is_free_apply', '') or ('F' if str(u.name or '').endswith(('M', 'F')) else '')
+            if is_free == 'M': is_free = 'F'
             if not depts:
                 records.append({
                     "id": u.id, "name": u.name or "", "year": str(u.year or ""),
