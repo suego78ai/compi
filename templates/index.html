@@ -2791,6 +2791,39 @@ function toggleAllResetCheckboxes(check) {
   updateResetSelectedCount();
 }
 
+function getApiEndpoint(path) {
+  const isLocalServer = ['localhost', '127.0.0.1'].includes(location.hostname) || (location.port && location.port !== '');
+  if (isLocalServer) {
+    return path.startsWith('/') ? path : '/' + path;
+  }
+  return `http://127.0.0.1:26240${path.startsWith('/') ? path : '/' + path}`;
+}
+
+function saveUniversitiesAndRefresh(updatedList) {
+  ALL_UNIVS = Array.isArray(updatedList) ? updatedList : [];
+  buildTree();
+  renderDataSummary();
+  
+  // Re-populate modal filter options with updated unique values
+  const yearSelect = document.getElementById('resetFilterYear');
+  if (yearSelect) {
+    const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+    const curYear = yearSelect.value;
+    yearSelect.innerHTML = `<option value="ALL">전체 학년도 (${ALL_UNIVS.length ? years.length + '개년' : '0'})</option>` +
+      years.map(y => `<option value="${e(y)}">${e(y)}학년도</option>`).join('');
+    if (years.includes(curYear)) yearSelect.value = curYear;
+  }
+  
+  const admSelect = document.getElementById('resetFilterAdm');
+  if (admSelect) {
+    const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort();
+    const curAdm = admSelect.value;
+    admSelect.innerHTML = `<option value="ALL">전체 모집시기</option>` +
+      adms.map(a => `<option value="${e(a)}">${e(a)}</option>`).join('');
+    if (adms.includes(curAdm)) admSelect.value = curAdm;
+  }
+}
+
 function updateResetSelectedCount() {
   const checked = document.querySelectorAll('.reset-univ-checkbox:checked');
   const label = document.getElementById('resetSelectedCountLabel');
@@ -2830,11 +2863,12 @@ async function executeSelectiveReset() {
 
   showLoading(true);
 
-  // 1. Try local server API if running
+  // 1. Local / Server API Call
   try {
     const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
     const payload = ids.length ? { univ_ids: ids } : { names: names };
-    const res = await fetch('http://127.0.0.1:26240/api/delete_universities', {
+    const apiUrl = getApiEndpoint('/api/delete_universities');
+    const res = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2842,17 +2876,17 @@ async function executeSelectiveReset() {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(4000)
+      signal: AbortSignal.timeout(5000)
     });
     if (res.ok) {
       const data = await res.json();
       console.log('Server selective delete success:', data);
     }
   } catch (e) {
-    console.log('Local server API bypass/fallback to client memory update:', e);
+    console.log('Server API notice:', e);
   }
 
-  // 2. Client-side memory & storage update
+  // 2. Client memory update
   const updatedAll = ALL_UNIVS.filter(u => {
     const isTarget = items.some(item => {
       if (item.id && u.id === item.id) return true;
@@ -2886,25 +2920,26 @@ async function executeFullReset() {
   // 1. Try server API
   try {
     const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
-    const res = await fetch('http://127.0.0.1:26240/api/reset_all', {
+    const apiUrl = getApiEndpoint('/api/reset_all');
+    const res = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'x-admin-token': token,
         'Authorization': `Bearer ${token}`
       },
-      signal: AbortSignal.timeout(4000)
+      signal: AbortSignal.timeout(5000)
     });
     if (res.ok) {
       const data = await res.json();
       console.log('Server reset all success:', data);
     }
   } catch (e) {
-    console.log('Server reset bypass:', e);
+    console.log('Server reset notice:', e);
   }
 
   // 2. Client reset
   saveUniversitiesAndRefresh([]);
-  localStorage.removeItem('ipsi_custom_universities');
+  renderResetUnivTable();
   closeDataResetModal();
   showHome(false);
   showLoading(false);
@@ -2923,15 +2958,18 @@ async function confirmDeleteSingleUniv(id, name, year, adm) {
   if (id) {
     try {
       const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
-      await fetch(`http://127.0.0.1:26240/api/universities/${id}`, {
+      const apiUrl = getApiEndpoint(`/api/universities/${id}`);
+      await fetch(apiUrl, {
         method: 'DELETE',
         headers: {
           'x-admin-token': token,
           'Authorization': `Bearer ${token}`
         },
-        signal: AbortSignal.timeout(4000)
+        signal: AbortSignal.timeout(5000)
       });
-    } catch (e) {}
+    } catch (e) {
+      console.log('Single delete notice:', e);
+    }
   }
 
   const updatedAll = ALL_UNIVS.filter(u => {
