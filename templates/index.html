@@ -379,8 +379,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderAdminUI();
   showLoading(true);
   try {
-    const res = await fetch('data/data.json');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    // 로컬 FastAPI 서버 vs GitHub Pages 자동 감지
+    const isLocalServer = ['localhost', '127.0.0.1'].includes(location.hostname)
+                          || location.port !== '';
+    const dataUrl = isLocalServer ? '/api/data' : 'data/data.json';
+
+    const res = await fetch(dataUrl);
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' (' + dataUrl + ')');
     const payload = await res.json();
     ALL_UNIVS = payload.universities || [];
     buildTree();
@@ -389,7 +394,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch(e) {
     document.getElementById('treeContainer').innerHTML =
       '<div class="alert alert-error">데이터 로딩 실패: ' + e.message + '<br>' +
-      '<small>로컬 테스트: <code>python -m http.server</code> 후 접속하세요.</small></div>';
+      '<small>로컬 서버: <code>http://127.0.0.1:26240/</code> 로 접속하거나, ' +
+      'GitHub Pages: <a href="https://suego78ai.github.io/ipsi/" target="_blank">suego78ai.github.io/ipsi</a></small></div>';
   } finally { showLoading(false); }
 });
 

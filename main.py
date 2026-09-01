@@ -356,6 +356,49 @@ async def read_root(request: Request, db: Session = Depends(get_db)):
         "is_admin": is_admin_authenticated(request)
     })
 
+from fastapi.responses import JSONResponse
+
+@app.get("/api/data")
+async def api_data(db: Session = Depends(get_db)):
+    """DB의 대학+학과 데이터를 프론트엔드 ALL_UNIVS 포맷(플랫 배열)으로 반환"""
+    universities = db.query(University).order_by(University.name, University.year).all()
+    flat = []
+    for u in universities:
+        depts = db.query(DepartmentData).filter(DepartmentData.university_id == u.id).all()
+        if depts:
+            for d in depts:
+                flat.append({
+                    "id": u.id,
+                    "name": u.name,
+                    "year": u.year,
+                    "adm_type": u.admission_type,
+                    "cap_type": u.capacity_type,
+                    "url": u.url,
+                    "dept": d.department_name,
+                    "table_title": d.table_title,
+                    "recruit_num": d.admission_count,
+                    "applicant_num": d.applicant_count,
+                    "competition_rate": d.competition_ratio,
+                    "created_at": u.created_at.isoformat() if u.created_at else ""
+                })
+        else:
+            # 학과 데이터 없는 경우 대학 자체만 포함
+            flat.append({
+                "id": u.id,
+                "name": u.name,
+                "year": u.year,
+                "adm_type": u.admission_type,
+                "cap_type": u.capacity_type,
+                "url": u.url,
+                "dept": "",
+                "table_title": "",
+                "recruit_num": "",
+                "applicant_num": "",
+                "competition_rate": "",
+                "created_at": u.created_at.isoformat() if u.created_at else ""
+            })
+    return JSONResponse({"universities": flat})
+
 @app.get("/univ/{univ_id}", response_class=HTMLResponse)
 async def get_univ(request: Request, univ_id: int, db: Session = Depends(get_db)):
     universities = db.query(University).order_by(University.created_at.desc()).all()
