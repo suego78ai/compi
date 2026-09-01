@@ -385,10 +385,12 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
         depts = db.query(DepartmentData).filter(DepartmentData.university_id == u.id).all()
         if not depts:
             flat.append({
-                "id": u.id, "name": u.name, "year": u.year,
-                "adm_type": u.admission_type, "cap_type": u.capacity_type,
-                "url": u.url, "dept": "", "table_title": "",
-                "recruit_num": "", "applicant_num": "", "competition_rate": "",
+                "id": u.id, "name": u.name, "year": str(u.year or ""),
+                "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
+                "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                "url": u.url or "", "dept": "", "department_name": "", "table_title": "",
+                "recruit_num": "", "admission_count": "", "applicant_num": "", "applicant_count": "",
+                "competition_rate": "", "competition_ratio": "",
                 "created_at": u.created_at.isoformat() if u.created_at else ""
             })
             continue
@@ -397,13 +399,14 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
             # 원시 전체 반환 (중복 포함)
             for d in depts:
                 flat.append({
-                    "id": u.id, "name": u.name, "year": u.year,
-                    "adm_type": u.admission_type, "cap_type": u.capacity_type,
-                    "url": u.url, "dept": d.department_name,
-                    "table_title": d.table_title,
-                    "recruit_num": d.admission_count,
-                    "applicant_num": d.applicant_count,
-                    "competition_rate": d.competition_ratio,
+                    "id": u.id, "name": u.name, "year": str(u.year or ""),
+                    "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
+                    "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                    "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
+                    "table_title": d.table_title or "",
+                    "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
+                    "applicant_num": d.applicant_count or "", "applicant_count": d.applicant_count or "",
+                    "competition_rate": d.competition_ratio or "", "competition_ratio": d.competition_ratio or "",
                     "created_at": u.created_at.isoformat() if u.created_at else ""
                 })
         else:
@@ -419,13 +422,14 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
 
             for dept_name, (_, d) in dept_map.items():
                 flat.append({
-                    "id": u.id, "name": u.name, "year": u.year,
-                    "adm_type": u.admission_type, "cap_type": u.capacity_type,
-                    "url": u.url, "dept": d.department_name,
-                    "table_title": d.table_title,
-                    "recruit_num": d.admission_count,
-                    "applicant_num": d.applicant_count,
-                    "competition_rate": d.competition_ratio,
+                    "id": u.id, "name": u.name, "year": str(u.year or ""),
+                    "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
+                    "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                    "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
+                    "table_title": d.table_title or "",
+                    "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
+                    "applicant_num": d.applicant_count or "", "applicant_count": d.applicant_count or "",
+                    "competition_rate": d.competition_ratio or "", "competition_ratio": d.competition_ratio or "",
                     "created_at": u.created_at.isoformat() if u.created_at else ""
                 })
 
