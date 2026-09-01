@@ -2653,36 +2653,45 @@ async function downloadCurrentDataExcel() {
 // ── Data Reset & Management Engine ───────────────────────────
 function openDataResetModal(initialTab = 'selective') {
   const modal = document.getElementById('dataResetModal');
-  if (!modal) return;
-
-  // Populate Year filter
-  const yearSelect = document.getElementById('resetFilterYear');
-  if (yearSelect) {
-    const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
-    yearSelect.innerHTML = `<option value="ALL">전체 학년도 (${ALL_UNIVS.length ? years.length + '개년' : '0'})</option>` +
-      years.map(y => `<option value="${e(y)}">${e(y)}학년도</option>`).join('');
+  if (!modal) {
+    alert('초기화 모달 요소를 찾을 수 없습니다.');
+    return;
   }
 
-  // Populate Admission filter
-  const admSelect = document.getElementById('resetFilterAdm');
-  if (admSelect) {
-    const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort();
-    admSelect.innerHTML = `<option value="ALL">전체 모집시기</option>` +
-      adms.map(a => `<option value="${e(a)}">${e(a)}</option>`).join('');
-  }
-
-  const nameInput = document.getElementById('resetFilterName');
-  if (nameInput) nameInput.value = '';
-
-  if (initialTab === 'full') {
-    switchResetTab('tabFullReset', document.getElementById('resetTabBtn2'));
-  } else {
-    switchResetTab('tabSelectiveReset', document.getElementById('resetTabBtn1'));
-  }
-
-  renderResetUnivTable();
+  // 1. Immediately display modal overlay
   modal.classList.add('active');
   modal.style.display = 'flex';
+
+  try {
+    // 2. Populate Year filter
+    const yearSelect = document.getElementById('resetFilterYear');
+    if (yearSelect) {
+      const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+      yearSelect.innerHTML = `<option value="ALL">전체 학년도 (${ALL_UNIVS.length ? years.length + '개년' : '0'})</option>` +
+        years.map(y => `<option value="${e(y)}">${e(y)}학년도</option>`).join('');
+    }
+
+    // 3. Populate Admission filter
+    const admSelect = document.getElementById('resetFilterAdm');
+    if (admSelect) {
+      const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort();
+      admSelect.innerHTML = `<option value="ALL">전체 모집시기</option>` +
+        adms.map(a => `<option value="${e(a)}">${e(a)}</option>`).join('');
+    }
+
+    const nameInput = document.getElementById('resetFilterName');
+    if (nameInput) nameInput.value = '';
+
+    if (initialTab === 'full') {
+      switchResetTab('tabFullReset', document.getElementById('resetTabBtn2'));
+    } else {
+      switchResetTab('tabSelectiveReset', document.getElementById('resetTabBtn1'));
+    }
+
+    renderResetUnivTable();
+  } catch (err) {
+    console.error('Error opening reset modal:', err);
+  }
 }
 
 function closeDataResetModal() {
@@ -2985,6 +2994,16 @@ async function confirmDeleteSingleUniv(id, name, year, adm) {
 
   alert(`✔ '${name}' 대학 데이터가 성공적으로 삭제되었습니다.`);
 }
+
+// ── Global Window Bindings for Robust Click Handling ─────────
+window.openDataResetModal = openDataResetModal;
+window.closeDataResetModal = closeDataResetModal;
+window.switchResetTab = switchResetTab;
+window.toggleAllResetCheckboxes = toggleAllResetCheckboxes;
+window.updateResetSelectedCount = updateResetSelectedCount;
+window.executeSelectiveReset = executeSelectiveReset;
+window.executeFullReset = executeFullReset;
+window.confirmDeleteSingleUniv = confirmDeleteSingleUniv;
 </script>
 </body>
 </html>
