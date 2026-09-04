@@ -17,8 +17,8 @@
       --surface-color: #ffffff;
       --text-primary: #0f172a;
       --text-secondary: #64748b;
-      --primary-color: #4f46e5;
-      --primary-hover: #4338ca;
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
       --danger-color: #ef4444;
       --success-color: #10b981;
       --border-color: #cbd5e1;
@@ -40,7 +40,7 @@
     .header-actions{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
     .header-search{display:flex;gap:0.35rem;align-items:center;}
     .header-search input{padding:0.55rem 0.85rem;border:1px solid var(--border-color);border-radius:0.6rem;font-size:0.9rem;width:200px;font-family:inherit;}
-    .header-search input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 2px rgba(79,70,229,0.15);}
+    .header-search input:focus{outline:none;border-color:var(--primary-color);box-shadow:0 0 0 2px rgba(37,99,235,0.2);}
     .app-container{max-width:1680px;margin:1.5rem auto;padding:0 1.5rem;}
     .dashboard-grid{display:grid;grid-template-columns:310px 1fr 300px;gap:1.5rem;align-items:start;}
     @media(max-width:1280px){.dashboard-grid{grid-template-columns:290px 1fr;}.right-col{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;}}
@@ -49,37 +49,46 @@
     .card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:0.75rem;border-bottom:1px solid #f1f5f9;}
     .card-header h2{font-size:1.15rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:0.5rem;}
     .btn{cursor:pointer;border:none;border-radius:0.6rem;align-items:center;gap:0.4rem;padding:0.55rem 0.95rem;font-weight:600;transition:all 0.2s;display:inline-flex;font-size:0.88rem;text-decoration:none;justify-content:center;font-family:inherit;}
+    .btn:focus, .btn:focus-visible{outline:none;}
     .btn-primary{background:var(--primary-color);color:#fff;}
-    .btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,0.3);}
+    .btn-primary:hover{background:var(--primary-hover);transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,0.3);}
     .btn-success{background:var(--success-color);color:#fff;}
     .btn-success:hover{background:#059669;transform:translateY(-1px);box-shadow:0 4px 12px rgba(16,185,129,0.3);}
     .btn-secondary{background:#f8fafc;color:var(--text-primary);border:1px solid var(--border-color);}
     .btn-secondary:hover{background:#e2e8f0;}
     .tree-container details{margin-bottom:0.4rem;}
-    .tree-container summary{cursor:pointer;padding:0.6rem 0.75rem;font-weight:600;font-size:0.92rem;background:#f8fafc;border-radius:0.5rem;border:1px solid var(--border-color);margin-bottom:0.35rem;transition:background 0.2s;display:flex;align-items:center;justify-content:space-between;list-style:none;}
+    .tree-container summary{cursor:pointer;padding:0.45rem 0.65rem;font-weight:600;font-size:0.9rem;background:#f8fafc;border-radius:0.5rem;border:1px solid var(--border-color);margin-bottom:0.35rem;transition:background 0.2s;display:flex;align-items:center;justify-content:space-between;list-style:none;}
     .tree-container summary::-webkit-details-marker{display:none;}
     .tree-container summary::after{content:"▸";font-size:0.75rem;color:var(--text-secondary);transition:transform 0.2s;}
     .tree-container details[open]>summary::after{transform:rotate(90deg);}
     .tree-container summary:hover{background:#e2e8f0;}
-    .tree-content{padding-left:0.75rem;margin-top:0.35rem;border-left:2px solid var(--primary-color);margin-left:0.5rem;}
-    .tree-link{display:block;padding:0.4rem 0.6rem;color:var(--text-secondary);text-decoration:none;border-radius:0.375rem;font-weight:500;font-size:0.88rem;margin-bottom:0.2rem;cursor:pointer;transition:background 0.15s,color 0.15s;}
-    .tree-link:hover,.tree-link.active{background:#e0e7ff;color:var(--primary-color);}
-    .inha-tree-link{color:var(--purple-primary)!important;font-weight:700!important;background:var(--purple-light)!important;}
-    .inha-tree-link:hover{background:#e9d5ff!important;color:var(--purple-hover)!important;}
-    .insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;}
-    .insight-card{background:#f8fafc;border:1px solid var(--border-color);border-radius:0.85rem;padding:1.25rem;transition:transform 0.2s,border-color 0.2s;}
-    .insight-card:hover{transform:translateY(-2px);border-color:var(--primary-color);}
-    .tree-container summary{font-size:0.92rem;font-weight:600;cursor:pointer;padding:0.35rem 0.5rem;border-radius:0.4rem;user-select:none;display:flex;align-items:center;color:var(--text-primary);}
-    .tree-container summary:hover{background:#f8fafc;}
     .tree-content{padding-left:0.75rem;margin-top:0.25rem;border-left:2px solid var(--border-color);margin-left:0.5rem;}
     .tree-link{display:block;padding:0.35rem 0.6rem;font-size:0.86rem;color:var(--text-secondary);text-decoration:none;border-radius:0.4rem;cursor:pointer;margin-bottom:0.2rem;transition:all 0.15s;}
     .tree-link:hover{background:#f1f5f9;color:var(--text-primary);}
-    .tree-link.active{background:rgba(79,70,229,0.1);color:var(--primary-color);font-weight:700;}
+    .tree-link.active{background:rgba(37,99,235,0.1)!important;color:var(--primary-color)!important;font-weight:700!important;}
     .inha-tree-link{background:var(--purple-bg)!important;color:var(--purple-primary)!important;font-weight:700!important;border:1px solid var(--purple-border)!important;}
+    .insights-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;}
+    .insight-card{background:#f8fafc;border:1px solid var(--border-color);border-radius:0.85rem;padding:1.25rem;transition:transform 0.2s,border-color 0.2s;}
+    .insight-card:hover{transform:translateY(-2px);border-color:var(--primary-color);}
+    .quick-nav-btn{background:#ffffff!important;color:#334155!important;border:1px solid #cbd5e1!important;border-radius:0.6rem!important;padding:0.65rem 0.95rem!important;font-weight:600!important;font-size:0.9rem!important;text-align:left!important;justify-content:flex-start!important;width:100%!important;cursor:pointer!important;transition:all 0.15s ease!important;box-shadow:0 1px 2px rgba(0,0,0,0.03)!important;}
+    .quick-nav-btn:hover{background:#f1f5f9!important;color:#0f172a!important;border-color:#94a3b8!important;}
+    .quick-nav-btn.active{background:#2563eb!important;color:#ffffff!important;border-color:#1d4ed8!important;box-shadow:0 4px 12px rgba(37,99,235,0.35)!important;font-weight:700!important;}
+    .quick-nav-btn.active:hover{background:#1d4ed8!important;color:#ffffff!important;}
+    .header-nav-btn{background:#ffffff!important;color:#334155!important;border:1px solid #cbd5e1!important;border-radius:0.5rem!important;padding:0.5rem 0.85rem!important;font-weight:600!important;font-size:0.88rem!important;cursor:pointer!important;transition:all 0.15s ease!important;}
+    .header-nav-btn:hover{background:#f1f5f9!important;color:#0f172a!important;border-color:#94a3b8!important;}
+    .header-nav-btn.active{background:#2563eb!important;color:#ffffff!important;border-color:#1d4ed8!important;box-shadow:0 4px 12px rgba(37,99,235,0.35)!important;font-weight:700!important;}
+    .header-nav-btn.active:hover{background:#1d4ed8!important;color:#ffffff!important;}
     .table-container{width:100%;overflow-x:auto;}
     table{width:100%;border-collapse:collapse;font-size:0.88rem;text-align:left;}
     th,td{padding:0.6rem 0.8rem;border:1px solid var(--border-color);}
     th{background:#f8fafc;font-weight:600;color:var(--text-primary);}
+    table th.sortable{cursor:pointer;user-select:none;transition:background 0.15s,color 0.15s;white-space:nowrap;}
+    table th.sortable:hover{background:#e2e8f0;color:var(--primary-color);}
+    table th.sortable .sort-icon{margin-left:0.35rem;font-size:0.8rem;color:#94a3b8;display:inline-block;}
+    table th.sortable.sort-asc{background:#eef2ff;color:var(--primary-color);}
+    table th.sortable.sort-asc .sort-icon{color:var(--primary-color);font-weight:bold;}
+    table th.sortable.sort-desc{background:#eef2ff;color:var(--primary-color);}
+    table th.sortable.sort-desc .sort-icon{color:var(--primary-color);font-weight:bold;}
     tr:hover{background:var(--row-hover);}
     .inha-purple-row{background:var(--purple-bg)!important;font-weight:600;}
     .inha-purple-row td{border-color:var(--purple-border)!important;}
@@ -107,6 +116,8 @@
     .query-field label{font-weight:600;font-size:0.82rem;margin-bottom:0.25rem;display:block;color:var(--text-secondary);}
     .realtime-badge{display:inline-flex;align-items:center;gap:0.35rem;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;padding:0.25rem 0.65rem;border-radius:0.4rem;font-size:0.82rem;font-weight:700;}
     .url-link-item{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.8rem;background:#f8fafc;border:1px solid var(--border-color);border-radius:0.5rem;margin-bottom:0.4rem;font-size:0.88rem;}
+    @keyframes pulse-dot{0%{transform:scale(0.95);opacity:0.8;}50%{transform:scale(1.2);opacity:1;}100%{transform:scale(0.95);opacity:0.8;}}
+    .pulse-dot{animation:pulse-dot 1.5s infinite ease-in-out;}
   </style>
 </head>
 <body>
@@ -156,40 +167,120 @@
     </div>
 
     <div class="tabs" style="margin-bottom:1rem;">
-      <button class="tab-btn active" onclick="switchScraperTab('tabBatchScrape', this)">🔄 전체 대학 재스크래핑</button>
+      <button class="tab-btn active" onclick="switchScraperTab('tabBatchScrape', this)">⏱️ 실시간 자동 주기 스크래핑</button>
       <button class="tab-btn" onclick="switchScraperTab('tabDirectScrape', this)">🌐 단일 URL 스크래핑</button>
       <button class="tab-btn" onclick="switchScraperTab('tabExcelScrape', this)">📤 엑셀 일괄 스크래핑</button>
       <button class="tab-btn" onclick="switchScraperTab('tabDataExport', this)">💾 데이터 백업 & 다운로드</button>
       <button class="tab-btn" onclick="switchScraperTab('tabDataReset', this)" style="color:#dc2626;">🗑️ 데이터 초기화/관리</button>
     </div>
 
-    <!-- Tab 1: Batch Scrape -->
+    <!-- Tab 1: Batch & Periodic Scrape -->
     <div id="tabBatchScrape" class="scraper-tab-content">
-      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1rem;">
-        현재 대시보드에 등록된 대학들의 경쟁률 페이지 URL을 순차적으로 실시간 웹 스크래핑하여 최신 경쟁률로 전수 갱신합니다.
-      </p>
-      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
-        <div style="flex:1;min-width:180px;">
-          <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">대상 연도 선택</label>
-          <select id="engineBatchYear" class="form-control">
-            <option value="ALL">전체 연도 대학</option>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:0.6rem;padding:0.9rem;margin-bottom:1rem;">
+        <div style="font-weight:700;font-size:0.92rem;color:#1e293b;margin-bottom:0.25rem;display:flex;align-items:center;gap:0.4rem;">
+          <span>⏱️</span> <span>학년도 & 모집시기별 실시간 자동 주기 스크래핑</span>
+        </div>
+        <p style="color:var(--text-secondary);font-size:0.83rem;line-height:1.45;margin:0;">
+          선택한 <strong>학년도</strong> 및 <strong>모집시기</strong>에 등록되어 있는 대학들의 원서접수 경쟁률 페이지를 지정된 간격과 지속 기간 동안 브라우저에서 <strong>실시간 자동 반복 수집</strong>하여 대시보드를 최신 상태로 유지합니다.
+        </p>
+      </div>
+
+      <!-- Filter & Settings Grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:0.75rem;margin-bottom:1rem;">
+        <div>
+          <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:0.3rem;color:#334155;">🗓️ 학년도 선택</label>
+          <select id="engineBatchYear" class="form-control" onchange="updateBatchScrapeTargetSummary()">
+            <option value="ALL">전체 학년도</option>
             <option value="2027" selected>2027학년도</option>
             <option value="2026">2026학년도</option>
             <option value="2025">2025학년도</option>
           </select>
         </div>
-        <div style="flex:1;min-width:180px;display:flex;align-items:flex-end;">
-          <button class="btn btn-primary" style="width:100%;padding:0.65rem;justify-content:center;background:linear-gradient(135deg,#7c3aed,#4f46e5);" onclick="startBatchScrapingEngine()">
-            ⚡ 전체 재스크래핑 시작
-          </button>
+        <div>
+          <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:0.3rem;color:#334155;">🎯 모집시기 선택</label>
+          <select id="engineBatchAdm" class="form-control" onchange="updateBatchScrapeTargetSummary()">
+            <option value="ALL">전체 모집시기</option>
+            <option value="수시1차" selected>수시1차</option>
+            <option value="수시2차">수시2차</option>
+            <option value="정시">정시</option>
+          </select>
         </div>
+        <div>
+          <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:0.3rem;color:#334155;">⏳ 스크래핑 주기 (간격)</label>
+          <select id="engineBatchInterval" class="form-control">
+            <option value="1">1분 간격 (테스트용)</option>
+            <option value="2">2분 간격</option>
+            <option value="3">3분 간격</option>
+            <option value="5" selected>5분 간격 (권장)</option>
+            <option value="10">10분 간격</option>
+            <option value="15">15분 간격</option>
+            <option value="30">30분 간격</option>
+            <option value="60">60분 (1시간) 간격</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:0.3rem;color:#334155;">⌛ 실행 지속 기간</label>
+          <select id="engineBatchDuration" class="form-control">
+            <option value="30">30분 동안</option>
+            <option value="60" selected>1시간 동안</option>
+            <option value="120">2시간 동안</option>
+            <option value="180">3시간 동안</option>
+            <option value="360">6시간 동안</option>
+            <option value="720">12시간 동안</option>
+            <option value="1440">24시간 (하루 종일)</option>
+            <option value="0">무제한 (수동 중지 시까지)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Target Universities Summary Box -->
+      <div id="engineBatchTargetSummary" style="background:#f1f5f9;border-radius:0.5rem;padding:0.75rem;margin-bottom:1rem;font-size:0.82rem;border:1px solid #cbd5e1;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;flex-wrap:wrap;gap:0.3rem;">
+          <span style="font-weight:700;color:#1e293b;" id="engineTargetSummaryCount">🎯 대상 대학: 조회 중...</span>
+          <span style="color:#64748b;font-size:0.75rem;">URL이 등록된 대학만 스크래핑 대상이 됩니다.</span>
+        </div>
+        <div id="engineTargetSummaryList" style="display:flex;flex-wrap:wrap;gap:0.35rem;max-height:85px;overflow-y:auto;padding-top:0.2rem;">
+          <!-- Dynamic Univ Chips -->
+        </div>
+      </div>
+
+      <!-- Live Periodic Status Card (Active when running) -->
+      <div id="enginePeriodicStatusCard" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:0.6rem;padding:0.85rem 1rem;margin-bottom:1rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.5rem;">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;" class="pulse-dot"></span>
+            <strong style="color:#065f46;font-size:0.9rem;" id="enginePeriodicRunningBadge">🟢 실시간 자동 주기 스크래핑 실행 중 (1회차)</strong>
+          </div>
+          <div style="font-size:0.8rem;color:#047857;font-weight:700;" id="enginePeriodicNextCountdown">
+            ⏳ 다음 실행까지: 05:00
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:0.5rem;font-size:0.78rem;color:#064e3b;background:#ffffff;padding:0.6rem 0.8rem;border-radius:0.4rem;border:1px solid #d1fae5;">
+          <div>⏱️ <strong>지속 시간:</strong> <span id="enginePeriodicDurationStatus">00:00:00 / 01:00:00</span></div>
+          <div>🔄 <strong>누적 회차:</strong> <span id="enginePeriodicCycleCount">1회 진행됨</span></div>
+          <div>✅ <strong>최근 갱신:</strong> <span id="enginePeriodicLastResult">성공 0건 / 실패 0건</span></div>
+          <div>🕒 <strong>최근 완료:</strong> <span id="enginePeriodicLastTime">-</span></div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex;gap:0.65rem;flex-wrap:wrap;">
+        <button id="btnStartPeriodicScrape" class="btn btn-primary" style="flex:2;min-width:180px;padding:0.75rem;justify-content:center;background:linear-gradient(135deg,#059669,#10b981);font-weight:700;font-size:0.9rem;" onclick="startPeriodicScraping()">
+          ▶️ 실시간 주기 스크래핑 시작
+        </button>
+        <button id="btnStopPeriodicScrape" class="btn btn-secondary" style="display:none;flex:1;min-width:120px;padding:0.75rem;justify-content:center;background:#ef4444;color:#fff;border:none;font-weight:700;font-size:0.9rem;" onclick="stopPeriodicScraping('manual')">
+          ⏹️ 스크래핑 중지
+        </button>
+        <button id="btnOnceScrape" class="btn btn-secondary" style="flex:1.2;min-width:150px;padding:0.75rem;justify-content:center;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;" onclick="startBatchScrapingEngine(true)">
+          ⚡ 1회 즉시 스크래핑
+        </button>
       </div>
     </div>
 
     <!-- Tab 2: Direct Scrape -->
     <div id="tabDirectScrape" class="scraper-tab-content" style="display:none;">
       <form onsubmit="handleEngineDirectScrape(event)">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
+        <div style="display:grid;grid-template-columns:2fr 1fr 1.2fr;gap:0.75rem;margin-bottom:0.75rem;">
           <div>
             <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">대학명</label>
             <input type="text" id="engDirectUniv" placeholder="예: 인하공업전문대학" required class="form-control">
@@ -198,15 +289,9 @@
             <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">학년도</label>
             <input type="text" id="engDirectYear" value="2027" required class="form-control">
           </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:0.75rem;">
           <div>
             <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">모집시기</label>
             <input type="text" id="engDirectAdm" value="수시1차" required class="form-control">
-          </div>
-          <div>
-            <label style="font-size:0.82rem;font-weight:600;display:block;margin-bottom:0.25rem;">정원구분</label>
-            <input type="text" id="engDirectCap" value="구분없음" required class="form-control">
           </div>
         </div>
         <div style="margin-bottom:1rem;">
@@ -221,9 +306,14 @@
 
     <!-- Tab 3: Excel Scrape -->
     <div id="tabExcelScrape" class="scraper-tab-content" style="display:none;">
-      <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.75rem;">
-        엑셀 서식 파일(.xlsx)을 업로드하면 브라우저 스크래핑 엔진이 모든 행의 대학 URL을 자동으로 파싱합니다.
-      </p>
+      <div style="margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+        <p style="color:var(--text-secondary);font-size:0.85rem;margin:0;">
+          엑셀 서식 파일(.xlsx)을 업로드하면 브라우저 스크래핑 엔진이 모든 행의 대학 URL을 자동으로 파싱합니다.
+        </p>
+        <a href="template.xlsx" download="ipsi_template.xlsx" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.6rem;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;">
+          📥 표준 템플릿 다운로드
+        </a>
+      </div>
       <div class="dropzone" id="engExcelDropzone" onclick="document.getElementById('engExcelFileInput').click()">
         <input type="file" id="engExcelFileInput" accept=".xlsx" style="display:none;" onchange="handleEngineExcelFileSelect(this)">
         <div style="font-size:2rem;margin-bottom:0.3rem;">📊</div>
@@ -391,12 +481,12 @@
         <input type="text" id="searchInput" placeholder="학과명 / 대학명 검색..." oninput="handleSearch(this.value, true)">
         <button class="btn btn-secondary" onclick="clearSearch()" title="검색어 지우기">✕</button>
       </div>
-      <button class="btn btn-secondary" onclick="showAdvancedQueryModal(true)">🔎 상세 쿼리</button>
-      <button class="btn btn-secondary" onclick="showReportBuilder(false, true)">📊 비교 리포트</button>
-      <button class="btn btn-primary" onclick="showRealtimeReportBuilder(true)">🔄 실시간 파싱 리포트</button>
-      <button class="btn btn-success" onclick="downloadCurrentDataExcel()" style="border:none;" title="전체 데이터를 엑셀로 다운로드">📥 엑셀 다운로드</button>
-      <button class="btn btn-primary" onclick="openScraperEngineModal()" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;box-shadow:0 2px 8px rgba(124,58,237,0.3);">⚡ 스크래핑 엔진</button>
-      <button class="btn btn-secondary" onclick="openDataResetModal()" style="border-color:#fca5a5;color:#dc2626;background:#fff5f5;font-weight:700;" title="경쟁률 데이터 전체 또는 선택 초기화">🗑️ 데이터 초기화</button>
+      <button class="btn btn-secondary header-nav-btn" id="hnav_query" onclick="showQueryBuilder(true)">🔎 상세 쿼리</button>
+      <!-- <button class="btn btn-secondary header-nav-btn" id="hnav_report" onclick="showReportBuilder(false, true)">📊 비교 리포트</button> -->
+      <button class="btn btn-secondary header-nav-btn" id="hnav_realtime" onclick="showRealtimeReportBuilder(true)">📊 입시결과</button>
+      <button class="btn btn-success admin-only-btn" onclick="downloadCurrentDataExcel()" style="display:none;border:none;" title="전체 데이터를 엑셀로 다운로드 (관리자 전용)">📥 엑셀 다운로드</button>
+      <button class="btn btn-secondary admin-only-btn" onclick="openScraperEngineModal()" style="display:none;color:#7c3aed;font-weight:700;" title="스크래핑 엔진 실행 센터 (관리자 전용)">⚡ 스크래핑 엔진</button>
+      <button class="btn btn-secondary admin-only-btn" onclick="openDataResetModal()" style="display:none;border-color:#fca5a5;color:#dc2626;background:#fff5f5;font-weight:700;" title="경쟁률 데이터 전체 또는 선택 초기화 (관리자 전용)">🗑️ 데이터 초기화</button>
       <div id="adminHeaderArea" style="display:inline-flex;gap:0.4rem;align-items:center;"></div>
     </div>
   </div>
@@ -414,12 +504,13 @@
       <div class="glass-card">
         <div class="card-header"><h2>⚡ 빠른 탐색 메뉴</h2></div>
         <div style="display:flex;flex-direction:column;gap:0.6rem;">
-          <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showHome(true)">🏠 메인 대시보드</button>
-          <button class="btn btn-primary" style="width:100%;justify-content:flex-start;" onclick="showRealtimeReportBuilder(true)">🔄 당해년도 실시간 파싱 리포트</button>
-          <button class="btn btn-primary" style="width:100%;justify-content:flex-start;background:linear-gradient(135deg,#7c3aed,#4f46e5);border:none;" onclick="openScraperEngineModal()">⚡ 스크래핑 엔진 실행 센터</button>
-          <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;color:#dc2626;" onclick="openDataResetModal()">🗑️ 경쟁률 데이터 초기화/관리</button>
-          <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showReportBuilder(false, true)">📊 전형별 맞춤 비교 리포트</button>
-          <button class="btn btn-secondary" style="width:100%;justify-content:flex-start;" onclick="showAdvancedQueryModal(true)">🔎 조건별 상세 쿼리 검색</button>
+          <button class="btn btn-secondary quick-nav-btn" id="qnav_home" style="width:100%;justify-content:flex-start;" onclick="showHome(true, null, null, 'insights')">🏠 메인 대시보드</button>
+          <button class="btn btn-secondary quick-nav-btn" id="qnav_inha" style="width:100%;justify-content:flex-start;color:#6b21a8;font-weight:700;background:#faf5ff;" onclick="switchHomeTab('inha')">⭐ 인하공전 현황판</button>
+          <button class="btn btn-secondary quick-nav-btn" id="qnav_realtime" style="width:100%;justify-content:flex-start;" onclick="showRealtimeReportBuilder(true)">📊 입시결과 (전형별/전체)</button>
+          <button class="btn btn-secondary admin-only-btn" style="display:none;width:100%;justify-content:flex-start;color:#7c3aed;font-weight:700;" onclick="openScraperEngineModal()">⚡ 스크래핑 엔진 실행 센터</button>
+          <button class="btn btn-secondary admin-only-btn" style="display:none;width:100%;justify-content:flex-start;color:#dc2626;" onclick="openDataResetModal()">🗑️ 경쟁률 데이터 초기화/관리</button>
+          <!-- <button class="btn btn-secondary quick-nav-btn" id="qnav_report" style="width:100%;justify-content:flex-start;" onclick="showReportBuilder(false, true)">📊 전형별 맞춤 비교 리포트</button> -->
+          <button class="btn btn-secondary quick-nav-btn" id="qnav_query" style="width:100%;justify-content:flex-start;" onclick="showQueryBuilder(true)">🔎 조건별 상세 쿼리 검색</button>
         </div>
       </div>
     </aside>
@@ -428,15 +519,6 @@
 
     <aside class="right-col">
       <div id="adminRightColArea"></div>
-      <div class="glass-card">
-        <div class="card-header"><h2>📝 엑셀 템플릿 다운로드</h2></div>
-        <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.9rem;">
-          2027학년도 예시 데이터가 포함된 표준 등록 엑셀 서식을 다운로드합니다.
-        </p>
-        <a href="template.xlsx" download="ipsi_template.xlsx" class="btn btn-secondary" style="width:100%;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;">
-          📥 엑셀 표준 템플릿 다운로드 (.xlsx)
-        </a>
-      </div>
       <div class="glass-card">
         <div class="card-header"><h2>📅 데이터 현황</h2></div>
         <div id="dataSummary" style="color:var(--text-secondary);font-size:0.9rem;">로딩 중...</div>
@@ -467,10 +549,231 @@ function inhaFirst(list) {
 }
 
 function pr(str) {
-  if (typeof str === 'number') return str;
+  if (typeof str === 'number') return isNaN(str) ? 0 : str;
   if (!str) return 0;
   const match = String(str).replace(/,/g, '').match(/[\d.]+/);
   return match ? parseFloat(match[0]) : 0;
+}
+
+function parseNum(v) {
+  if (typeof v === 'number') return isNaN(v) ? 0 : v;
+  if (!v) return 0;
+  const s = String(v).replace(/,/g, '').trim();
+  const m = s.match(/^\d+/);
+  return m ? parseInt(m[0], 10) : 0;
+}
+
+const OUTSIDE_KEYWORDS = [
+  '정원외', '정원 외', '[정원외]', '(정원외)',
+  '전문대', '학사', '대학졸업',
+  '농어촌', '수급자', '차상위', '한부모', '기초생활', '기회균형',
+  '재외국민', '외국인', '북한', '이탈주민', '통일인재', '전교육과정',
+  '만학도', '재직자', '단원', '서해5도', '서해 5도', '장애', '특수교육', '취업자'
+];
+
+function isOutsideRow(d) {
+  if (!d) return false;
+  const cap = String(d.capacity_type || d.cap_type || '').trim();
+  if (cap.includes('정원외') || cap.includes('정원 외')) return true;
+  const tt = String(d.table_title || '').trim();
+  if (OUTSIDE_KEYWORDS.some(k => tt.includes(k))) return true;
+  const dept = String(d.department_name || d.dept || '').trim();
+  if (OUTSIDE_KEYWORDS.some(k => dept.includes(k))) return true;
+  return false;
+}
+
+// 대학별 특정 학년도/모집시기의 정확한 총 모집인원, 총 지원자수, 경쟁률 산출 (정원내/정원외/전체 합산 완벽 지원)
+function getUnivPeriodSummary(univName, year, adm = 'ALL') {
+  if (adm === 'ALL') {
+    let totInAc = 0, totInAp = 0, totOutAc = 0, totOutAp = 0;
+    const periods = ['수시1차', '수시2차', '정시'];
+    for (const p of periods) {
+      const s = getUnivPeriodSummary(univName, year, p);
+      totInAc += s.inside.recruit;
+      totInAp += s.inside.applicant;
+      totOutAc += s.outside.recruit;
+      totOutAp += s.outside.applicant;
+    }
+    const inRt = totInAc > 0 ? (totInAp / totInAc) : 0;
+    const totAp = totInAp + totOutAp;
+    const totAc = totInAc + totOutAc;
+    return {
+      inside: { recruit: totInAc, applicant: totInAp, ratio: inRt },
+      outside: { recruit: totOutAc, applicant: totOutAp, ratio: 0 },
+      total: { recruit: totAc, applicant: totAp, ratio: inRt },
+      recruit: totInAc,
+      applicant: totInAp,
+      totalApplicant: totAp,
+      ratio: inRt
+    };
+  }
+
+  const recs = ALL_UNIVS.filter(u => u.name === univName && u.year === year && (u.admission_type === adm || u.adm_type === adm));
+  if (!recs.length) {
+    return {
+      inside: { recruit: 0, applicant: 0, ratio: 0 },
+      outside: { recruit: 0, applicant: 0, ratio: 0 },
+      total: { recruit: 0, applicant: 0, ratio: 0 },
+      recruit: 0,
+      applicant: 0,
+      totalApplicant: 0,
+      ratio: 0
+    };
+  }
+
+  const sumRows = recs.filter(r => String(r.table_title || '').includes('전형별'));
+  let inAc = 0, inAp = 0, outAc = 0, outAp = 0;
+
+  if (sumRows.length > 0) {
+    // 수시/정시 원본 테이블 중 지원자수 컬럼에 경쟁률(': 1')이 들어가 컬럼이 밀린 경우 (예: 인하공전 2026 수시1차, 재능대 2026 수시1차)
+    const hasRatioInAp = sumRows.some(r => String(r.applicant_num || r.applicant_count || '').includes(': 1'));
+    const inSubtotalRow = sumRows.find(r => String(r.dept || '').trim() === '정원내');
+    const outSubtotalRow = sumRows.find(r => String(r.dept || '').trim() === '정원외');
+
+    if (hasRatioInAp && inSubtotalRow) {
+      inAc = parseNum(inSubtotalRow.recruit_num || inSubtotalRow.admission_count);
+      inAp = parseNum(inSubtotalRow.applicant_num || inSubtotalRow.applicant_count);
+      if (outSubtotalRow) {
+        outAc = parseNum(outSubtotalRow.recruit_num || outSubtotalRow.admission_count);
+        outAp = parseNum(outSubtotalRow.applicant_num || outSubtotalRow.applicant_count);
+      } else {
+        for (const r of sumRows) {
+          if (isOutsideRow(r) && r !== inSubtotalRow) {
+            outAp += parseNum(r.applicant_num || r.applicant_count);
+          }
+        }
+      }
+    } else {
+      // 일반 전형별 요약 테이블 행별 정상 집계 (경인여대, 연성대, 동양미래대, 대림대, 부천대 등)
+      for (const r of sumRows) {
+        const deptName = String(r.dept || '').trim();
+        if (['총계', '합계', '전체'].some(w => deptName.includes(w))) continue;
+
+        const isOut = isOutsideRow(r);
+        const recRaw = String(r.recruit_num || r.admission_count || '').trim();
+        const appRaw = String(r.applicant_num || r.applicant_count || '').trim();
+        const rateRaw = String(r.competition_rate || r.competition_ratio || '').trim();
+
+        let ac = 0, ap = 0;
+        // 컬럼 밀림 감지: 모집인원 자리에 '일반전형' 등 텍스트가 들어가고 지원인원에 숫자가 들어간 경우
+        if (recRaw && !recRaw.replace(/,/g, '').match(/^\d+$/) && recRaw !== '제한없음') {
+          ac = parseNum(appRaw);
+          ap = parseNum(rateRaw);
+        } else {
+          ac = parseNum(recRaw);
+          ap = parseNum(appRaw);
+        }
+
+        if (isOut) {
+          outAc += ac;
+          outAp += ap;
+        } else {
+          inAc += ac;
+          inAp += ap;
+        }
+      }
+    }
+  } else {
+    // 학과별 원시 레코드 기준 집계
+    for (const r of recs) {
+      const deptName = String(r.dept || '').trim();
+      if (['총계', '합계', '전체'].some(w => deptName.includes(w))) continue;
+      const isOut = isOutsideRow(r);
+      const ac = parseNum(r.recruit_num || r.admission_count);
+      const ap = parseNum(r.applicant_num || r.applicant_count);
+      if (isOut) {
+        outAc += ac;
+        outAp += ap;
+      } else {
+        inAc += ac;
+        inAp += ap;
+      }
+    }
+  }
+
+  const inRt = inAc > 0 ? (inAp / inAc) : 0;
+  const totAp = inAp + outAp;
+  const totAc = inAc + outAc;
+
+  return {
+    inside: { recruit: inAc, applicant: inAp, ratio: inRt },
+    outside: { recruit: outAc, applicant: outAp, ratio: 0 },
+    total: { recruit: totAc, applicant: totAp, ratio: inRt },
+    recruit: inAc,
+    applicant: inAp,
+    totalApplicant: totAp,
+    ratio: inRt
+  };
+}
+
+// ── Universal Table Sorter ────────────────────────────────────
+function sortTable(tableRef, colIndex, type = 'auto') {
+  const table = typeof tableRef === 'string' ? document.getElementById(tableRef) : tableRef;
+  if (!table) return;
+
+  const tbody = table.querySelector('tbody');
+  if (!tbody) return;
+
+  const thList = table.querySelectorAll('thead th');
+  const targetTh = thList[colIndex];
+  if (!targetTh) return;
+
+  // Determine sort direction: toggle between asc/desc
+  const currentDir = targetTh.getAttribute('data-sort-dir');
+  let newDir = 'asc';
+  if (currentDir === 'asc') {
+    newDir = 'desc';
+  } else if (currentDir === 'desc') {
+    newDir = 'asc';
+  } else {
+    // Default initial sort: numbers and ratios sort descending first (highest first)
+    newDir = (type === 'number' || type === 'ratio') ? 'desc' : 'asc';
+  }
+
+  // Reset other header states in this table
+  thList.forEach(th => {
+    th.removeAttribute('data-sort-dir');
+    th.classList.remove('sort-asc', 'sort-desc');
+    const icon = th.querySelector('.sort-icon');
+    if (icon) icon.textContent = '↕';
+  });
+
+  // Set clicked header state
+  targetTh.setAttribute('data-sort-dir', newDir);
+  targetTh.classList.add(newDir === 'asc' ? 'sort-asc' : 'sort-desc');
+  const icon = targetTh.querySelector('.sort-icon');
+  if (icon) icon.textContent = newDir === 'asc' ? '▲' : '▼';
+
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+
+  rows.sort((rowA, rowB) => {
+    const cellA = rowA.children[colIndex];
+    const cellB = rowB.children[colIndex];
+    const textA = cellA ? cellA.innerText.trim() : '';
+    const textB = cellB ? cellB.innerText.trim() : '';
+
+    if (type === 'ratio') {
+      const valA = pr(textA);
+      const valB = pr(textB);
+      if (valA === valB) return 0;
+      return newDir === 'asc' ? valA - valB : valB - valA;
+    } else if (type === 'number') {
+      const cleanA = textA.replace(/,/g, '');
+      const cleanB = textB.replace(/,/g, '');
+      const numA = (isNaN(parseFloat(cleanA)) || cleanA === '-' || cleanA === '') ? -999999 : parseFloat(cleanA);
+      const numB = (isNaN(parseFloat(cleanB)) || cleanB === '-' || cleanB === '') ? -999999 : parseFloat(cleanB);
+      if (numA === numB) {
+        return textA.localeCompare(textB, 'ko-KR', { numeric: true });
+      }
+      return newDir === 'asc' ? numA - numB : numB - numA;
+    } else {
+      return newDir === 'asc'
+        ? textA.localeCompare(textB, 'ko-KR', { numeric: true, sensitivity: 'base' })
+        : textB.localeCompare(textA, 'ko-KR', { numeric: true, sensitivity: 'base' });
+    }
+  });
+
+  rows.forEach(r => tbody.appendChild(r));
 }
 
 function showLoading(show) {
@@ -484,11 +787,43 @@ function showLoading(show) {
 function setActive(uid) {
   clearActive();
   const link = document.querySelector(`.tree-link[data-uid="${uid}"]`);
-  if (link) link.classList.add('active');
+  if (link) {
+    link.classList.add('active');
+    let parent = link.closest('details');
+    while (parent) {
+      parent.open = true;
+      parent = parent.parentElement ? parent.parentElement.closest('details') : null;
+    }
+  }
 }
 
 function clearActive() {
-  document.querySelectorAll('.tree-link.active').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tree-link, .quick-nav-btn, .header-nav-btn').forEach(el => {
+    el.classList.remove('active');
+  });
+}
+
+function setNavActive(key) {
+  clearActive();
+  if (key === 'home') {
+    const qb = document.getElementById('qnav_home');
+    if (qb) qb.classList.add('active');
+  } else if (key === 'realtime') {
+    const qb = document.getElementById('qnav_realtime');
+    const hb = document.getElementById('hnav_realtime');
+    if (qb) qb.classList.add('active');
+    if (hb) hb.classList.add('active');
+  } else if (key === 'report') {
+    const qb = document.getElementById('qnav_report');
+    const hb = document.getElementById('hnav_report');
+    if (qb) qb.classList.add('active');
+    if (hb) hb.classList.add('active');
+  } else if (key === 'query') {
+    const qb = document.getElementById('qnav_query');
+    const hb = document.getElementById('hnav_query');
+    if (qb) qb.classList.add('active');
+    if (hb) hb.classList.add('active');
+  }
 }
 
 function openTab(tabId, btn) {
@@ -657,7 +992,7 @@ function handleUrlParams() {
 
   if (mode === 'realtime_builder' || (mode === 'report' && isRealtime)) {
     if (univs) {
-      showReportDirect(year || getLatestYear(), admType || '수시1차', univs.split(','), true, false);
+      showReportDirect(year || getLatestYear(), admType || 'ALL', univs.split(','), true, false);
     } else {
       showRealtimeReportBuilder(false);
     }
@@ -666,7 +1001,7 @@ function handleUrlParams() {
 
   if (mode === 'report' || params.get('report') === '1') {
     if (univs) {
-      showReportDirect(year || getLatestYear(), admType || '수시1차', univs.split(','), isRealtime, false);
+      showReportDirect(year || getLatestYear(), admType || 'ALL', univs.split(','), isRealtime, false);
     } else {
       showReportBuilder(isRealtime, false);
     }
@@ -674,22 +1009,28 @@ function handleUrlParams() {
   }
 
   if (mode === 'query' || params.get('query') === '1') {
-    executeAdvancedQuery({
-      year: year || '',
-      adm_type: admType || '',
-      cap_type: capType || '',
-      univ_name: univName || '',
-      dept_name: params.get('dept') || params.get('department') || '',
-      min_ratio: parseFloat(params.get('min_ratio') || 0),
-      max_ratio: parseFloat(params.get('max_ratio') || 9999),
-      sort: params.get('sort') || 'ratio_desc'
-    }, false);
+    showQueryBuilder(false);
+    if (params.get('dept') || params.get('min_ratio') || params.get('year') || params.get('adm_type') || params.get('univ')) {
+      if (params.get('year') && document.getElementById('qYear')) document.getElementById('qYear').value = params.get('year');
+      if (params.get('adm_type') && document.getElementById('qAdm')) document.getElementById('qAdm').value = params.get('adm_type');
+      if (params.get('univ') && document.getElementById('qUniv')) document.getElementById('qUniv').value = params.get('univ');
+      if (params.get('dept') && document.getElementById('qDept')) document.getElementById('qDept').value = params.get('dept');
+      if (params.get('min_ratio') && document.getElementById('qMinRatio')) document.getElementById('qMinRatio').value = params.get('min_ratio');
+      if (params.get('sort') && document.getElementById('qSort')) document.getElementById('qSort').value = params.get('sort');
+      runCustomQuery(false);
+    }
     return;
   }
 
   if (q) {
     document.getElementById('searchInput').value = q;
     handleSearch(q, false);
+    return;
+  }
+
+  const tab = params.get('tab');
+  if (tab === 'inha' || mode === 'inha' || mode === 'inha_board') {
+    showHome(false, null, null, 'inha');
     return;
   }
 
@@ -707,9 +1048,49 @@ function updateUrl(paramsObj) {
   window.history.pushState({}, '', url);
 }
 
+// ── URL이 존재하는 학년도 중 최신 학년도 및 모집시기 우선순위 (수시1차 > 수시2차 > 정시 > ALL) ──
+function getLatestValidYearAndAdm() {
+  // 1. URL 컬럼이 빈 문자열("") 또는 NULL이 아닌 존재하는 대학 필터링
+  const validUnivs = ALL_UNIVS.filter(u => u && u.url && String(u.url).trim() !== '');
+  const sourceUnivs = validUnivs.length ? validUnivs : ALL_UNIVS;
+
+  // 2. 존재하는 학년도(year) 중 가장 높은 값(최신 학년도)
+  const years = [...new Set(sourceUnivs.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+  const latestYear = years.length ? years[0] : '2027';
+
+  // 3. 해당 최신 학년도의 모집시기 우선순위: 수시1차 > 수시2차 > 정시 > 전체 모집시기
+  const admsInYear = new Set(
+    sourceUnivs.filter(u => u.year === latestYear).map(u => u.admission_type || u.adm_type).filter(Boolean)
+  );
+
+  const ADM_PRIORITY = ['수시1차', '수시2차', '정시'];
+  let defaultAdm = 'ALL';
+  for (const adm of ADM_PRIORITY) {
+    if (admsInYear.has(adm)) {
+      defaultAdm = adm;
+      break;
+    }
+  }
+
+  return { year: latestYear, adm: defaultAdm };
+}
+
 function getLatestYear() {
-  const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
-  return years.length ? years[0] : '2027';
+  return getLatestValidYearAndAdm().year;
+}
+
+function getDefaultAdmForYear(targetYear) {
+  const validUnivs = ALL_UNIVS.filter(u => u && u.url && String(u.url).trim() !== '');
+  const sourceUnivs = validUnivs.length ? validUnivs : ALL_UNIVS;
+  const y = targetYear || getLatestYear();
+  const admsInYear = new Set(
+    sourceUnivs.filter(u => u.year === y).map(u => u.admission_type || u.adm_type).filter(Boolean)
+  );
+  const ADM_PRIORITY = ['수시1차', '수시2차', '정시'];
+  for (const adm of ADM_PRIORITY) {
+    if (admsInYear.has(adm)) return adm;
+  }
+  return 'ALL';
 }
 
 // ── Tree (대학별 고유 그룹핑 및 카테고리 정상화, 무료접수 F & 중복지원 M 뱃지) ──
@@ -780,10 +1161,19 @@ function buildTree() {
 
   let html = '';
   const years = Object.keys(TREE).sort((a, b) => b.localeCompare(a));
+  const ADM_ORDER = ['정시', '수시2차', '수시1차'];
   for (const y of years) {
-    html += `<details open><summary><span>🗓️ ${e(y)}학년도</span></summary><div class="tree-content">`;
-    for (const a of Object.keys(TREE[y]).sort()) {
-      html += `<details open><summary><span>📌 ${e(a)}</span></summary><div class="tree-content">`;
+    html += `<details><summary><span>🗓️ ${e(y)}학년도</span></summary><div class="tree-content">`;
+    const admKeys = Object.keys(TREE[y]).sort((a, b) => {
+      const ia = ADM_ORDER.indexOf(a);
+      const ib = ADM_ORDER.indexOf(b);
+      if (ia !== -1 && ib !== -1) return ia - ib;
+      if (ia !== -1) return -1;
+      if (ib !== -1) return 1;
+      return a.localeCompare(b, 'ko');
+    });
+    for (const a of admKeys) {
+      html += `<details><summary><span>📌 ${e(a)}</span></summary><div class="tree-content">`;
       const capKeys = Object.keys(TREE[y][a]).sort();
 
       // '구분없음' 단일 항목인 경우 불필요한 '구분없음' 뎁스를 생략하고 대학 목록을 바로 표출
@@ -800,7 +1190,7 @@ function buildTree() {
       } else {
         // 정원내, 정원외 등 여러 구분이 있는 경우에만 🏷️ 뎁스 표시
         for (const c of capKeys) {
-          html += `<details open><summary><span>🏷️ ${e(c)}</span></summary><div class="tree-content">`;
+          html += `<details><summary><span>🏷️ ${e(c)}</span></summary><div class="tree-content">`;
           html += `<button class="btn btn-secondary" style="font-size:0.78rem;padding:0.35rem 0.6rem;width:100%;margin-bottom:0.5rem;"
             onclick="showGroupCompare('${e(y)}','${e(a)}','${e(c)}', true)">📊 그룹 비교하기</button>`;
           for (const u of TREE[y][a][c]) {
@@ -820,30 +1210,119 @@ function buildTree() {
   document.getElementById('treeContainer').innerHTML = html;
 }
 
-// ── Home ──────────────────────────────────────────────────────
-function showHome(pushUrl = true) {
-  clearActive();
+// ── Home & Tabs ───────────────────────────────────────────────
+let CURRENT_HOME_TAB = 'insights';
+
+function switchHomeTab(tabName) {
+  CURRENT_HOME_TAB = tabName;
+  showHome(true, null, null, tabName);
+}
+
+function showHome(pushUrl = true, selectedYear = null, selectedAdm = null, activeTab = null) {
+  setNavActive('home');
   document.getElementById('searchInput').value = '';
-  if (pushUrl) updateUrl({});
-  const ins = calcInsights(), cj = calcChartData();
-  let html = '';
+  if (activeTab) CURRENT_HOME_TAB = activeTab;
+  const currentTab = CURRENT_HOME_TAB || 'insights';
+  
+  if (pushUrl) {
+    updateUrl(currentTab === 'inha' ? { tab: 'inha' } : {});
+  }
+
+  // 상단 탭 네비게이션
+  const tabHeaderHtml = `
+    <div class="tabs" style="margin-bottom:1.25rem;display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+      <button class="tab-btn ${currentTab === 'insights' ? 'active' : ''}" style="font-size:0.92rem;font-weight:700;padding:0.6rem 1.25rem;display:inline-flex;align-items:center;gap:0.4rem;border-radius:0.6rem;" onclick="switchHomeTab('insights')">
+        💡 핵심 인사이트 분석
+      </button>
+      <button class="tab-btn ${currentTab === 'inha' ? 'active' : ''}" style="font-size:0.92rem;font-weight:700;padding:0.6rem 1.25rem;display:inline-flex;align-items:center;gap:0.4rem;border-radius:0.6rem;${currentTab === 'inha' ? 'background:linear-gradient(135deg,#7c3aed,#4f46e5);border-color:#7c3aed;color:#fff;' : 'background:#faf5ff;border-color:#d8b4fe;color:#6b21a8;'}" onclick="switchHomeTab('inha')">
+        ⭐ 인하공업전문대학 현황판
+      </button>
+    </div>
+  `;
+
+  if (currentTab === 'inha') {
+    renderInhaBoardContainer(tabHeaderHtml);
+    return;
+  }
+
+  // 1. 핵심 인사이트 분석 뷰
+  const ins = calcInsights(selectedYear, selectedAdm);
+  const cj = calcChartData(ins.latest_year, ins.selected_adm);
+  const allYears = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+  const adms = ['정시', '수시2차', '수시1차'];
+  let html = tabHeaderHtml;
   if (ins.latest_year) {
+    const isSingleAdm = ins.selected_adm && ins.selected_adm !== 'ALL';
+    
+    // 모집시기별 인사이트 렌더링 (초기화면: 최근 학년도 기준 "정시" -> "수시2차" -> "수시1차" 순)
+    let insightsHtml = '';
+    if (isSingleAdm) {
+      const admData = ins.by_adm[ins.selected_adm] || ins;
+      insightsHtml = `
+        <div class="insights-grid" style="margin-bottom:0.5rem;">
+          ${admData.top_ratio ? iCard('🔥','최고 경쟁률 대학',admData.top_ratio.univ_name,admData.top_ratio.value) : iCard('🔥','최고 경쟁률 대학','-','데이터 없음')}
+          ${admData.ratio_increase ? iCard('📈','최대 상승 대학 (전년비)',admData.ratio_increase.univ_name,admData.ratio_increase.value) : iCard('📈','최대 상승 대학 (전년비)','-','비교 데이터 없음')}
+          ${admData.applicant_increase ? iCard('👥','지원자 최대 증가 (전년비)',admData.applicant_increase.univ_name,admData.applicant_increase.value) : iCard('👥','지원자 최대 증가 (전년비)','-','비교 데이터 없음')}
+        </div>`;
+    } else {
+      const admStyles = {
+        '정시': { color: '#1e40af', bg: '#eff6ff', border: '#bfdbfe', icon: '🎯' },
+        '수시2차': { color: '#7c3aed', bg: '#faf5ff', border: '#d8b4fe', icon: '🥈' },
+        '수시1차': { color: '#059669', bg: '#ecfdf5', border: '#a7f3d0', icon: '🥇' }
+      };
+
+      insightsHtml = adms.map((adm, idx) => {
+        const d = (ins.by_adm && ins.by_adm[adm]) ? ins.by_adm[adm] : {};
+        const b = admStyles[adm] || { color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe', icon: '📌' };
+        return `
+          <div class="adm-insight-group" style="margin-bottom:${idx === adms.length - 1 ? '0.5rem' : '1.35rem'};">
+            <div style="display:flex;align-items:center;gap:0.45rem;margin-bottom:0.65rem;padding-bottom:0.35rem;border-bottom:1px dashed #e2e8f0;">
+              <span style="font-size:0.82rem;background:${b.bg};color:${b.color};border:1px solid ${b.border};padding:0.18rem 0.55rem;border-radius:0.35rem;font-weight:700;">${b.icon} ${e(adm)}</span>
+              <span style="font-size:0.88rem;font-weight:700;color:var(--text-primary);">${e(adm)} 핵심 인사이트</span>
+              <span style="font-size:0.75rem;color:var(--text-secondary);margin-left:auto;">📅 ${ins.latest_year}학년도 기준</span>
+            </div>
+            <div class="insights-grid" style="margin-bottom:0;">
+              ${d.top_ratio ? iCard('🔥','최고 경쟁률 대학',d.top_ratio.univ_name,d.top_ratio.value) : iCard('🔥','최고 경쟁률 대학','-','데이터 없음')}
+              ${d.ratio_increase ? iCard('📈','최대 상승 대학 (전년비)',d.ratio_increase.univ_name,d.ratio_increase.value) : iCard('📈','최대 상승 대학 (전년비)','-','비교 데이터 없음')}
+              ${d.applicant_increase ? iCard('👥','지원자 최대 증가 (전년비)',d.applicant_increase.univ_name,d.applicant_increase.value) : iCard('👥','지원자 최대 증가 (전년비)','-','비교 데이터 없음')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    const admLabel = ins.selected_adm === 'ALL' ? '전체 모집시기 (정시·수시2차·수시1차)' : ins.selected_adm;
+
     html += `<div class="glass-card">
-      <div class="card-header">
-        <h2>💡 핵심 인사이트 분석</h2>
-        <span style="font-size:0.85rem;color:var(--text-secondary);">최신 ${ins.latest_year}학년도 기준</span>
+      <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:0.45rem;">
+          <h2>💡 핵심 인사이트 분석</h2>
+          <span style="font-size:0.75rem;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;padding:0.18rem 0.5rem;border-radius:0.35rem;font-weight:700;">📅 ${ins.latest_year}학년도 기준</span>
+          ${isSingleAdm ? `<span style="font-size:0.75rem;background:#fef3c7;color:#92400e;border:1px solid #fde68a;padding:0.18rem 0.5rem;border-radius:0.35rem;font-weight:700;">📌 ${e(ins.selected_adm)}</span>` : `<span style="font-size:0.75rem;background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;padding:0.18rem 0.5rem;border-radius:0.35rem;font-weight:600;">정시 · 수시2차 · 수시1차</span>`}
+        </div>
+        <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
+          <select id="homeInsightYearSelect" class="form-control" style="font-size:0.82rem;padding:0.25rem 0.6rem;width:auto;font-weight:700;" onchange="showHome(false, this.value, document.getElementById('homeInsightAdmSelect') ? document.getElementById('homeInsightAdmSelect').value : 'ALL')">
+            ${allYears.map(y => `<option value="${e(y)}" ${y === ins.latest_year ? 'selected' : ''}>${e(y)}학년도 기준</option>`).join('')}
+          </select>
+          <select id="homeInsightAdmSelect" class="form-control" style="font-size:0.82rem;padding:0.25rem 0.6rem;width:auto;font-weight:700;" onchange="showHome(false, document.getElementById('homeInsightYearSelect').value, this.value)">
+            <option value="ALL" ${(!ins.selected_adm || ins.selected_adm === 'ALL') ? 'selected' : ''}>전체 모집시기 (정시·수시2차·수시1차)</option>
+            ${adms.map(a => `<option value="${e(a)}" ${a === ins.selected_adm ? 'selected' : ''}>${e(a)}</option>`).join('')}
+          </select>
+        </div>
       </div>
-      <div class="insights-grid">
-        ${ins.top_ratio ? iCard('🔥','최고 경쟁률 대학',ins.top_ratio.univ_name,ins.top_ratio.value) : ''}
-        ${ins.ratio_increase ? iCard('📈','최대 상승 대학',ins.ratio_increase.univ_name,ins.ratio_increase.value) : ''}
-        ${ins.applicant_increase ? iCard('👥','지원자 최대 증가',ins.applicant_increase.univ_name,ins.applicant_increase.value) : ''}
-      </div>`;
-    if(cj) html += `<div style="margin-top:2rem;">
-      <div class="card-header" style="border-bottom:none;margin-bottom:0.75rem;"><h2>📊 연도별 경쟁률 추이</h2></div>
-      <div style="width:100%;height:380px;"><canvas id="mainChart"></canvas></div></div>`;
-    html += `</div>`;
+      
+      ${insightsHtml}
+
+      <div style="margin-top:2rem;">
+        <div class="card-header" style="border-bottom:none;margin-bottom:0.75rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;">
+          <h2>📊 주요 대학 연도별 경쟁률 추이 <span style="font-size:0.82rem;font-weight:600;color:var(--text-secondary);margin-left:0.35rem;">(${e(admLabel)})</span></h2>
+          <span style="font-size:0.75rem;color:var(--text-secondary);background:#f8fafc;padding:0.2rem 0.55rem;border-radius:0.35rem;border:1px solid #e2e8f0;">💡 대학별 총 지원인원 / 총 모집인원 기준</span>
+        </div>
+        <div style="width:100%;height:380px;"><canvas id="mainChart"></canvas></div>
+      </div>
+    </div>`;
   } else {
-    html = `<div class="glass-card"><div class="alert alert-info">데이터가 없습니다. 대학을 등록해 주세요.</div></div>`;
+    html += `<div class="glass-card"><div class="alert alert-info">데이터가 없습니다. 대학을 등록해 주세요.</div></div>`;
   }
   document.getElementById('centerCol').innerHTML = html;
   if(cj) setTimeout(() => {
@@ -851,18 +1330,677 @@ function showHome(pushUrl = true) {
     const ctx = document.getElementById('mainChart');
     if(ctx) CHART_INSTANCE = new Chart(ctx.getContext('2d'), {
       type: 'bar', data: cj,
-      options: { responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { labels: { font: { family: 'Pretendard', size: 12 }, color: '#0f172a' } },
-          tooltip: { titleFont: { family: 'Pretendard' }, bodyFont: { family: 'Pretendard' } } },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { font: { family: 'Pretendard', size: 12 }, color: '#0f172a' } },
+          tooltip: {
+            titleFont: { family: 'Pretendard', weight: '700' },
+            bodyFont: { family: 'Pretendard' },
+            callbacks: {
+              label: function(context) {
+                const val = context.raw || 0;
+                const details = context.dataset.details ? context.dataset.details[context.dataIndex] : null;
+                if (details && (details.recruit > 0 || details.applicant > 0)) {
+                  return ` ${context.dataset.label}: ${val.toFixed(2)}:1 (지원 ${details.applicant.toLocaleString()}명 / 모집 ${details.recruit.toLocaleString()}명)`;
+                }
+                return ` ${context.dataset.label}: ${val > 0 ? val.toFixed(2) + ':1' : '데이터 없음'}`;
+              }
+            }
+          }
+        },
         scales: {
           x: { ticks: { font: { family: 'Pretendard', size: 11 }, color: '#64748b' }, grid: { color: 'rgba(0,0,0,0.04)' } },
-          y: { ticks: { font: { family: 'Pretendard', size: 11 }, color: '#64748b' }, grid: { color: 'rgba(0,0,0,0.04)' },
-             title: { display: true, text: '경쟁률 (:1)', font: { family: 'Pretendard', size: 12 } } }
+          y: {
+            ticks: { font: { family: 'Pretendard', size: 11 }, color: '#64748b' },
+            grid: { color: 'rgba(0,0,0,0.04)' },
+            title: { display: true, text: '경쟁률 (:1)', font: { family: 'Pretendard', size: 12 } }
+          }
         }
       }
     });
   }, 50);
 }
+
+// ── Inha Technical College Dashboard ──────────────────────────
+let INHA_BOARD_CACHE = [];
+
+// 2026 -> 2027 학과명 변경 매핑 (동일 학과 지정 및 2027학년도 학과명으로 통합 표기)
+const INHA_DEPT_ALIASES = {
+  '컴퓨터정보공학과': 'AI소프트웨어학과',
+  '컴퓨터시스템공학과': 'AI컴퓨터학과',
+  '반도체기계정비학과': '반도체기계공학과'
+};
+
+const INHA_OLD_DEPT_NAMES = {
+  'AI소프트웨어학과': '컴퓨터정보공학과',
+  'AI컴퓨터학과': '컴퓨터시스템공학과',
+  '반도체기계공학과': '반도체기계정비학과'
+};
+
+// 인하공업전문대학 일반고 경쟁률 현황 기준 기본 학과 정렬 순서
+const INHA_DEFAULT_DEPT_ORDER = [
+  '자유전공학부',
+  '기계공학과',
+  '기계설계공학과',
+  '로봇자동화공학과',
+  '반도체기계공학과',
+  '조선기계공학과',
+  '항공기계공학과',
+  '자동차공학과',
+  '전기공학과',
+  '전자공학과',
+  '정보통신공학과',
+  'AI소프트웨어학과',
+  'AI컴퓨터학과',
+  '디지털마케팅공학과',
+  '건설환경공학과',
+  '공간정보빅데이터학과',
+  '화학생명공학과',
+  '재료공학과',
+  '건축학과',
+  '실내건축학과',
+  '산업디자인학과',
+  '패션디자인학과',
+  '항공운항과',
+  '항공경영학과',
+  '관광경영학과',
+  '경영비서학과',
+  '호텔경영학과',
+  '물류시스템학과',
+  '스포츠헬스케어학과'
+];
+
+function normalizeInhaDeptName(deptName) {
+  if (!deptName) return '';
+  const trimmed = String(deptName).trim();
+  return INHA_DEPT_ALIASES[trimmed] || trimmed;
+}
+
+function getInhaDeptOrderIndex(deptName) {
+  const norm = normalizeInhaDeptName(deptName);
+  const idx = INHA_DEFAULT_DEPT_ORDER.indexOf(norm);
+  return idx !== -1 ? idx : 999;
+}
+
+function renderInhaBoardContainer(tabHeaderHtml) {
+  const inhaUnivs = ALL_UNIVS.filter(u => u.name && u.name.includes('인하공업전문대학'));
+  const inhaYears = [...new Set(inhaUnivs.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+  
+  if (!inhaYears.length) {
+    document.getElementById('centerCol').innerHTML = tabHeaderHtml + `
+      <div class="glass-card"><div class="alert alert-info">인하공업전문대학 등록 데이터가 없습니다. 대학을 등록하거나 엑셀을 업로드해 주세요.</div></div>`;
+    return;
+  }
+
+  // 인하공전 데이터 중 URL 컬럼이 존재하는 학년도 중 최신 학년도 및 모집시기 우선순위 적용
+  const inhaWithUrl = inhaUnivs.filter(u => u && u.url && String(u.url).trim() !== '');
+  const inhaSource = inhaWithUrl.length ? inhaWithUrl : inhaUnivs;
+  const inhaUrlYears = [...new Set(inhaSource.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+
+  const defaultCurYear = inhaUrlYears.length ? inhaUrlYears[0] : (inhaYears[0] || '2027');
+  const curIdx = inhaYears.indexOf(defaultCurYear);
+  const defaultPrevYear = (curIdx !== -1 && curIdx + 1 < inhaYears.length) ? inhaYears[curIdx + 1] : (inhaYears[1] || inhaYears[0]);
+
+  // 모집시기 우선순위: 수시1차 > 수시2차 > 정시 > 전체
+  const inhaAdmsInYear = new Set(inhaSource.filter(u => u.year === defaultCurYear).map(u => u.admission_type || u.adm_type).filter(Boolean));
+  let defaultInhaAdm = '수시1차';
+  for (const adm of ['수시1차', '수시2차', '정시']) {
+    if (inhaAdmsInYear.has(adm)) {
+      defaultInhaAdm = adm;
+      break;
+    }
+  }
+
+  let containerHtml = tabHeaderHtml + `
+    <div class="glass-card" style="border: 2px solid #ddd6fe;">
+      <div class="card-header" style="flex-wrap:wrap;gap:0.75rem;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;padding-bottom:0.85rem;">
+        <div>
+          <h2 style="color:#5b21b6;font-size:1.25rem;font-weight:800;display:flex;align-items:center;gap:0.5rem;">
+            ⭐ 인하공업전문대학 경쟁률 현황판
+          </h2>
+          <p style="color:var(--text-secondary);font-size:0.85rem;margin-top:0.25rem;">
+            학년도 기간(2026~2027) 선택 및 전년 대비 <strong>모집단위/학과별 지원인원 증감, 전년대비 지원비율(충원률)</strong>을 실시간 분석합니다.
+          </p>
+        </div>
+        <div style="display:flex;gap:0.45rem;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-secondary" onclick="exportInhaBoardExcel()" style="font-size:0.82rem;padding:0.4rem 0.8rem;font-weight:700;color:#059669;border-color:#a7f3d0;background:#ecfdf5;">
+            📥 엑셀(.xlsx) 다운로드
+          </button>
+        </div>
+      </div>
+
+      <!-- 검색 및 필터 바 -->
+      <div style="background:#f8fafc;padding:1rem;border-radius:0.75rem;border:1px solid var(--border-color);margin-bottom:1.25rem;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:0.75rem;margin-bottom:0.75rem;">
+          <div>
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.25rem;color:#4c1d95;">기준 학년도 (당해)</label>
+            <select id="inhaCurYear" class="form-control" style="font-weight:700;color:#5b21b6;" onchange="handleInhaYearChange()">
+              ${inhaYears.map(y => `<option value="${e(y)}" ${y === defaultCurYear ? 'selected' : ''}>${e(y)}학년도 (당해)</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.25rem;color:var(--text-secondary);">비교 학년도 (전년)</label>
+            <select id="inhaPrevYear" class="form-control" style="font-weight:700;" onchange="updateInhaBoard(false)">
+              ${inhaYears.map(y => `<option value="${e(y)}" ${y === defaultPrevYear ? 'selected' : ''}>${e(y)}학년도 (전년)</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.25rem;color:var(--text-secondary);">모집 시기</label>
+            <select id="inhaAdm" class="form-control" style="font-weight:700;" onchange="updateInhaTableTitles();updateInhaBoard(false);">
+              <option value="수시1차" ${defaultInhaAdm === '수시1차' ? 'selected' : ''}>수시1차</option>
+              <option value="수시2차" ${defaultInhaAdm === '수시2차' ? 'selected' : ''}>수시2차</option>
+              <option value="정시" ${defaultInhaAdm === '정시' ? 'selected' : ''}>정시</option>
+              <option value="ALL" ${defaultInhaAdm === 'ALL' ? 'selected' : ''}>전체 (정시·수시2차·수시1차)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.8rem;font-weight:700;display:block;margin-bottom:0.25rem;color:var(--text-secondary);">전형 구분</label>
+            <select id="inhaTableTitle" class="form-control" style="font-weight:700;" onchange="updateInhaBoard(false)">
+              <option value="ALL">전체 전형 (합산/전체)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.75rem;">
+          <div style="flex:1;min-width:220px;">
+            <input type="text" id="inhaDeptSearch" class="form-control" placeholder="🔍 모집단위 / 학과명 빠른 검색..." oninput="renderInhaBoardTable()">
+          </div>
+          <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">
+            <label style="font-size:0.82rem;font-weight:700;display:flex;align-items:center;gap:0.35rem;cursor:pointer;background:#fff;padding:0.45rem 0.75rem;border-radius:0.4rem;border:1px solid var(--border-color);user-select:none;">
+              <input type="checkbox" id="inhaViewDeptOnly" onchange="renderInhaBoardTable()" checked>
+              <span>학과 단위 합산 보기</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- 표 상단 KPI 요약 카드 (전년대비 총 지원자 충원률 표기) -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(210px, 1fr));gap:1rem;margin-bottom:1.5rem;">
+        <!-- 1. 전년대비 충원률 (핵심 KPI) -->
+        <div class="insight-card" style="background:linear-gradient(135deg, #6d28d9, #4f46e5);color:#fff;border:none;box-shadow:0 6px 16px rgba(109,40,217,0.28);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem;">
+            <span style="font-size:0.8rem;font-weight:700;color:#ddd6fe;">🔥 전년대비 총 지원자 충원률</span>
+            <span style="font-size:1.15rem;">🎯</span>
+          </div>
+          <div id="kpiFillRate" style="font-size:1.85rem;font-weight:900;color:#fff;line-height:1.2;">0.0%</div>
+          <div style="margin:0.45rem 0 0.25rem 0;background:rgba(255,255,255,0.22);height:6px;border-radius:3px;overflow:hidden;">
+            <div id="kpiProgressBar" style="width:0%;height:100%;background:#38bdf8;transition:width 0.35s ease;"></div>
+          </div>
+          <div id="kpiFillRateSub" style="font-size:0.75rem;color:#c7d2fe;">당해 0명 / 전년 0명</div>
+        </div>
+
+        <!-- 2. 총 지원자 수 -->
+        <div class="insight-card">
+          <span class="insight-icon">👥</span>
+          <div class="insight-label">총 지원자 수</div>
+          <div id="kpiCurApplicant" class="insight-value" style="color:#2563eb;">-</div>
+          <div id="kpiDiffApplicant" style="font-size:0.75rem;font-weight:700;margin-top:0.25rem;">전년비 -</div>
+        </div>
+
+        <!-- 3. 총 모집인원 -->
+        <div class="insight-card">
+          <span class="insight-icon">📋</span>
+          <div class="insight-label">총 모집인원</div>
+          <div id="kpiCurRecruit" class="insight-value" style="color:#0f172a;">-</div>
+          <div id="kpiDiffRecruit" style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.25rem;">전년 -</div>
+        </div>
+
+        <!-- 4. 평균 경쟁률 -->
+        <div class="insight-card">
+          <span class="insight-icon">📊</span>
+          <div class="insight-label">평균 경쟁률</div>
+          <div id="kpiCurRatio" class="insight-value" style="color:#7c3aed;">-</div>
+          <div id="kpiDiffRatio" style="font-size:0.75rem;font-weight:700;margin-top:0.25rem;">전년 -</div>
+        </div>
+      </div>
+
+      <!-- 학과별 비교 테이블 -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.4rem;">
+        <span style="font-size:0.82rem;color:var(--text-secondary);">
+          💡 기본 순서는 <strong>일반고 경쟁률 현황 학과 순</strong>이며, 열 머리글을 클릭하면 <strong>오름차순/내림차순 정렬</strong>됩니다.
+        </span>
+        <span id="inhaRowCountBadge" style="font-size:0.78rem;background:#f3e8ff;color:#6b21a8;border:1px solid #d8b4fe;padding:0.15rem 0.5rem;border-radius:0.35rem;font-weight:700;">
+          총 0개 학과
+        </span>
+      </div>
+
+      <div class="table-container" style="max-height:560px;overflow-y:auto;border:1px solid var(--border-color);border-radius:0.6rem;">
+        <table class="sortable-table" id="inhaBoardTable">
+          <thead style="position:sticky;top:0;background:#f8fafc;z-index:2;">
+            <tr>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 0, 'number')" style="width:45px;text-align:center;"># <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 1, 'text')">모집단위 / 학과명 (2027학년도 기준) <span class="sort-icon">↕</span></th>
+              <th class="sortable inha-col-tt" onclick="sortTable('inhaBoardTable', 2, 'text')">전형구분 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 3, 'number')" style="text-align:right;">당해 모집 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 4, 'number')" style="text-align:right;">당해 지원 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 5, 'ratio')" style="text-align:right;">당해 경쟁률 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 6, 'number')" style="text-align:right;background:#f1f5f9;">전년 모집 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 7, 'number')" style="text-align:right;background:#f1f5f9;">전년 지원 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 8, 'ratio')" style="text-align:right;background:#f1f5f9;">전년 경쟁률 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 9, 'number')" style="text-align:right;">지원자 증감 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 10, 'ratio')" style="text-align:right;">경쟁률 증감 <span class="sort-icon">↕</span></th>
+              <th class="sortable" onclick="sortTable('inhaBoardTable', 11, 'ratio')" style="text-align:right;background:#faf5ff;">전년대비 지원비율 <span class="sort-icon">↕</span></th>
+            </tr>
+          </thead>
+          <tbody id="inhaBoardTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('centerCol').innerHTML = containerHtml;
+  updateInhaTableTitles();
+  updateInhaBoard(true);
+}
+
+function handleInhaYearChange() {
+  const curY = document.getElementById('inhaCurYear').value;
+  const inhaUnivs = ALL_UNIVS.filter(u => u.name && u.name.includes('인하공업전문대학'));
+  const inhaYears = [...new Set(inhaUnivs.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+  const curIdx = inhaYears.indexOf(curY);
+  const prevYSelect = document.getElementById('inhaPrevYear');
+  if (prevYSelect && curIdx !== -1 && curIdx + 1 < inhaYears.length) {
+    prevYSelect.value = inhaYears[curIdx + 1];
+  }
+  updateInhaTableTitles();
+  updateInhaBoard(false);
+}
+
+function updateInhaTableTitles() {
+  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2026';
+  const adm = document.getElementById('inhaAdm') ? document.getElementById('inhaAdm').value : '수시1차';
+  const ttSelect = document.getElementById('inhaTableTitle');
+  if (!ttSelect) return;
+
+  const inhaUnivs = ALL_UNIVS.filter(u => u.name && u.name.includes('인하공업전문대학') && (curY === 'ALL' || u.year === curY));
+  const filtered = (adm === 'ALL') ? inhaUnivs : inhaUnivs.filter(u => (u.admission_type || u.adm_type) === adm);
+  
+  const rawTitles = [...new Set(filtered.map(u => u.table_title).filter(Boolean))].filter(t => !t.includes('전형별'));
+  const currentVal = ttSelect.value;
+  
+  let optionsHtml = '<option value="ALL">전체 전형 (합산/전체)</option>';
+  rawTitles.forEach(t => {
+    optionsHtml += `<option value="${e(t)}" ${t === currentVal ? 'selected' : ''}>${e(t)}</option>`;
+  });
+  ttSelect.innerHTML = optionsHtml;
+}
+
+function updateInhaBoard(initial = false) {
+  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2026';
+  const prevY = document.getElementById('inhaPrevYear') ? document.getElementById('inhaPrevYear').value : '2025';
+  const adm = document.getElementById('inhaAdm') ? document.getElementById('inhaAdm').value : '수시1차';
+  const ttFilter = document.getElementById('inhaTableTitle') ? document.getElementById('inhaTableTitle').value : 'ALL';
+
+  const inhaAll = ALL_UNIVS.filter(u => u.name && u.name.includes('인하공업전문대학'));
+  let curUnivs = inhaAll.filter(u => u.year === curY);
+  let prevUnivs = inhaAll.filter(u => u.year === prevY);
+
+  if (adm !== 'ALL') {
+    curUnivs = curUnivs.filter(u => (u.admission_type || u.adm_type) === adm);
+    prevUnivs = prevUnivs.filter(u => (u.admission_type || u.adm_type) === adm);
+  }
+
+  // 1. KPI 총계 계산: 전형별 요약 테이블이 있으면 요약 테이블 기준, 없으면 학과 행 합산
+  function calcSummaryTotals(univList) {
+    const sumRows = univList.filter(u => String(u.table_title || '').includes('전형별'));
+    const target = sumRows.length ? sumRows : univList.filter(u => !String(u.table_title || '').includes('전형별'));
+    let ac = 0, ap = 0;
+    target.forEach(u => {
+      ac += parseInt(String(u.admission_count || u.recruit_num || '0').replace(/,/g, '')) || 0;
+      ap += parseInt(String(u.applicant_count || u.applicant_num || '0').replace(/,/g, '')) || 0;
+    });
+    return { ac, ap, rt: ac > 0 ? (ap / ac) : 0 };
+  }
+
+  const curTot = calcSummaryTotals(curUnivs);
+  const prevTot = calcSummaryTotals(prevUnivs);
+
+  // KPI UI 업데이트
+  const diffAp = curTot.ap - prevTot.ap;
+  const diffAc = curTot.ac - prevTot.ac;
+  const diffRt = curTot.rt - prevTot.rt;
+  const fillRateVal = prevTot.ap > 0 ? ((curTot.ap / prevTot.ap) * 100) : (curTot.ap > 0 ? 100 : 0);
+  const fillRateStr = prevTot.ap > 0 ? fillRateVal.toFixed(1) + '%' : (curTot.ap > 0 ? '신규 (100+%)' : '0.0%');
+
+  if (document.getElementById('kpiFillRate')) {
+    document.getElementById('kpiFillRate').textContent = fillRateStr;
+    document.getElementById('kpiFillRateSub').textContent = `당해 ${curTot.ap.toLocaleString()}명 / 전년 ${prevTot.ap.toLocaleString()}명`;
+    const barWidth = Math.min(Math.max(fillRateVal, 0), 100);
+    document.getElementById('kpiProgressBar').style.width = barWidth + '%';
+  }
+
+  if (document.getElementById('kpiCurApplicant')) {
+    document.getElementById('kpiCurApplicant').textContent = `${curTot.ap.toLocaleString()}명`;
+    const diffApEl = document.getElementById('kpiDiffApplicant');
+    if (diffAp > 0) {
+      diffApEl.innerHTML = `<span style="color:#059669;">▲ +${diffAp.toLocaleString()}명 (${prevTot.ap > 0 ? '+' + ((diffAp/prevTot.ap)*100).toFixed(1) + '%' : ''})</span>`;
+    } else if (diffAp < 0) {
+      diffApEl.innerHTML = `<span style="color:#dc2626;">▼ ${diffAp.toLocaleString()}명 (${prevTot.ap > 0 ? ((diffAp/prevTot.ap)*100).toFixed(1) + '%' : ''})</span>`;
+    } else {
+      diffApEl.innerHTML = `<span style="color:var(--text-secondary);">- 전년 동일</span>`;
+    }
+  }
+
+  if (document.getElementById('kpiCurRecruit')) {
+    document.getElementById('kpiCurRecruit').textContent = `${curTot.ac.toLocaleString()}명`;
+    const diffAcEl = document.getElementById('kpiDiffRecruit');
+    if (diffAc !== 0) {
+      diffAcEl.textContent = `전년 ${prevTot.ac.toLocaleString()}명 (${diffAc > 0 ? '+' + diffAc : diffAc}명)`;
+    } else {
+      diffAcEl.textContent = `전년 ${prevTot.ac.toLocaleString()}명 (동일)`;
+    }
+  }
+
+  if (document.getElementById('kpiCurRatio')) {
+    document.getElementById('kpiCurRatio').textContent = `${curTot.rt.toFixed(2)} : 1`;
+    const diffRtEl = document.getElementById('kpiDiffRatio');
+    if (diffRt > 0) {
+      diffRtEl.innerHTML = `<span style="color:#059669;">▲ +${diffRt.toFixed(2)}p (전년 ${prevTot.rt.toFixed(2)}:1)</span>`;
+    } else if (diffRt < 0) {
+      diffRtEl.innerHTML = `<span style="color:#dc2626;">▼ ${diffRt.toFixed(2)}p (전년 ${prevTot.rt.toFixed(2)}:1)</span>`;
+    } else {
+      diffRtEl.innerHTML = `<span style="color:var(--text-secondary);">- 전년 ${prevTot.rt.toFixed(2)}:1 (동일)</span>`;
+    }
+  }
+
+  // 2. 학과별 상세 행 데이터 구축 (2026 -> 2027 학과명 변경 매핑 적용)
+  let curDepts = curUnivs.filter(u => !String(u.table_title || '').includes('전형별'));
+  let prevDepts = prevUnivs.filter(u => !String(u.table_title || '').includes('전형별'));
+
+  if (ttFilter !== 'ALL') {
+    curDepts = curDepts.filter(u => String(u.table_title || '').includes(ttFilter));
+    prevDepts = prevDepts.filter(u => String(u.table_title || '').includes(ttFilter));
+  }
+
+  const deptMap = new Map();
+  curDepts.forEach(u => {
+    const rawDept = (u.department_name || u.dept || '').trim();
+    const deptName = normalizeInhaDeptName(rawDept); // 2027학년도 표준 학과명으로 변환
+    const tt = (u.table_title || '').trim();
+    const key = `${deptName}|${tt}`;
+    if (!deptMap.has(key)) {
+      deptMap.set(key, {
+        dept: deptName, tt: tt,
+        curAc: 0, curAp: 0, prevAc: 0, prevAp: 0
+      });
+    }
+    deptMap.get(key).curAc += parseInt(String(u.admission_count || u.recruit_num || '0').replace(/,/g, '')) || 0;
+    deptMap.get(key).curAp += parseInt(String(u.applicant_count || u.applicant_num || '0').replace(/,/g, '')) || 0;
+  });
+
+  prevDepts.forEach(u => {
+    const rawDept = (u.department_name || u.dept || '').trim();
+    const deptName = normalizeInhaDeptName(rawDept); // 2027학년도 표준 학과명으로 변환
+    const tt = (u.table_title || '').trim();
+    const key = `${deptName}|${tt}`;
+    if (!deptMap.has(key)) {
+      deptMap.set(key, {
+        dept: deptName, tt: tt,
+        curAc: 0, curAp: 0, prevAc: 0, prevAp: 0
+      });
+    }
+    deptMap.get(key).prevAc += parseInt(String(u.admission_count || u.recruit_num || '0').replace(/,/g, '')) || 0;
+    deptMap.get(key).prevAp += parseInt(String(u.applicant_count || u.applicant_num || '0').replace(/,/g, '')) || 0;
+  });
+
+  INHA_BOARD_CACHE = Array.from(deptMap.values());
+  renderInhaBoardTable();
+}
+
+function renderInhaBoardTable() {
+  const keyword = (document.getElementById('inhaDeptSearch') ? document.getElementById('inhaDeptSearch').value : '').trim().toLowerCase();
+  const viewDeptOnly = document.getElementById('inhaViewDeptOnly') ? document.getElementById('inhaViewDeptOnly').checked : true;
+  const tbody = document.getElementById('inhaBoardTbody');
+  if (!tbody) return;
+
+  let displayRows = [];
+
+  if (viewDeptOnly) {
+    // 학과 단위 합산 뷰
+    const mergedMap = new Map();
+    INHA_BOARD_CACHE.forEach(item => {
+      if (keyword && !item.dept.toLowerCase().includes(keyword)) return;
+      if (!mergedMap.has(item.dept)) {
+        mergedMap.set(item.dept, {
+          dept: item.dept, tt: '전체 전형 합산',
+          curAc: 0, curAp: 0, prevAc: 0, prevAp: 0
+        });
+      }
+      const m = mergedMap.get(item.dept);
+      m.curAc += item.curAc;
+      m.curAp += item.curAp;
+      m.prevAc += item.prevAc;
+      m.prevAp += item.prevAp;
+    });
+    displayRows = Array.from(mergedMap.values());
+  } else {
+    // 전형별 상세 뷰
+    displayRows = INHA_BOARD_CACHE.filter(item => {
+      if (!keyword) return true;
+      return item.dept.toLowerCase().includes(keyword) || item.tt.toLowerCase().includes(keyword);
+    });
+  }
+
+  // 경쟁률 및 증감 계산
+  displayRows.forEach(r => {
+    r.curRt = r.curAc > 0 ? (r.curAp / r.curAc) : 0;
+    r.prevRt = r.prevAc > 0 ? (r.prevAp / r.prevAc) : 0;
+    r.diffAp = r.curAp - r.prevAp;
+    r.diffRt = r.curRt - r.prevRt;
+    r.fillRate = r.prevAp > 0 ? ((r.curAp / r.prevAp) * 100) : (r.curAp > 0 ? 9999 : null);
+  });
+
+  // 기본 정렬: 일반고 경쟁률 현황의 학과명 순서대로 정렬
+  displayRows.sort((a, b) => {
+    const ia = getInhaDeptOrderIndex(a.dept);
+    const ib = getInhaDeptOrderIndex(b.dept);
+    if (ia !== ib) return ia - ib;
+    return a.dept.localeCompare(b.dept, 'ko');
+  });
+
+  const countBadge = document.getElementById('inhaRowCountBadge');
+  if (countBadge) countBadge.textContent = `총 ${displayRows.length}개 ${viewDeptOnly ? '학과' : '항목'}`;
+
+  // 전형구분 열 표시/숨김
+  document.querySelectorAll('.inha-col-tt').forEach(el => {
+    el.style.display = viewDeptOnly ? 'none' : '';
+  });
+
+  if (!displayRows.length) {
+    tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text-secondary);">일치하는 학과 데이터가 없습니다.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  displayRows.forEach((r, idx) => {
+    const curRtStr = r.curAc > 0 ? `${r.curRt.toFixed(2)} : 1` : '-';
+    const prevRtStr = r.prevAc > 0 ? `${r.prevRt.toFixed(2)} : 1` : '-';
+
+    let diffApHtml = '-';
+    if (r.diffAp > 0) {
+      diffApHtml = `<span style="color:#059669;font-weight:700;">+${r.diffAp.toLocaleString()}명</span>`;
+    } else if (r.diffAp < 0) {
+      diffApHtml = `<span style="color:#dc2626;font-weight:700;">${r.diffAp.toLocaleString()}명</span>`;
+    } else {
+      diffApHtml = `<span style="color:var(--text-secondary);">0명</span>`;
+    }
+
+    let diffRtHtml = '-';
+    if (r.diffRt > 0) {
+      diffRtHtml = `<span style="color:#059669;font-weight:700;">+${r.diffRt.toFixed(2)}p</span>`;
+    } else if (r.diffRt < 0) {
+      diffRtHtml = `<span style="color:#dc2626;font-weight:700;">${r.diffRt.toFixed(2)}p</span>`;
+    } else {
+      diffRtHtml = `<span style="color:var(--text-secondary);">0.00p</span>`;
+    }
+
+    let fillRateHtml = '-';
+    if (r.fillRate !== null) {
+      if (r.fillRate === 9999) {
+        fillRateHtml = `<span style="background:#ecfdf5;color:#065f46;padding:0.15rem 0.45rem;border-radius:0.3rem;font-weight:700;font-size:0.8rem;">신규 (100%+)</span>`;
+      } else {
+        const isOver = r.fillRate >= 100;
+        const color = isOver ? '#059669' : '#475569';
+        const bg = isOver ? '#ecfdf5' : '#f1f5f9';
+        const border = isOver ? '#a7f3d0' : '#e2e8f0';
+        fillRateHtml = `<span style="background:${bg};color:${color};border:1px solid ${border};padding:0.18rem 0.5rem;border-radius:0.35rem;font-weight:800;font-size:0.82rem;">${r.fillRate.toFixed(1)}%</span>`;
+      }
+    }
+
+    // 학과명 표시: 2027학년도 명칭 표기 및 과거 명칭 힌트 배지
+    let deptNameHtml = `<span style="font-weight:700;color:#1e1b4b;">${e(r.dept)}</span>`;
+    if (INHA_OLD_DEPT_NAMES[r.dept]) {
+      deptNameHtml += ` <span style="display:inline-block;font-size:0.72rem;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe;padding:0.05rem 0.35rem;border-radius:0.25rem;font-weight:600;" title="2026학년도 명칭: ${INHA_OLD_DEPT_NAMES[r.dept]}">구 ${INHA_OLD_DEPT_NAMES[r.dept]}</span>`;
+    }
+
+    html += `
+      <tr class="${idx % 2 === 1 ? 'bg-stripe' : ''}">
+        <td style="text-align:center;color:var(--text-secondary);font-size:0.82rem;">${idx + 1}</td>
+        <td>${deptNameHtml}</td>
+        ${!viewDeptOnly ? `<td style="font-size:0.82rem;color:#475569;">${e(r.tt)}</td>` : ''}
+        <td style="text-align:right;font-weight:600;">${r.curAc ? r.curAc.toLocaleString() : '-'}</td>
+        <td style="text-align:right;font-weight:700;color:#1d4ed8;">${r.curAp.toLocaleString()}</td>
+        <td style="text-align:right;font-weight:700;color:#7c3aed;">${curRtStr}</td>
+        <td style="text-align:right;color:#64748b;background:#f8fafc;">${r.prevAc ? r.prevAc.toLocaleString() : '-'}</td>
+        <td style="text-align:right;color:#64748b;background:#f8fafc;">${r.prevAp ? r.prevAp.toLocaleString() : '-'}</td>
+        <td style="text-align:right;color:#64748b;background:#f8fafc;">${prevRtStr}</td>
+        <td style="text-align:right;">${diffApHtml}</td>
+        <td style="text-align:right;">${diffRtHtml}</td>
+        <td style="text-align:right;background:#faf5ff;">${fillRateHtml}</td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function exportInhaBoardExcel() {
+  if (!INHA_BOARD_CACHE || !INHA_BOARD_CACHE.length) {
+    alert('내보낼 인하공업전문대학 데이터가 없습니다.');
+    return;
+  }
+  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2026';
+  const prevY = document.getElementById('inhaPrevYear') ? document.getElementById('inhaPrevYear').value : '2025';
+  const adm = document.getElementById('inhaAdm') ? document.getElementById('inhaAdm').value : '수시1차';
+  const viewDeptOnly = document.getElementById('inhaViewDeptOnly') ? document.getElementById('inhaViewDeptOnly').checked : true;
+
+  const exportData = [];
+  if (viewDeptOnly) {
+    const mergedMap = new Map();
+    INHA_BOARD_CACHE.forEach(item => {
+      if (!mergedMap.has(item.dept)) {
+        mergedMap.set(item.dept, { dept: item.dept, curAc: 0, curAp: 0, prevAc: 0, prevAp: 0 });
+      }
+      const m = mergedMap.get(item.dept);
+      m.curAc += item.curAc;
+      m.curAp += item.curAp;
+      m.prevAc += item.prevAc;
+      m.prevAp += item.prevAp;
+    });
+
+    const rows = Array.from(mergedMap.values());
+    rows.sort((a, b) => {
+      const ia = getInhaDeptOrderIndex(a.dept);
+      const ib = getInhaDeptOrderIndex(b.dept);
+      if (ia !== ib) return ia - ib;
+      return a.dept.localeCompare(b.dept, 'ko');
+    });
+
+    rows.forEach((r, idx) => {
+      const curRt = r.curAc > 0 ? (r.curAp / r.curAc).toFixed(2) : '-';
+      const prevRt = r.prevAc > 0 ? (r.prevAp / r.prevAc).toFixed(2) : '-';
+      const diffAp = r.curAp - r.prevAp;
+      const rate = r.prevAp > 0 ? ((r.curAp / r.prevAp) * 100).toFixed(1) + '%' : (r.curAp > 0 ? '100%+' : '-');
+      exportData.push({
+        '순번': idx + 1,
+        '모집단위/학과명 (2027학년도 기준)': r.dept,
+        '과거 명칭 (구 명칭)': INHA_OLD_DEPT_NAMES[r.dept] || '-',
+        [`${curY}학년도 모집인원`]: r.curAc,
+        [`${curY}학년도 지원인원`]: r.curAp,
+        [`${curY}학년도 경쟁률`]: curRt,
+        [`${prevY}학년도 모집인원`]: r.prevAc,
+        [`${prevY}학년도 지원인원`]: r.prevAp,
+        [`${prevY}학년도 경쟁률`]: prevRt,
+        '지원자 증감': diffAp,
+        '전년대비 지원비율(충원율)': rate
+      });
+    });
+  } else {
+    const rows = [...INHA_BOARD_CACHE];
+    rows.sort((a, b) => {
+      const ia = getInhaDeptOrderIndex(a.dept);
+      const ib = getInhaDeptOrderIndex(b.dept);
+      if (ia !== ib) return ia - ib;
+      return a.dept.localeCompare(b.dept, 'ko');
+    });
+
+    rows.forEach((r, idx) => {
+      const curRt = r.curAc > 0 ? (r.curAp / r.curAc).toFixed(2) : '-';
+      const prevRt = r.prevAc > 0 ? (r.prevAp / r.prevAc).toFixed(2) : '-';
+      const diffAp = r.curAp - r.prevAp;
+      const rate = r.prevAp > 0 ? ((r.curAp / r.prevAp) * 100).toFixed(1) + '%' : (r.curAp > 0 ? '100%+' : '-');
+      exportData.push({
+        '순번': idx + 1,
+        '모집단위/학과명 (2027학년도 기준)': r.dept,
+        '과거 명칭 (구 명칭)': INHA_OLD_DEPT_NAMES[r.dept] || '-',
+        '전형구분': r.tt,
+        [`${curY}학년도 모집인원`]: r.curAc,
+        [`${curY}학년도 지원인원`]: r.curAp,
+        [`${curY}학년도 경쟁률`]: curRt,
+        [`${prevY}학년도 모집인원`]: r.prevAc,
+        [`${prevY}학년도 지원인원`]: r.prevAp,
+        [`${prevY}학년도 경쟁률`]: prevRt,
+        '지원자 증감': diffAp,
+        '전년대비 지원비율(충원율)': rate
+      });
+    });
+  }
+
+  if (typeof XLSX === 'undefined') {
+    alert('엑셀 라이브러리(xlsx.js)를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  const ws = XLSX.utils.json_to_sheet(exportData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, '인하공전_현황판');
+  XLSX.writeFile(wb, `인하공업전문대학_경쟁률현황판_${curY}vs${prevY}_${adm}.xlsx`);
+}
+
+function handleInhaYearChange() {
+  const curY = document.getElementById('inhaCurYear').value;
+  const inhaUnivs = ALL_UNIVS.filter(u => u.name && u.name.includes('인하공업전문대학'));
+  const inhaYears = [...new Set(inhaUnivs.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+  const curIdx = inhaYears.indexOf(curY);
+  const prevYSelect = document.getElementById('inhaPrevYear');
+  if (prevYSelect && curIdx !== -1 && curIdx + 1 < inhaYears.length) {
+    prevYSelect.value = inhaYears[curIdx + 1];
+  }
+  updateInhaTableTitles();
+  updateInhaBoard(false);
+}
+
+function updateInhaTableTitles() {
+  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2026';
+  const adm = document.getElementById('inhaAdm') ? document.getElementById('inhaAdm').value : '수시1차';
+  const ttSelect = document.getElementById('inhaTableTitle');
+  if (!ttSelect) return;
+
+  const inhaUnivs = ALL_UNIVS.filter(u => u.name && u.name.includes('인하공업전문대학') && (curY === 'ALL' || u.year === curY));
+  const filtered = (adm === 'ALL') ? inhaUnivs : inhaUnivs.filter(u => (u.admission_type || u.adm_type) === adm);
+  
+  const rawTitles = [...new Set(filtered.map(u => u.table_title).filter(Boolean))].filter(t => !t.includes('전형별'));
+  const currentVal = ttSelect.value;
+  
+  let optionsHtml = '<option value="ALL">전체 전형 (합산/전체)</option>';
+  rawTitles.forEach(t => {
+    optionsHtml += `<option value="${e(t)}" ${t === currentVal ? 'selected' : ''}>${e(t)}</option>`;
+  });
+  ttSelect.innerHTML = optionsHtml;
+}
+
+
 
 function iCard(icon,label,univ,val){
   return `<div class="insight-card"><span class="insight-icon">${icon}</span>
@@ -872,65 +2010,177 @@ function iCard(icon,label,univ,val){
 }
 
 // ── Insights ─────────────────────────────────────────────────
-function calcInsights() {
-  const r={top_ratio:null,ratio_increase:null,applicant_increase:null,latest_year:null};
-  const years=[...new Set(ALL_UNIVS.map(u=>u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
-  if(!years.length) return r;
-  const ly=years[0], py=years[1]||null;
-  r.latest_year=ly;
-  const lu=ALL_UNIVS.filter(u=>u.year===ly);
-  let maxRv=-1,maxRu='';
-  const st={};
-  for(const u of lu){
-    if(!st[u.name]) st[u.name]={lR:0,pR:0,lA:0,pA:0};
-    const rv = pr(u.competition_ratio || u.competition_rate);
-    if(rv>st[u.name].lR) st[u.name].lR=rv;
-    if(rv>maxRv){maxRv=rv;maxRu=u.name;}
-    st[u.name].lA+=parseInt(String(u.applicant_count||u.applicant_num||'0').replace(/,/g,''))||0;
+function calcSingleAdmInsight(ly, py, adm) {
+  const r = { top_ratio: null, ratio_increase: null, applicant_increase: null, has_data: false };
+  const names = [...new Set(ALL_UNIVS.map(u => u.name))].filter(Boolean);
+  if (!names.length) return r;
+
+  const st = {};
+  for (const n of names) {
+    const cur = getUnivPeriodSummary(n, ly, adm);
+    const prev = py ? getUnivPeriodSummary(n, py, adm) : { recruit: 0, applicant: 0, ratio: 0 };
+    if (cur.recruit > 0 || cur.applicant > 0) r.has_data = true;
+    st[n] = {
+      name: n,
+      adm,
+      lR: cur.ratio,
+      lA: cur.applicant,
+      lAc: cur.recruit,
+      pR: prev.ratio,
+      pA: prev.applicant,
+      pAc: prev.recruit
+    };
   }
-  if(maxRv>0) r.top_ratio={univ_name:maxRu,value:maxRv.toFixed(2)+':1'};
-  if(py){
-    const pu=ALL_UNIVS.filter(u=>u.year===py);
-    for(const u of pu){
-      if(!st[u.name]) continue;
-      const rv = pr(u.competition_ratio || u.competition_rate);
-      if(rv>st[u.name].pR) st[u.name].pR=rv;
-      st[u.name].pA+=parseInt(String(u.applicant_count||u.applicant_num||'0').replace(/,/g,''))||0;
+
+  let maxRv = -1, bestRatioName = null;
+  for (const name in st) {
+    if (st[name].lR > maxRv && (st[name].lAc > 0 || st[name].lA > 0)) {
+      maxRv = st[name].lR;
+      bestRatioName = name;
     }
-    let mri=-9999,mru='',mai=-999999,mau='';
-    for(const [n,s] of Object.entries(st)){
-      if(s.pR>0){const inc=s.lR-s.pR;if(inc>mri){mri=inc;mru=n;}}
-      if(s.pA>0){const inc=s.lA-s.pA;if(inc>mai){mai=inc;mau=n;}}
-    }
-    if(mru) r.ratio_increase={univ_name:mru,value:mri>0?'+'+mri.toFixed(2)+'p 상승':mri.toFixed(2)+'p'};
-    if(mau) r.applicant_increase={univ_name:mau,value:mai>0?'+'+mai.toLocaleString()+'명 증가':mai.toLocaleString()+'명'};
   }
+
+  if (bestRatioName && maxRv >= 0) {
+    r.top_ratio = {
+      univ_name: bestRatioName,
+      value: maxRv > 0 ? maxRv.toFixed(2) + ':1' : (maxRv === 0 ? '0.00:1 (접수 대기)' : '0.00:1')
+    };
+  }
+
+  if (py) {
+    let mri = -9999, bestIncRName = null;
+    let mai = -999999, bestIncAName = null;
+
+    for (const name in st) {
+      const s = st[name];
+      if (s.pR > 0 && s.lR > 0) {
+        const inc = s.lR - s.pR;
+        if (inc > mri) { mri = inc; bestIncRName = name; }
+      }
+      if (s.pA > 0 && s.lA > 0) {
+        const inc = s.lA - s.pA;
+        if (inc > mai) { mai = inc; bestIncAName = name; }
+      }
+    }
+
+    if (bestIncRName && mri !== -9999) {
+      r.ratio_increase = {
+        univ_name: bestIncRName,
+        value: mri > 0 ? `+${mri.toFixed(2)}p 상승` : (mri === 0 ? `0.00p (전년 동일)` : `${mri.toFixed(2)}p 하락`)
+      };
+    }
+
+    if (bestIncAName && mai !== -999999) {
+      r.applicant_increase = {
+        univ_name: bestIncAName,
+        value: mai > 0 ? `+${mai.toLocaleString()}명 증가` : (mai === 0 ? `0명 (전년 동일)` : `${mai.toLocaleString()}명 감소`)
+      };
+    }
+  }
+
+  return r;
+}
+
+function calcInsights(targetYear = null, targetAdm = null) {
+  const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+  const r = { 
+    latest_year: null, 
+    selected_adm: null, 
+    by_adm: {}, 
+    top_ratio: null, 
+    ratio_increase: null, 
+    applicant_increase: null 
+  };
+  if (!years.length) return r;
+
+  // 1. URL이 존재하는 학년도 중 최신 학년도 결정
+  const { year: defYear, adm: defAdm } = getLatestValidYearAndAdm();
+  let ly = (targetYear && years.includes(targetYear)) ? targetYear : defYear;
+  if (!ly) ly = years[0];
+  r.latest_year = ly;
+
+  // 2. 모집시기 기본 선택 우선순위 (수시1차 > 수시2차 > 정시 > 전체 모집시기)
+  let chosenAdm = targetAdm;
+  if (chosenAdm === null || chosenAdm === undefined) {
+    chosenAdm = getDefaultAdmForYear(ly);
+  }
+  r.selected_adm = chosenAdm;
+
+  const yearIdx = years.indexOf(ly);
+  const py = (yearIdx !== -1 && yearIdx + 1 < years.length) ? years[yearIdx + 1] : null;
+
+  const adms = ['정시', '수시2차', '수시1차'];
+  adms.forEach(adm => {
+    r.by_adm[adm] = calcSingleAdmInsight(ly, py, adm);
+  });
+
+  if (chosenAdm && chosenAdm !== 'ALL') {
+    const single = r.by_adm[chosenAdm] || calcSingleAdmInsight(ly, py, chosenAdm);
+    r.top_ratio = single.top_ratio;
+    r.ratio_increase = single.ratio_increase;
+    r.applicant_increase = single.applicant_increase;
+  }
+
   return r;
 }
 
 // ── Chart ────────────────────────────────────────────────────
-function calcChartData() {
-  const tYears=['2024','2025','2026','2027'],colors={'2024':'#e2e8f0','2025':'#38bdf8','2026':'#1e40af','2027':'#7c3aed'};
-  const us={};
-  for(const u of ALL_UNIVS){
-    if(!tYears.includes(u.year)) continue;
-    if(!us[u.name]){const o={};tYears.forEach(y=>o[y]=0);us[u.name]=o;}
-    const rv = pr(u.competition_ratio || u.competition_rate);
-    if(rv>us[u.name][u.year]) us[u.name][u.year]=rv;
+function calcChartData(selectedYear = null, selectedAdm = null) {
+  const chosenAdm = selectedAdm || 'ALL';
+  const allYears = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort();
+  const tYears = allYears.length ? allYears : ['2024', '2025', '2026', '2027'];
+
+  const colors = {
+    '2024': '#94a3b8',
+    '2025': '#38bdf8',
+    '2026': '#2563eb',
+    '2027': '#7c3aed'
+  };
+  const fallbackColors = ['#94a3b8', '#38bdf8', '#2563eb', '#7c3aed', '#f59e0b', '#10b981'];
+
+  const distinctNames = [...new Set(ALL_UNIVS.map(u => u.name))].filter(Boolean);
+  const univStats = {};
+
+  for (const n of distinctNames) {
+    univStats[n] = {};
+    for (const y of tYears) {
+      univStats[n][y] = getUnivPeriodSummary(n, y, chosenAdm);
+    }
   }
-  const targets=['인하공업전문대학','유한대학교','연성대학교'];
-  const sorted=Object.entries(us).sort((a,b)=>(b[1][tYears[tYears.length-1]]||0)-(a[1][tYears[tYears.length-1]]||0));
-  const fl=[],added=new Set();
-  for(const [n,s] of Object.entries(us)){if(targets.some(t=>n.includes(t))){fl.push([n,s]);added.add(n);}}
-  for(const [n,s] of sorted){if(!added.has(n)&&fl.length<15)fl.push([n,s]);}
-  fl.sort((a,b)=>(b[1][tYears[tYears.length-1]]||0)-(a[1][tYears[tYears.length-1]]||0));
-  const labels=[],datasets=tYears.map(y=>({label:y+'년',data:[],backgroundColor:colors[y],borderRadius:4}));
-  for(const [n,s] of fl){
-    if(tYears.every(y=>!s[y])) continue;
-    labels.push(targets.some(t=>n.includes(t))?'🚀 '+n:n);
-    tYears.forEach((y,i)=>datasets[i].data.push(s[y]||0));
-  }
-  return labels.length?{labels,datasets}:null;
+
+  // Filter universities that have at least some data in the chart years
+  const activeUnivs = distinctNames.filter(n => {
+    return tYears.some(y => (univStats[n][y].recruit > 0 || univStats[n][y].applicant > 0));
+  });
+
+  if (!activeUnivs.length) return null;
+
+  // Prioritize Inha, then sort remaining by latest available competition rate / applicant volume
+  const latestY = selectedYear || tYears[tYears.length - 1];
+  const sorted = activeUnivs.sort((a, b) => {
+    const aIsInha = a.includes('인하공업전문대학') ? 1 : 0;
+    const bIsInha = b.includes('인하공업전문대학') ? 1 : 0;
+    if (aIsInha !== bIsInha) return bIsInha - aIsInha;
+    
+    // Sort by latest year ratio, or fallback to 2026 / prev year
+    const aRate = (univStats[a][latestY] && univStats[a][latestY].ratio > 0) ? univStats[a][latestY].ratio : (univStats[a]['2026']?.ratio || 0);
+    const bRate = (univStats[b][latestY] && univStats[b][latestY].ratio > 0) ? univStats[b][latestY].ratio : (univStats[b]['2026']?.ratio || 0);
+    return bRate - aRate;
+  });
+
+  const labels = sorted.map(n => n.includes('인하공업전문대학') ? '⭐ ' + n : n);
+  const datasets = tYears.map((y, idx) => {
+    const col = colors[y] || fallbackColors[idx % fallbackColors.length];
+    return {
+      label: `${y}학년도`,
+      data: sorted.map(n => univStats[n][y]?.ratio || 0),
+      details: sorted.map(n => univStats[n][y] || { recruit: 0, applicant: 0, ratio: 0 }),
+      backgroundColor: col,
+      borderRadius: 4
+    };
+  });
+
+  return { labels, datasets };
 }
 
 // ── Univ detail ───────────────────────────────────────────────
@@ -957,7 +2207,6 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
   if (isFree) headerBadges += `<span style="background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;font-size:0.8rem;padding:0.2rem 0.55rem;border-radius:0.35rem;font-weight:700;margin-left:0.4rem;box-shadow:0 2px 4px rgba(29,78,216,0.25);">🆓 무료접수 (F)</span>`;
   if (isMulti) headerBadges += `<span style="background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;font-size:0.8rem;padding:0.2rem 0.55rem;border-radius:0.35rem;font-weight:700;margin-left:0.4rem;box-shadow:0 2px 4px rgba(217,119,6,0.25);">🔄 중복지원 (M)</span>`;
 
-  // Group by table_title
   const tableMap = {};
   for (const r of rows) {
     const t = r.table_title || '전형별 경쟁률 현황';
@@ -969,10 +2218,14 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
   let tabs = '', contents = '';
   tableTitles.forEach((t, i) => {
     const tRows = tableMap[t];
+    const tableId = `univDetailTable_${i}`;
     tabs += `<button class="tab-btn${i === 0 ? ' active' : ''}" onclick="openTab('t${i}',this)">${e(t)} (${tRows.length}개)</button>`;
     
-    let tableHtml = `<table><thead><tr>
-      <th>모집단위 / 학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
+    let tableHtml = `<table class="sortable-table" id="${tableId}"><thead><tr>
+      <th class="sortable" onclick="sortTable('${tableId}', 0, 'text')" title="클릭하여 학과명 가나다순 정렬">모집단위 / 학과명 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${tableId}', 1, 'number')" title="클릭하여 모집인원순 정렬">모집인원 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${tableId}', 2, 'number')" title="클릭하여 지원인원순 정렬">지원인원 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${tableId}', 3, 'ratio')" title="클릭하여 경쟁률순 정렬">경쟁률 <span class="sort-icon">↕</span></th>
     </tr></thead><tbody>`;
     for (const d of tRows) {
       tableHtml += `<tr>
@@ -984,7 +2237,12 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
     }
     tableHtml += `</tbody></table>`;
     
-    contents += `<div id="t${i}" class="tab-content${i === 0 ? ' active' : ''}"><div class="table-container">${tableHtml}</div></div>`;
+    contents += `<div id="t${i}" class="tab-content${i === 0 ? ' active' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+        <span style="font-size:0.82rem;color:var(--text-secondary);">💡 각 열 머리글(헤더)을 클릭하면 <strong>오름차순/내림차순 정렬</strong>됩니다.</span>
+      </div>
+      <div class="table-container">${tableHtml}</div>
+    </div>`;
   });
 
   document.getElementById('centerCol').innerHTML = `
@@ -996,9 +2254,10 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
           </h2>
           <span style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.25rem;display:inline-block;">${e(uYear)}학년도 › <strong>${e(uAdm)}</strong> › ${e(uCap)}</span>
         </div>
-        <button class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;color:#dc2626;border-color:#fca5a5;background:#fff5f5;font-weight:700;" onclick="confirmDeleteSingleUniv(${id}, '${e(uName)}', '${e(uYear)}', '${e(uAdm)}')">
+        ${isAdminLoggedIn() ? `
+        <button class="btn btn-secondary admin-only-btn" style="font-size:0.82rem;padding:0.35rem 0.75rem;color:#dc2626;border-color:#fca5a5;background:#fff5f5;font-weight:700;" onclick="confirmDeleteSingleUniv(${id}, '${e(uName)}', '${e(uYear)}', '${e(uAdm)}')">
           🗑️ 이 대학 데이터 초기화(삭제)
-        </button>
+        </button>` : ''}
       </div>
       ${first.url ? `<div style="margin-bottom:1rem;"><a href="${e(first.url)}" target="_blank" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">🔗 원본 실시간 경쟁률 페이지 바로가기 (새창)</a></div>` : ''}
       <div class="tabs">${tabs}</div>
@@ -1047,8 +2306,21 @@ function clearSearch(){
 function renderSearchResults(title, resList) {
   let html = `<div class="glass-card"><div class="card-header"><h2>${title}</h2></div>`;
   if(resList.length){
-    html += `<div class="table-container"><table><thead><tr>
-      <th>연도</th><th>분류</th><th>대학명</th><th>무료접수</th><th>중복지원</th><th>표 제목</th><th>학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
+    const searchTableId = 'searchResultsTable';
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+      <span style="font-size:0.82rem;color:var(--text-secondary);">💡 각 열 머리글(헤더)을 클릭하면 <strong>오름차순/내림차순 정렬</strong>됩니다.</span>
+    </div>
+    <div class="table-container"><table class="sortable-table" id="${searchTableId}"><thead><tr>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 0, 'text')">연도 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 1, 'text')">분류 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 2, 'text')">대학명 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 3, 'text')">무료접수 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 4, 'text')">중복지원 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 5, 'text')">표 제목 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 6, 'text')">학과명 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 7, 'number')">모집인원 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 8, 'number')">지원인원 <span class="sort-icon">↕</span></th>
+      <th class="sortable" onclick="sortTable('${searchTableId}', 9, 'ratio')">경쟁률 <span class="sort-icon">↕</span></th>
     </tr></thead><tbody>`;
     for(const r of resList){
       const isInha = r.univ_name.includes('인하공업전문대학');
@@ -1071,8 +2343,12 @@ function renderSearchResults(title, resList) {
 }
 
 // ── Advanced Query Filter ─────────────────────────────────────
+function showAdvancedQueryModal(pushUrl = true) {
+  showQueryBuilder(pushUrl);
+}
+
 function showQueryBuilder(pushUrl = true) {
-  clearActive();
+  setNavActive('query');
   if(pushUrl) updateUrl({ mode: 'query' });
   const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
   const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort();
@@ -1157,6 +2433,7 @@ function resetQueryForm() {
 }
 
 function executeAdvancedQuery(qObj, pushUrl = true) {
+  setNavActive('query');
   if (pushUrl) {
     updateUrl({
       mode: 'query',
@@ -1211,8 +2488,20 @@ function executeAdvancedQuery(qObj, pushUrl = true) {
   if (resArea) {
     let html = `<div class="glass-card"><div class="card-header"><h2>📊 쿼리 실행 결과 (${results.length}건)</h2></div>`;
     if(results.length){
-      html += `<div class="table-container"><table><thead><tr>
-        <th>연도</th><th>분류</th><th>대학명</th><th>무료원서</th><th>표 제목</th><th>학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
+      const queryTableId = 'queryResultTable';
+      html += `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <span style="font-size:0.82rem;color:var(--text-secondary);">💡 각 열 머리글(헤더)을 클릭하면 <strong>오름차순/내림차순 정렬</strong>됩니다.</span>
+      </div>
+      <div class="table-container"><table class="sortable-table" id="${queryTableId}"><thead><tr>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 0, 'text')">연도 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 1, 'text')">분류 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 2, 'text')">대학명 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 3, 'text')">무료원서 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 4, 'text')">표 제목 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 5, 'text')">학과명 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 6, 'number')">모집인원 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 7, 'number')">지원인원 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${queryTableId}', 8, 'ratio')">경쟁률 <span class="sort-icon">↕</span></th>
       </tr></thead><tbody>`;
       for(const r of results){
         const isInha = r.univ_name.includes('인하공업전문대학');
@@ -1246,12 +2535,19 @@ function showGroupCompare(y, a, c, pushUrl = true){
     const isInha = u.name.includes('인하공업전문대학');
     const badges = getUnivBadges(u);
     const uRows = ALL_UNIVS.filter(x => x.id === u.id || (x.name === u.name && x.year === y && (x.admission_type === a || x.adm_type === a)));
+    const gTableId = `groupTable_${i}`;
     tabs += `<button class="tab-btn${i === 0 ? ' active' : ''}" onclick="openTab('cg${i}',this)">${isInha ? '⭐ ' : ''} ${e(u.name)}${badges}</button>`;
     
     let inner = `<div class="${isInha ? 'inha-compare-card' : 'compare-item-box'}">
       <h3 class="${isInha ? 'text-purple' : 'text-pc'}" style="margin-bottom:0.75rem;font-size:1.05rem;">${isInha ? '⭐' : '📌'} ${e(u.name)}${badges} 학과별 경쟁률</h3>
-      <div class="table-container"><table><thead><tr>
-        <th>학과명</th><th>모집인원</th><th>지원인원</th><th>경쟁률</th>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+        <span style="font-size:0.82rem;color:var(--text-secondary);">💡 각 열 머리글(헤더)을 클릭하면 <strong>오름차순/내림차순 정렬</strong>됩니다.</span>
+      </div>
+      <div class="table-container"><table class="sortable-table" id="${gTableId}"><thead><tr>
+        <th class="sortable" onclick="sortTable('${gTableId}', 0, 'text')" title="클릭하여 학과명 정렬">학과명 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${gTableId}', 1, 'number')" title="클릭하여 모집인원 정렬">모집인원 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${gTableId}', 2, 'number')" title="클릭하여 지원인원 정렬">지원인원 <span class="sort-icon">↕</span></th>
+        <th class="sortable" onclick="sortTable('${gTableId}', 3, 'ratio')" title="클릭하여 경쟁률 정렬">경쟁률 <span class="sort-icon">↕</span></th>
       </tr></thead><tbody>`;
     for (const d of uRows) {
       inner += `<tr>
@@ -1272,31 +2568,40 @@ function showGroupCompare(y, a, c, pushUrl = true){
     </div>`;
 }
 
-// ── Report Builder (Custom / Realtime) ────────────────────────
+// ── Report Builder (Custom / Admission Results) ───────────────
 function showRealtimeReportBuilder(pushUrl = true) {
   showReportBuilder(true, pushUrl);
 }
 
 function showReportBuilder(isRealtime = false, pushUrl = true){
-  clearActive();
+  setNavActive(isRealtime ? 'realtime' : 'report');
   if(pushUrl) updateUrl({ mode: isRealtime ? 'realtime_builder' : 'report' });
   const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
-  const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort();
+  const ADM_ORDER = ['정시', '수시2차', '수시1차'];
+  const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort((a,b) => {
+    const ia = ADM_ORDER.indexOf(a), ib = ADM_ORDER.indexOf(b);
+    if (ia !== -1 && ib !== -1) return ia - ib;
+    if (ia !== -1) return -1;
+    if (ib !== -1) return 1;
+    return a.localeCompare(b, 'ko');
+  });
   
   document.getElementById('centerCol').innerHTML = `
     <div class="glass-card">
       <div class="card-header">
-        <h2>${isRealtime ? '🔄 당해년도 실시간 파싱 리포트 생성' : '📊 맞춤형 전형별 비교 리포트 생성'}</h2>
-        ${isRealtime ? '<span class="realtime-badge">⚡ 실시간 파싱 모드</span>' : ''}
+        <h2>📊 ${isRealtime ? '대학별 입시결과 리포트 생성' : '맞춤형 전형별 비교 리포트 생성'}</h2>
       </div>
       <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.25rem;">
-        ${isRealtime ? '최신 당해년도 데이터를 기반으로 3개년 경쟁률 추이를 실시간 비교 분석합니다.' : '기준 연도와 모집 시기를 선택하여 대학별 3개년 경쟁률 추이를 비교합니다.'}
+        기준 연도와 모집 시기(<strong>전체 합산</strong> 또는 정시·수시2차·수시1차)를 선택하여 <strong>정원내 / 정원외 입시결과</strong>를 비교 분석합니다.
       </p>
-      <div style="display:flex;gap:1rem;margin-bottom:1rem;">
-        <div style="flex:1;"><label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">기준 연도</label>
-          <select id="rY" class="form-control" onchange="updateRU()">${years.map(y=>'<option value="'+e(y)+'">'+e(y)+'년</option>').join('')}</select></div>
-        <div style="flex:1;"><label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">모집 시기</label>
-          <select id="rA" class="form-control" onchange="updateRU()">${adms.map(a=>'<option value="'+e(a)+'">'+e(a)+'</option>').join('')}</select></div>
+      <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;"><label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">기준 연도</label>
+          <select id="rY" class="form-control" onchange="updateRU()">${years.map(y=>'<option value="'+e(y)+'">'+e(y)+'학년도</option>').join('')}</select></div>
+        <div style="flex:1;min-width:200px;"><label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">모집 시기</label>
+          <select id="rA" class="form-control" onchange="updateRU()">
+            <option value="ALL" selected>전체 (정시 + 수시2차 + 수시1차 합산)</option>
+            ${adms.map(a=>'<option value="'+e(a)+'">'+e(a)+'</option>').join('')}
+          </select></div>
       </div>
       <div style="margin-bottom:1.5rem;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
@@ -1308,8 +2613,8 @@ function showReportBuilder(isRealtime = false, pushUrl = true){
         </div>
         <div id="rUL" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.75rem;padding:1rem;background:#f8fafc;border-radius:0.5rem;border:1px solid var(--border-color);max-height:250px;overflow-y:auto;"></div>
       </div>
-      <button class="${isRealtime ? 'btn btn-primary' : 'btn btn-primary'}" style="width:100%;font-size:0.95rem;padding:0.75rem;" onclick="genReport(${isRealtime}, true)">
-        ${isRealtime ? '🔄 실시간 파싱 & 리포트 생성' : '📊 리포트 생성하기'}
+      <button class="btn btn-primary" style="width:100%;font-size:0.95rem;padding:0.75rem;" onclick="genReport(${isRealtime}, true)">
+        📊 입시결과 리포트 생성
       </button>
     </div>`;
   updateRU();
@@ -1317,7 +2622,9 @@ function showReportBuilder(isRealtime = false, pushUrl = true){
 
 function updateRU(){
   const y = document.getElementById('rY').value, a = document.getElementById('rA').value;
-  const filtered = ALL_UNIVS.filter(u => u.year === y && (u.admission_type === a || u.adm_type === a));
+  const filtered = (a === 'ALL')
+    ? ALL_UNIVS.filter(u => u.year === y)
+    : ALL_UNIVS.filter(u => u.year === y && (u.admission_type === a || u.adm_type === a));
   const nameMap = new Map();
   filtered.forEach(u => {
     if (!nameMap.has(u.name)) nameMap.set(u.name, u);
@@ -1341,6 +2648,7 @@ function genReport(isRealtime = false, pushUrl = true){
 }
 
 function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true) {
+  setNavActive(isRealtime ? 'realtime' : 'report');
   if (pushUrl) {
     updateUrl({
       mode: isRealtime ? 'realtime' : 'report',
@@ -1350,106 +2658,460 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
       realtime: isRealtime ? 'true' : ''
     });
   }
-  const allY = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a2,b)=>b.localeCompare(a2));
-  const rY = [...new Set([y, ...allY])].slice(0, 3).sort((a2,b)=>b.localeCompare(a2));
-  const names = inhaFirst(selectedList), ud = {};
+
+  const OUTSIDE_KEYWORDS = [
+    '정원외', '정원 외', '[정원외]', '(정원외)',
+    '전문대', '학사', '대학졸업',
+    '농어촌', '수급자', '차상위', '한부모', '기초생활', '기회균형',
+    '재외국민', '외국인', '북한', '이탈주민', '통일인재', '전교육과정',
+    '만학도', '재직자', '단원', '서해5도', '서해 5도', '장애', '특수교육', '취업자'
+  ];
+
+  function isOutsideRow(d) {
+    const cap = String(d.capacity_type || d.cap_type || '').trim();
+    if (cap.includes('정원외') || cap.includes('정원 외')) return true;
+    const tt = String(d.table_title || '').trim();
+    if (OUTSIDE_KEYWORDS.some(k => tt.includes(k))) return true;
+    const dept = String(d.department_name || d.dept || '').trim();
+    if (OUTSIDE_KEYWORDS.some(k => dept.includes(k))) return true;
+    return false;
+  }
+
+  const names = inhaFirst(selectedList);
   const univUrls = {};
 
-  for(const n of names){
-    ud[n] = { ac: {}, ap: {}, rt: {} };
-    for(const ry of rY){
-      const recs = ALL_UNIVS.filter(u => u.name === n && u.year === ry && (u.admission_type === a || u.adm_type === a));
-      let ac = 0, ap = 0, mx = 0;
-      for(const d of recs) {
-        if (d.url && ry === y) univUrls[n] = d.url;
-        ac += parseInt(String(d.admission_count || d.recruit_num || '0').replace(/,/g, '')) || 0;
-        ap += parseInt(String(d.applicant_count || d.applicant_num || '0').replace(/,/g, '')) || 0;
-        const rv = pr(d.competition_ratio || d.competition_rate);
-        if(rv > mx) mx = rv;
+  if (a === 'ALL') {
+    // ══════════════════════════════════════════════════════════════
+    // 전체 모집시기 합산 (수시1차 + 수시2차 + 정시)
+    // ══════════════════════════════════════════════════════════════
+    const periods = ['수시1차', '수시2차', '정시'];
+    const pData = {};
+
+    for (const n of names) {
+      pData[n] = {
+        inside: { '수시1차': { ac: 0, ap: 0 }, '수시2차': { ac: 0, ap: 0 }, '정시': { ac: 0, ap: 0 } },
+        outside: { '수시1차': { ap: 0 }, '수시2차': { ap: 0 }, '정시': { ap: 0 } }
+      };
+
+      for (const p of periods) {
+        const recs = ALL_UNIVS.filter(u => u.name === n && u.year === y && (u.admission_type === p || u.adm_type === p));
+        for (const d of recs) {
+          if (d.url) univUrls[n] = d.url;
+        }
+        const s = getUnivPeriodSummary(n, y, p);
+        pData[n].inside[p].ac = s.inside.recruit;
+        pData[n].inside[p].ap = s.inside.applicant;
+        pData[n].outside[p].ap = s.outside.applicant;
       }
-      ud[n].ac[ry] = ac; ud[n].ap[ry] = ap; ud[n].rt[ry] = mx ? mx.toFixed(2) : '-';
+
+      // 정원내 합산 (정확한 대학 총계 함수 활용)
+      const sAll = getUnivPeriodSummary(n, y, 'ALL');
+      const in_tot_ac = sAll.inside.recruit;
+      const in_tot_ap = sAll.inside.applicant;
+      const in_tot_rt = in_tot_ac > 0 ? (in_tot_ap / in_tot_ac).toFixed(2) + ' : 1' : '-';
+      pData[n].inside.total = { ac: in_tot_ac, ap: in_tot_ap, rt: in_tot_rt };
+
+      // 정원외 합산 (모집인원은 규정상 '-' 표기)
+      const out_tot_ap = sAll.outside.applicant;
+      pData[n].outside.total = { ac: '-', ap: out_tot_ap, rt: '-' };
     }
-    const ry2 = rY.filter(ry => ud[n].ap[ry] > 0);
-    if(ry2.length >= 2){
-      ud[n].da = ud[n].ap[ry2[0]] - ud[n].ap[ry2[1]];
-      ud[n].dr = (parseFloat(ud[n].rt[ry2[0]]) || 0) - (parseFloat(ud[n].rt[ry2[1]]) || 0);
-    } else { ud[n].da = 0; ud[n].dr = 0; }
-  }
 
-  let th = `<tr><th rowspan="2">대학명</th>
-    <th colspan="${rY.length}" style="text-align:center;">모집인원(정원내)</th>
-    <th colspan="${rY.length+1}" style="text-align:center;">지원자수(정원내)</th>
-    <th colspan="${rY.length+1}" style="text-align:center;">경쟁률(정원내)</th></tr><tr>
-    ${rY.map(ry=>'<th>'+e(ry)+'</th>').join('')}
-    ${rY.map(ry=>'<th>'+e(ry)+'</th>').join('')}<th>증감</th>
-    ${rY.map(ry=>'<th>'+e(ry)+'</th>').join('')}<th>증감</th></tr>`;
-  
-  let tb = '';
-  for(const n of names){
-    const isInha = n.includes('인하공업전문대학'), d = ud[n], da = d.da || 0, dr = d.dr || 0;
-    const uSample = ALL_UNIVS.find(u => u.name === n);
-    const badges = getUnivBadges(uSample);
-    tb += `<tr class="${isInha ? 'inha-purple-row' : ''}">
-      <td style="font-weight:bold;">${isInha ? '<span class="inha-badge">⭐ ' + e(n) + '</span>' : e(n)}${badges}</td>
-      ${rY.map(ry=>'<td>'+(d.ac[ry]||0).toLocaleString()+'</td>').join('')}
-      ${rY.map((ry,i)=>'<td class="'+(i===0?'fw-bold '+(isInha?'text-purple':'text-pc'):'')+'">'+(d.ap[ry]||0).toLocaleString()+'</td>').join('')}
-      <td class="fw-bold ${da>0?(isInha?'text-purple':'text-pc'):da<0?'text-danger':''}">${da>0?'+':''}${da.toLocaleString()}</td>
-      ${rY.map((ry,i)=>'<td class="'+(i===0?'fw-bold '+(isInha?'text-purple':'text-pc'):'')+'">'+(d.rt[ry]||'-')+'</td>').join('')}
-      <td class="fw-bold ${dr>0?(isInha?'text-purple':'text-pc'):dr<0?'text-danger':''}">${dr>0?'+':''}${dr.toFixed(2)}</td>
-    </tr>`;
-  }
+    // ── Table 1: 정원내 전체 테이블 ──
+    const inTableId = 'reportTableInside';
+    let tbInside = '';
+    for (const n of names) {
+      const isInha = n.includes('인하공업전문대학');
+      const d = pData[n].inside;
+      const uSample = ALL_UNIVS.find(u => u.name === n);
+      const badges = getUnivBadges(uSample);
+      
+      const s1_ac = d['수시1차'].ac, s1_ap = d['수시1차'].ap, s1_rt = s1_ac > 0 ? (s1_ap / s1_ac).toFixed(2) + ' : 1' : '-';
+      const s2_ac = d['수시2차'].ac, s2_ap = d['수시2차'].ap, s2_rt = s2_ac > 0 ? (s2_ap / s2_ac).toFixed(2) + ' : 1' : '-';
+      const j_ac = d['정시'].ac, j_ap = d['정시'].ap, j_rt = j_ac > 0 ? (j_ap / j_ac).toFixed(2) + ' : 1' : '-';
 
-  let rawLinksHtml = '';
-  const urlKeys = Object.keys(univUrls);
-  if (urlKeys.length) {
-    rawLinksHtml = `
-      <div style="margin-top:1.5rem;background:#f8fafc;padding:1.25rem;border-radius:0.75rem;border:1px solid var(--border-color);">
-        <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.4rem;">
-          🔗 당해년도(${e(y)} ${e(a)}) 실시간 원본 경쟁률 웹페이지 바로가기
-        </h3>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.5rem;">
-          ${urlKeys.map(k=>`
-            <div class="url-link-item">
-              <span style="font-weight:600;">${k.includes('인하공업전문대학')?'⭐ '+e(k):e(k)}</span>
-              <a href="${e(univUrls[k])}" target="_blank" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.55rem;">진학사/유웨이 ↗</a>
-            </div>
-          `).join('')}
+      tbInside += `<tr class="${isInha ? 'inha-purple-row' : ''}">
+        <td style="font-weight:bold;">${isInha ? '<span class="inha-badge">⭐ ' + e(n) + '</span>' : e(n)}${badges}</td>
+        <td>${s1_ac ? s1_ac.toLocaleString() : '-'}</td>
+        <td>${s1_ap ? s1_ap.toLocaleString() : '-'}</td>
+        <td class="${s1_ac > 0 ? (isInha ? 'text-purple fw-bold' : 'text-pc fw-bold') : ''}">${s1_rt}</td>
+        <td>${s2_ac ? s2_ac.toLocaleString() : '-'}</td>
+        <td>${s2_ap ? s2_ap.toLocaleString() : '-'}</td>
+        <td class="${s2_ac > 0 ? (isInha ? 'text-purple fw-bold' : 'text-pc fw-bold') : ''}">${s2_rt}</td>
+        <td>${j_ac ? j_ac.toLocaleString() : '-'}</td>
+        <td>${j_ap ? j_ap.toLocaleString() : '-'}</td>
+        <td class="${j_ac > 0 ? (isInha ? 'text-purple fw-bold' : 'text-pc fw-bold') : ''}">${j_rt}</td>
+        <td style="background:#eef2ff;font-weight:700;">${d.total.ac ? d.total.ac.toLocaleString() + '명' : '-'}</td>
+        <td style="background:#eef2ff;font-weight:700;color:var(--primary-color);">${d.total.ap ? d.total.ap.toLocaleString() + '명' : '-'}</td>
+        <td style="background:#eef2ff;font-weight:800;font-size:0.95rem;color:${isInha ? 'var(--purple-primary)' : 'var(--primary-color)'};">${d.total.rt}</td>
+      </tr>`;
+    }
+
+    // ── Table 2: 정원외 전체 테이블 ──
+    const outTableId = 'reportTableOutside';
+    let tbOutside = '';
+    for (const n of names) {
+      const isInha = n.includes('인하공업전문대학');
+      const d = pData[n].outside;
+      const uSample = ALL_UNIVS.find(u => u.name === n);
+      const badges = getUnivBadges(uSample);
+
+      const s1_ap = d['수시1차'].ap;
+      const s2_ap = d['수시2차'].ap;
+      const j_ap = d['정시'].ap;
+
+      tbOutside += `<tr class="${isInha ? 'inha-purple-row' : ''}">
+        <td style="font-weight:bold;">${isInha ? '<span class="inha-badge">⭐ ' + e(n) + '</span>' : e(n)}${badges}</td>
+        <td style="color:var(--text-secondary);">-</td>
+        <td>${s1_ap ? s1_ap.toLocaleString() : '-'}</td>
+        <td style="color:var(--text-secondary);">-</td>
+        <td style="color:var(--text-secondary);">-</td>
+        <td>${s2_ap ? s2_ap.toLocaleString() : '-'}</td>
+        <td style="color:var(--text-secondary);">-</td>
+        <td style="color:var(--text-secondary);">-</td>
+        <td>${j_ap ? j_ap.toLocaleString() : '-'}</td>
+        <td style="color:var(--text-secondary);">-</td>
+        <td style="background:#fffbeb;color:var(--text-secondary);font-weight:700;">-</td>
+        <td style="background:#fffbeb;font-weight:700;color:#b45309;">${d.total.ap ? d.total.ap.toLocaleString() + '명' : '-'}</td>
+        <td style="background:#fffbeb;color:var(--text-secondary);font-weight:700;">-</td>
+      </tr>`;
+    }
+
+    // ── Table 3: 종합 비교 테이블 ──
+    const totTableId = 'reportTableTotal';
+    let tbTotal = '';
+    for (const n of names) {
+      const isInha = n.includes('인하공업전문대학');
+      const in_d = pData[n].inside.total;
+      const out_d = pData[n].outside.total;
+      const all_ap = (in_d.ap || 0) + (out_d.ap || 0);
+      const uSample = ALL_UNIVS.find(u => u.name === n);
+      const badges = getUnivBadges(uSample);
+
+      tbTotal += `<tr class="${isInha ? 'inha-purple-row' : ''}">
+        <td style="font-weight:bold;">${isInha ? '<span class="inha-badge">⭐ ' + e(n) + '</span>' : e(n)}${badges}</td>
+        <td style="font-weight:600;">${in_d.ac ? in_d.ac.toLocaleString() + '명' : '-'}</td>
+        <td style="font-weight:600;color:var(--primary-color);">${in_d.ap ? in_d.ap.toLocaleString() + '명' : '-'}</td>
+        <td class="fw-bold ${isInha ? 'text-purple' : 'text-pc'}">${in_d.rt}</td>
+        <td style="color:var(--text-secondary);">-</td>
+        <td style="font-weight:600;color:#b45309;">${out_d.ap ? out_d.ap.toLocaleString() + '명' : '-'}</td>
+        <td style="background:#f8fafc;font-weight:800;font-size:0.95rem;">${all_ap ? all_ap.toLocaleString() + '명' : '-'}</td>
+        <td style="background:#f8fafc;font-weight:800;font-size:0.95rem;color:${isInha ? 'var(--purple-primary)' : 'var(--primary-color)'};">${in_d.rt}</td>
+      </tr>`;
+    }
+
+    let rawLinksHtml = '';
+    const urlKeys = Object.keys(univUrls);
+    if (urlKeys.length) {
+      rawLinksHtml = `
+        <div style="margin-top:1.5rem;background:#f8fafc;padding:1.25rem;border-radius:0.75rem;border:1px solid var(--border-color);">
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.4rem;">
+            🔗 ${e(y)}학년도 실시간 원본 경쟁률 웹페이지 바로가기
+          </h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.5rem;">
+            ${urlKeys.map(k=>`
+              <div class="url-link-item">
+                <span style="font-weight:600;">${k.includes('인하공업전문대학')?'⭐ '+e(k):e(k)}</span>
+                <a href="${e(univUrls[k])}" target="_blank" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.55rem;">진학사/유웨이 ↗</a>
+              </div>
+            `).join('')}
+          </div>
         </div>
-      </div>
-    `;
-  }
+      `;
+    }
 
-  document.getElementById('centerCol').innerHTML = `
-    <div class="glass-card">
-      <div class="card-header">
-        <h2>
-          ${isRealtime ? '🔄 당해년도 실시간 파싱 대시보드' : '📊 3개년 추이 종합 리포트'}
-        </h2>
-        <div style="display:flex;gap:0.5rem;align-items:center;">
-          <button onclick="showReportBuilder(${isRealtime}, true)" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">← 다시 생성</button>
-          <button onclick="reloadLatestData();" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;" title="최신 JSON 데이터 즉시 재로드">🔄 실시간 새로고침</button>
+    document.getElementById('centerCol').innerHTML = `
+      <div class="glass-card">
+        <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">
+          <div>
+            <h2>📊 ${e(y)}학년도 대학별 입시결과 종합 리포트</h2>
+            <span style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.2rem;display:inline-block;">
+              수시1차 + 수시2차 + 정시 전체 합산 (정원내 및 정원외 집계)
+            </span>
+          </div>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <button onclick="showReportBuilder(true, true)" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">← 조건 변경</button>
+            <button onclick="reloadLatestData();" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;" title="최신 데이터 새로고침">🔄 새로고침</button>
+          </div>
         </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem;">
-        <span style="font-size:0.88rem;color:var(--text-secondary);">기준: <strong>${e(y)}학년도 ${e(a)}</strong> (최근 3개년 ${rY.join(', ')} 비교)</span>
-        ${isRealtime ? '<span class="realtime-badge">⚡ 당해년도 데이터 실시간 반영</span>' : ''}
-      </div>
-      <div class="table-container"><table><thead>${th}</thead><tbody>${tb}</tbody></table></div>
-      ${rawLinksHtml}
-    </div>`;
+        
+        <div class="tabs" style="margin-bottom:1rem;">
+          <button class="tab-btn active" onclick="openTab('tabReportInside', this)">🏆 정원내 전체 합산</button>
+          <button class="tab-btn" onclick="openTab('tabReportOutside', this)">🏷️ 정원외 전체 합산</button>
+          <button class="tab-btn" onclick="openTab('tabReportTotal', this)">📊 종합 비교 (정원내 vs 정원외)</button>
+        </div>
+
+        <!-- Tab 1: 정원내 -->
+        <div id="tabReportInside" class="tab-content active">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span style="font-size:0.82rem;color:var(--text-secondary);">💡 각 열 머리글(헤더)을 클릭하면 <strong>오름차순/내림차순 정렬</strong>됩니다.</span>
+          </div>
+          <div class="table-container">
+            <table class="sortable-table" id="${inTableId}">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="sortable" onclick="sortTable('${inTableId}', 0, 'text')">대학명 <span class="sort-icon">↕</span></th>
+                  <th colspan="3" style="text-align:center;background:#f8fafc;">수시 1차</th>
+                  <th colspan="3" style="text-align:center;background:#f1f5f9;">수시 2차</th>
+                  <th colspan="3" style="text-align:center;background:#f8fafc;">정시</th>
+                  <th colspan="3" style="text-align:center;background:#e0e7ff;color:#1e40af;">🏆 정원내 전체 합산</th>
+                </tr>
+                <tr>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 1, 'number')">모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 2, 'number')">지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 3, 'ratio')">경쟁률 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 4, 'number')">모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 5, 'number')">지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 6, 'ratio')">경쟁률 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 7, 'number')">모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 8, 'number')">지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 9, 'ratio')">경쟁률 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 10, 'number')" style="background:#e0e7ff;color:#1e40af;">합산 모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 11, 'number')" style="background:#e0e7ff;color:#1e40af;">합산 지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${inTableId}', 12, 'ratio')" style="background:#e0e7ff;color:#1e40af;">합산 경쟁률 <span class="sort-icon">↕</span></th>
+                </tr>
+              </thead>
+              <tbody>${tbInside}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: 정원외 -->
+        <div id="tabReportOutside" class="tab-content">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span style="font-size:0.82rem;color:var(--text-secondary);">💡 정원외 모집인원은 규정상 <strong>'-'</strong>로 표기되며 지원인원 합산이 산출됩니다. 헤더 클릭 시 정렬 가능합니다.</span>
+          </div>
+          <div class="table-container">
+            <table class="sortable-table" id="${outTableId}">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="sortable" onclick="sortTable('${outTableId}', 0, 'text')">대학명 <span class="sort-icon">↕</span></th>
+                  <th colspan="3" style="text-align:center;background:#f8fafc;">수시 1차</th>
+                  <th colspan="3" style="text-align:center;background:#f1f5f9;">수시 2차</th>
+                  <th colspan="3" style="text-align:center;background:#f8fafc;">정시</th>
+                  <th colspan="3" style="text-align:center;background:#fef3c7;color:#b45309;">🏷️ 정원외 전체 합산</th>
+                </tr>
+                <tr>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 1, 'text')">모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 2, 'number')">지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 3, 'text')">경쟁률 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 4, 'text')">모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 5, 'number')">지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 6, 'text')">경쟁률 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 7, 'text')">모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 8, 'number')">지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 9, 'text')">경쟁률 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 10, 'text')" style="background:#fef3c7;color:#b45309;">합산 모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 11, 'number')" style="background:#fef3c7;color:#b45309;">합산 지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${outTableId}', 12, 'text')" style="background:#fef3c7;color:#b45309;">합산 경쟁률 <span class="sort-icon">↕</span></th>
+                </tr>
+              </thead>
+              <tbody>${tbOutside}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: 종합 비교 -->
+        <div id="tabReportTotal" class="tab-content">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span style="font-size:0.82rem;color:var(--text-secondary);">💡 각 열 머리글(헤더)을 클릭하면 <strong>오름차순/내림차순 정렬</strong>됩니다.</span>
+          </div>
+          <div class="table-container">
+            <table class="sortable-table" id="${totTableId}">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="sortable" onclick="sortTable('${totTableId}', 0, 'text')">대학명 <span class="sort-icon">↕</span></th>
+                  <th colspan="3" style="text-align:center;background:#e0e7ff;color:#1e40af;">정원내 합산 (수시1+2+정시)</th>
+                  <th colspan="2" style="text-align:center;background:#fef3c7;color:#b45309;">정원외 합산 (수시1+2+정시)</th>
+                  <th colspan="2" style="text-align:center;background:#f1f5f9;">총 지원자수 및 정원내 경쟁률</th>
+                </tr>
+                <tr>
+                  <th class="sortable" onclick="sortTable('${totTableId}', 1, 'number')">모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${totTableId}', 2, 'number')">지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${totTableId}', 3, 'ratio')">경쟁률 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${totTableId}', 4, 'text')">모집 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${totTableId}', 5, 'number')">지원 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${totTableId}', 6, 'number')">총 지원자 합계 <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortTable('${totTableId}', 7, 'ratio')">정원내 최종 경쟁률 <span class="sort-icon">↕</span></th>
+                </tr>
+              </thead>
+              <tbody>${tbTotal}</tbody>
+            </table>
+          </div>
+        </div>
+
+        ${rawLinksHtml}
+      </div>`;
+  } else {
+    // ══════════════════════════════════════════════════════════════
+    // 개별 모집시기 선택 (단일 시기 3개년 비교 리포트)
+    // ══════════════════════════════════════════════════════════════
+    const allY = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a2,b)=>b.localeCompare(a2));
+    const rY = [...new Set([y, ...allY])].slice(0, 3).sort((a2,b)=>b.localeCompare(a2));
+    const ud_in = {}, ud_out = {};
+
+    for (const n of names) {
+      ud_in[n] = { ac: {}, ap: {}, rt: {} };
+      ud_out[n] = { ac: {}, ap: {}, rt: {} };
+
+      for (const ry of rY) {
+        const recs = ALL_UNIVS.filter(u => u.name === n && u.year === ry && (u.admission_type === a || u.adm_type === a));
+        for (const d of recs) {
+          if (d.url && ry === y) univUrls[n] = d.url;
+        }
+
+        const s = getUnivPeriodSummary(n, ry, a);
+        const in_ac = s.inside.recruit;
+        const in_ap = s.inside.applicant;
+
+        ud_in[n].ac[ry] = in_ac;
+        ud_in[n].ap[ry] = in_ap;
+        ud_in[n].rt[ry] = in_ac > 0 ? (in_ap / in_ac).toFixed(2) : '-';
+
+        ud_out[n].ac[ry] = '-';
+        ud_out[n].ap[ry] = s.outside.applicant;
+        ud_out[n].rt[ry] = '-';
+      }
+
+      const ry2_in = rY.filter(ry => ud_in[n].ap[ry] > 0);
+      if (ry2_in.length >= 2) {
+        ud_in[n].da = ud_in[n].ap[ry2_in[0]] - ud_in[n].ap[ry2_in[1]];
+        ud_in[n].dr = (parseFloat(ud_in[n].rt[ry2_in[0]]) || 0) - (parseFloat(ud_in[n].rt[ry2_in[1]]) || 0);
+      } else { ud_in[n].da = 0; ud_in[n].dr = 0; }
+
+      const ry2_out = rY.filter(ry => ud_out[n].ap[ry] > 0);
+      if (ry2_out.length >= 2) {
+        ud_out[n].da = ud_out[n].ap[ry2_out[0]] - ud_out[n].ap[ry2_out[1]];
+      } else { ud_out[n].da = 0; }
+    }
+
+    // ── Single Period Table 1: 정원내 ──
+    const singleInTableId = 'singlePeriodInTable';
+    let tbSingleIn = '';
+    for (const n of names) {
+      const isInha = n.includes('인하공업전문대학'), d = ud_in[n], da = d.da || 0, dr = d.dr || 0;
+      const uSample = ALL_UNIVS.find(u => u.name === n);
+      const badges = getUnivBadges(uSample);
+      tbSingleIn += `<tr class="${isInha ? 'inha-purple-row' : ''}">
+        <td style="font-weight:bold;">${isInha ? '<span class="inha-badge">⭐ ' + e(n) + '</span>' : e(n)}${badges}</td>
+        ${rY.map(ry=>'<td>'+(d.ac[ry] ? d.ac[ry].toLocaleString() : '-')+'</td>').join('')}
+        ${rY.map((ry,i)=>'<td class="'+(i===0?'fw-bold '+(isInha?'text-purple':'text-pc'):'')+'">'+(d.ap[ry] ? d.ap[ry].toLocaleString() : '-')+'</td>').join('')}
+        <td class="fw-bold ${da>0?(isInha?'text-purple':'text-pc'):da<0?'text-danger':''}">${da>0?'+':''}${da.toLocaleString()}</td>
+        ${rY.map((ry,i)=>'<td class="'+(i===0?'fw-bold '+(isInha?'text-purple':'text-pc'):'')+'">'+(d.rt[ry]||'-')+'</td>').join('')}
+        <td class="fw-bold ${dr>0?(isInha?'text-purple':'text-pc'):dr<0?'text-danger':''}">${dr>0?'+':''}${dr.toFixed(2)}</td>
+      </tr>`;
+    }
+
+    // ── Single Period Table 2: 정원외 ──
+    const singleOutTableId = 'singlePeriodOutTable';
+    let tbSingleOut = '';
+    for (const n of names) {
+      const isInha = n.includes('인하공업전문대학'), d = ud_out[n], da = d.da || 0;
+      const uSample = ALL_UNIVS.find(u => u.name === n);
+      const badges = getUnivBadges(uSample);
+      tbSingleOut += `<tr class="${isInha ? 'inha-purple-row' : ''}">
+        <td style="font-weight:bold;">${isInha ? '<span class="inha-badge">⭐ ' + e(n) + '</span>' : e(n)}${badges}</td>
+        ${rY.map(()=>'<td style="color:var(--text-secondary);">-</td>').join('')}
+        ${rY.map((ry,i)=>'<td class="'+(i===0?'fw-bold '+(isInha?'text-purple':'text-pc'):'')+'">'+(d.ap[ry] ? d.ap[ry].toLocaleString() : '-')+'</td>').join('')}
+        <td class="fw-bold ${da>0?(isInha?'text-purple':'text-pc'):da<0?'text-danger':''}">${da>0?'+':''}${da.toLocaleString()}</td>
+        ${rY.map(()=>'<td style="color:var(--text-secondary);">-</td>').join('')}
+      </tr>`;
+    }
+
+    let rawLinksHtml = '';
+    const urlKeys = Object.keys(univUrls);
+    if (urlKeys.length) {
+      rawLinksHtml = `
+        <div style="margin-top:1.5rem;background:#f8fafc;padding:1.25rem;border-radius:0.75rem;border:1px solid var(--border-color);">
+          <h3 style="font-size:0.95rem;font-weight:700;margin-bottom:0.75rem;display:flex;align-items:center;gap:0.4rem;">
+            🔗 ${e(y)}학년도 ${e(a)} 실시간 원본 경쟁률 웹페이지 바로가기
+          </h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:0.5rem;">
+            ${urlKeys.map(k=>`
+              <div class="url-link-item">
+                <span style="font-weight:600;">${k.includes('인하공업전문대학')?'⭐ '+e(k):e(k)}</span>
+                <a href="${e(univUrls[k])}" target="_blank" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.55rem;">진학사/유웨이 ↗</a>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    document.getElementById('centerCol').innerHTML = `
+      <div class="glass-card">
+        <div class="card-header" style="flex-wrap:wrap;gap:0.5rem;">
+          <div>
+            <h2>📊 ${e(y)}학년도 ${e(a)} 3개년 추이 리포트</h2>
+            <span style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.2rem;display:inline-block;">
+              최근 3개년 (${rY.join(', ')}) ${e(a)} 비교 분석
+            </span>
+          </div>
+          <div style="display:flex;gap:0.5rem;align-items:center;">
+            <button onclick="showReportBuilder(${isRealtime}, true)" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;">← 조건 변경</button>
+            <button onclick="reloadLatestData();" class="btn btn-secondary" style="font-size:0.82rem;padding:0.35rem 0.75rem;" title="최신 데이터 새로고침">🔄 새로고침</button>
+          </div>
+        </div>
+        
+        <div class="tabs" style="margin-bottom:1rem;">
+          <button class="tab-btn active" onclick="openTab('tabSingleIn', this)">📌 정원내 3개년 추이</button>
+          <button class="tab-btn" onclick="openTab('tabSingleOut', this)">🏷️ 정원외 3개년 추이</button>
+        </div>
+
+        <div id="tabSingleIn" class="tab-content active">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span style="font-size:0.82rem;color:var(--text-secondary);">💡 각 열 머리글(헤더)을 클릭하면 <strong>오름차순/내림차순 정렬</strong>됩니다.</span>
+          </div>
+          <div class="table-container">
+            <table class="sortable-table" id="${singleInTableId}">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="sortable" onclick="sortTable('${singleInTableId}', 0, 'text')">대학명 <span class="sort-icon">↕</span></th>
+                  <th colspan="${rY.length}" style="text-align:center;">모집인원 (정원내)</th>
+                  <th colspan="${rY.length+1}" style="text-align:center;">지원자수 (정원내)</th>
+                  <th colspan="${rY.length+1}" style="text-align:center;">경쟁률 (정원내)</th>
+                </tr>
+                <tr>
+                  ${rY.map((ry, col)=>`<th class="sortable" onclick="sortTable('${singleInTableId}', ${1+col}, 'number')">${e(ry)} <span class="sort-icon">↕</span></th>`).join('')}
+                  ${rY.map((ry, col)=>`<th class="sortable" onclick="sortTable('${singleInTableId}', ${1+rY.length+col}, 'number')">${e(ry)} <span class="sort-icon">↕</span></th>`).join('')}
+                  <th class="sortable" onclick="sortTable('${singleInTableId}', ${1+2*rY.length}, 'number')">증감 <span class="sort-icon">↕</span></th>
+                  ${rY.map((ry, col)=>`<th class="sortable" onclick="sortTable('${singleInTableId}', ${2+2*rY.length+col}, 'ratio')">${e(ry)} <span class="sort-icon">↕</span></th>`).join('')}
+                  <th class="sortable" onclick="sortTable('${singleInTableId}', ${2+3*rY.length}, 'ratio')">증감 <span class="sort-icon">↕</span></th>
+                </tr>
+              </thead>
+              <tbody>${tbSingleIn}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tabSingleOut" class="tab-content">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+            <span style="font-size:0.82rem;color:var(--text-secondary);">💡 정원외 모집인원은 규정상 <strong>'-'</strong>로 표기되며 지원자수가 집계됩니다.</span>
+          </div>
+          <div class="table-container">
+            <table class="sortable-table" id="${singleOutTableId}">
+              <thead>
+                <tr>
+                  <th rowspan="2" class="sortable" onclick="sortTable('${singleOutTableId}', 0, 'text')">대학명 <span class="sort-icon">↕</span></th>
+                  <th colspan="${rY.length}" style="text-align:center;">모집인원 (정원외)</th>
+                  <th colspan="${rY.length+1}" style="text-align:center;">지원자수 (정원외)</th>
+                </tr>
+                <tr>
+                  ${rY.map((ry, col)=>`<th class="sortable" onclick="sortTable('${singleOutTableId}', ${1+col}, 'text')">${e(ry)} <span class="sort-icon">↕</span></th>`).join('')}
+                  ${rY.map((ry, col)=>`<th class="sortable" onclick="sortTable('${singleOutTableId}', ${1+rY.length+col}, 'number')">${e(ry)} <span class="sort-icon">↕</span></th>`).join('')}
+                  <th class="sortable" onclick="sortTable('${singleOutTableId}', ${1+2*rY.length}, 'number')">증감 <span class="sort-icon">↕</span></th>
+                </tr>
+              </thead>
+              <tbody>${tbSingleOut}</tbody>
+            </table>
+          </div>
+        </div>
+
+        ${rawLinksHtml}
+      </div>`;
+  }
 }
 
-// ── Data summary ──────────────────────────────────────────────
-function renderDataSummary(){
-  const years = [...new Set(ALL_UNIVS.map(u=>u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
-  const names = [...new Set(ALL_UNIVS.map(u=>u.name))].filter(Boolean);
-  document.getElementById('dataSummary').innerHTML = `
-    <div style="display:flex;flex-direction:column;gap:0.5rem;">
-      <div>🏫 등록 대학: <strong>${names.length}개</strong></div>
-      <div>📋 총 레코드: <strong>${ALL_UNIVS.length}건</strong></div>
-      <div>📅 연도: <strong>${years.join(', ')}</strong></div>
-    </div>`;
-}
+
 
 // ── Admin Auth (GitHub Pages 정적 사이트 전용: localStorage 단일 소스) ─────
 // ※ GitHub Pages는 백엔드 서버가 없으므로 쿠키/세션 서버 인증 없이
@@ -1532,6 +3194,11 @@ function renderAdminUI() {
   const headerArea = document.getElementById('adminHeaderArea');
   const rightArea = document.getElementById('adminRightColArea');
 
+  // 관리자 전용 버튼 표시/숨김 토글
+  document.querySelectorAll('.admin-only-btn, .admin-only-control').forEach(el => {
+    el.style.display = isAdm ? '' : 'none';
+  });
+
   if (headerArea) {
     if (isAdm) {
       headerArea.innerHTML = `
@@ -1557,7 +3224,7 @@ function renderAdminUI() {
           <div class="card-header">
             <h2>📤 엑셀 파일 업로드 <span style="font-size:0.75rem;background:#e0e7ff;color:#4338ca;padding:0.2rem 0.5rem;border-radius:0.3rem;font-weight:700;">관리자</span></h2>
           </div>
-          <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem;">
+          <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.9rem;">
             작성한 엑셀 파일(.xlsx)을 등록하면 대학 경쟁률 데이터가 자동으로 스크래핑됩니다.
           </p>
           <div class="dropzone" id="adminDropzone" onclick="document.getElementById('adminFileInput').click()">
@@ -1571,7 +3238,20 @@ function renderAdminUI() {
           </button>
         </div>
 
-        <!-- 2. 개별 대학 URL 직접 등록 (관리자) -->
+        <!-- 2. 엑셀 템플릿 다운로드 카드 (관리자) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <h2>📝 엑셀 템플릿 다운로드 <span style="font-size:0.75rem;background:#e0e7ff;color:#4338ca;padding:0.2rem 0.5rem;border-radius:0.3rem;font-weight:700;">관리자</span></h2>
+          </div>
+          <p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:0.9rem;">
+            정원구분 컬럼이 제외된 6개 표준 컬럼(학년도, 모집시기, 대학명, 무료접수, 중복지원, URL) 엑셀 서식을 다운로드합니다.
+          </p>
+          <a href="template.xlsx" download="ipsi_template.xlsx" class="btn btn-secondary" style="width:100%;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;justify-content:center;">
+            📥 엑셀 표준 템플릿 다운로드 (.xlsx)
+          </a>
+        </div>
+
+        <!-- 3. 개별 대학 URL 직접 등록 (관리자) -->
         <div class="glass-card">
           <div class="card-header">
             <h2>🌐 개별 대학 URL 직접 등록 <span style="font-size:0.75rem;background:#e0e7ff;color:#4338ca;padding:0.2rem 0.5rem;border-radius:0.3rem;font-weight:700;">관리자</span></h2>
@@ -1590,10 +3270,6 @@ function renderAdminUI() {
                 <label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.25rem;">모집시기</label>
                 <input type="text" id="directAdm" value="수시1차" required class="form-control">
               </div>
-            </div>
-            <div style="margin-bottom:0.75rem;">
-              <label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.25rem;">정원구분</label>
-              <input type="text" id="directCap" value="구분없음" required class="form-control">
             </div>
             <div style="margin-bottom:1rem;">
               <label style="display:block;font-size:0.82rem;font-weight:600;margin-bottom:0.25rem;">경쟁률 페이지 URL</label>
@@ -1653,6 +3329,83 @@ function setupDropzoneEvents() {
 
 let DIRECT_ADMIN_PARSED_DATA = null;
 
+// Smart URL List Parser (6-column standard: 학년도, 모집시기, 대학명, 무료접수, 중복지원, URL - 정원구분 제외)
+function extractUrlRowsFromSheet(rows) {
+  if (!rows || !Array.isArray(rows)) return [];
+  let headerIdx = -1;
+  let colMap = { year: -1, adm: -1, name: -1, free: -1, multi: -1, url: -1 };
+
+  for (let r = 0; r < Math.min(6, rows.length); r++) {
+    const row = rows[r];
+    if (!row || !Array.isArray(row)) continue;
+    row.forEach((cell, c) => {
+      const str = String(cell || '').trim();
+      if (/학년도|연도|년도|year/i.test(str) && colMap.year === -1) colMap.year = c;
+      if (/모집시기|전형|시기/i.test(str) && colMap.adm === -1) colMap.adm = c;
+      if (/대학명|대학|학교명|대학교/i.test(str) && colMap.name === -1) colMap.name = c;
+      if (/무료접수|무료/i.test(str) && colMap.free === -1) colMap.free = c;
+      if (/중복지원|중복|복수/i.test(str) && colMap.multi === -1) colMap.multi = c;
+      if (/URL|url|링크|주소/i.test(str) && colMap.url === -1) colMap.url = c;
+    });
+    if (colMap.url !== -1 || (colMap.name !== -1 && colMap.adm !== -1)) {
+      headerIdx = r;
+      break;
+    }
+  }
+
+  const dataRows = headerIdx !== -1 ? rows.slice(headerIdx + 1) : rows.slice(1);
+  const result = [];
+
+  for (const row of dataRows) {
+    if (!row || !row.length) continue;
+    let u = colMap.url !== -1 ? String(row[colMap.url] || '').trim() : '';
+    if (!u || !u.startsWith('http')) {
+      const foundUrl = row.find(c => c && String(c).trim().startsWith('http'));
+      if (foundUrl) u = String(foundUrl).trim();
+    }
+    if (!u || !u.startsWith('http')) continue;
+
+    let y = colMap.year !== -1 ? String(row[colMap.year] || '').trim() : '';
+    if (!y) {
+      const foundYear = row.find(c => /202[0-9]/.test(String(c)));
+      y = foundYear ? String(foundYear).match(/202[0-9]/)[0] : '2027';
+    }
+
+    let a = colMap.adm !== -1 ? String(row[colMap.adm] || '').trim() : '';
+    if (!a) {
+      const foundAdm = row.find(c => /수시1차|수시2차|정시|수시/i.test(String(c)));
+      a = foundAdm ? String(foundAdm).trim() : '수시1차';
+    }
+
+    let n = colMap.name !== -1 ? String(row[colMap.name] || '').trim() : '';
+    if (!n) {
+      const foundName = row.find(c => c && typeof c === 'string' && (c.includes('대학') || c.includes('대학교')));
+      n = foundName ? String(foundName).trim() : (row[2] ? String(row[2]).trim() : '대학');
+    }
+
+    let free = colMap.free !== -1 ? String(row[colMap.free] || '').trim() : '';
+    if (['F', 'f', '무료', 'Y', 'y', 'O', 'o'].includes(free)) free = 'F';
+    else if (n.endsWith('F') || n.endsWith('(F)')) free = 'F';
+    else free = '';
+
+    let multi = colMap.multi !== -1 ? String(row[colMap.multi] || '').trim() : '';
+    if (['M', 'm', '중복', '복수', 'Y', 'y', 'O', 'o'].includes(multi)) multi = 'M';
+    else if (n.endsWith('M') || n.endsWith('(M)') || n.endsWith('[M]')) multi = 'M';
+    else multi = '';
+
+    result.push({
+      year: y,
+      admission_type: a,
+      name: n,
+      url: u,
+      free_apply: free,
+      multi_apply: multi,
+      capacity_type: '구분없음'
+    });
+  }
+  return result;
+}
+
 // Smart Direct Excel Parser (Scans sheets for competition ratio data)
 function parseDirectExcelData(workbook, fileName) {
   const xlsx = getXLSX();
@@ -1688,12 +3441,36 @@ function parseDirectExcelData(workbook, fileName) {
     for (let rIdx = 0; rIdx < Math.min(10, rawRows.length); rIdx++) {
       const row = rawRows[rIdx];
       row.forEach((cell, cIdx) => {
-        const txt = String(cell).trim();
-        if (/모집단위|전형명|학과|전공|모집학부|학부|계열|구분/.test(txt) && colIndexes.dept === -1) colIndexes.dept = cIdx;
-        if (/모집인원|총모집인원|모집/.test(txt) && colIndexes.adm === -1) colIndexes.adm = cIdx;
-        if (/지원인원|지원자수|지원인원수|지원자|지원/.test(txt) && colIndexes.app === -1) colIndexes.app = cIdx;
-        if (/경쟁률|지원경쟁률/.test(txt) && colIndexes.ratio === -1) colIndexes.ratio = cIdx;
+        const txt = String(cell).replace(/\s+/g, '').trim();
+        if (['경쟁률', '지원경쟁률'].some(k => txt.includes(k)) && colIndexes.ratio === -1) {
+          colIndexes.ratio = cIdx;
+          return;
+        }
+        if (['지원인원', '지원자수', '지원인원수'].some(k => txt.includes(k)) || txt === '지원자' || txt === '지원') {
+          if (!['자격', '구분', '유형', '분야'].some(k => txt.includes(k)) && colIndexes.app === -1) {
+            colIndexes.app = cIdx;
+            return;
+          }
+        }
+        if (['모집인원', '총모집인원', '모집정원'].some(k => txt.includes(k)) || txt === '모집') {
+          if (!['단위', '학부', '학과', '전공'].some(k => txt.includes(k)) && colIndexes.adm === -1) {
+            colIndexes.adm = cIdx;
+            return;
+          }
+        }
+        if (['모집단위', '학과명', '학과', '전공', '모집학부'].some(k => txt.includes(k)) && colIndexes.dept === -1) {
+          colIndexes.dept = cIdx;
+          return;
+        }
       });
+      if (colIndexes.dept === -1) {
+        row.forEach((cell, cIdx) => {
+          const txt = String(cell).replace(/\s+/g, '').trim();
+          if (['전형명', '구분'].some(k => txt.includes(k)) && ![colIndexes.adm, colIndexes.app, colIndexes.ratio].includes(cIdx)) {
+            colIndexes.dept = cIdx;
+          }
+        });
+      }
       if (colIndexes.dept !== -1 && (colIndexes.adm !== -1 || colIndexes.app !== -1 || colIndexes.ratio !== -1)) {
         headerRowIdx = rIdx;
         break;
@@ -1840,14 +3617,14 @@ function handleAdminFile(file) {
           // 2. URL List Check
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const rows = xlsx.utils.sheet_to_json(firstSheet, { header: 1 });
-          const validRows = rows.slice(1).filter(r => r && r[3]); // URL exists
+          const validRows = extractUrlRowsFromSheet(rows);
           
           if (previewArea) {
             previewArea.style.display = 'block';
             previewArea.innerHTML = `
               <div style="font-weight:700;color:var(--text-primary);margin-bottom:0.3rem;">📋 엑셀 URL 목록 감지</div>
               <div>총 <strong>${validRows.length}개</strong> 대학 등록 대기</div>
-              <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.2rem;">${validRows.slice(0, 3).map(r => r[2] || '대학').join(', ')}${validRows.length > 3 ? ' 외 ' + (validRows.length - 3) + '개' : ''}</div>
+              <div style="color:var(--text-secondary);font-size:0.8rem;margin-top:0.2rem;">${validRows.slice(0, 3).map(r => r.name || '대학').join(', ')}${validRows.length > 3 ? ' 외 ' + (validRows.length - 3) + '개' : ''}</div>
             `;
           }
           if (uploadBtn) uploadBtn.innerText = '🚀 업로드 및 스크래핑 시작';
@@ -1920,7 +3697,7 @@ async function handleAdminDirectScrape(e) {
   const name = document.getElementById('directUnivName').value.trim();
   const year = document.getElementById('directYear').value.trim();
   const adm = document.getElementById('directAdm').value.trim();
-  const cap = document.getElementById('directCap').value.trim();
+  const cap = (document.getElementById('directCap') ? document.getElementById('directCap').value.trim() : '') || '구분없음';
   const url = document.getElementById('directUrl').value.trim();
 
   openScraperEngineModal();
@@ -1928,7 +3705,7 @@ async function handleAdminDirectScrape(e) {
   document.getElementById('engDirectUniv').value = name;
   document.getElementById('engDirectYear').value = year;
   document.getElementById('engDirectAdm').value = adm;
-  document.getElementById('engDirectCap').value = cap;
+  if (document.getElementById('engDirectCap')) document.getElementById('engDirectCap').value = cap;
   document.getElementById('engDirectUrl').value = url;
 
   handleEngineDirectScrape(e);
@@ -1938,6 +3715,13 @@ async function handleAdminDirectScrape(e) {
 let ENGINE_EXCEL_FILE = null;
 
 function openScraperEngineModal() {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [스크래핑 엔진] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
+  populateBatchScrapeFilterOptions();
+  updatePeriodicScraperUI();
   document.getElementById('scraperEngineModal').style.display = 'flex';
 }
 
@@ -2022,9 +3806,9 @@ async function decodeHtmlResponse(res) {
 
 // Multi-Proxy HTML Fetcher (Local Fast Proxy -> Public Fallback Proxies)
 async function fetchHtmlWithProxies(targetUrl) {
-  // 1. Try local server proxy (superfast & no cors)
+  // 1. Try server proxy (superfast & no cors)
   try {
-    const localRes = await fetch(`http://127.0.0.1:26240/api/proxy?url=${encodeURIComponent(targetUrl)}`, { signal: AbortSignal.timeout(2500) });
+    const localRes = await fetch(getApiEndpoint(`/api/proxy?url=${encodeURIComponent(targetUrl)}`), { signal: AbortSignal.timeout(2500) });
     if (localRes.ok) {
       const text = await decodeHtmlResponse(localRes);
       if (text && text.length > 500) return text;
@@ -2054,6 +3838,156 @@ async function fetchHtmlWithProxies(targetUrl) {
 }
 
 // Client-Side DOMParser Scraping Engine (100% matched with Python scraper_service.py)
+function parseHtmlTableToGrid(tableElement) {
+  const rows = tableElement.querySelectorAll('tr');
+  const grid = [];
+  
+  rows.forEach((tr, rIdx) => {
+    while (grid.length <= rIdx) grid.push([]);
+    const cells = tr.querySelectorAll('th, td');
+    let cIdx = 0;
+    
+    cells.forEach(cell => {
+      while (cIdx < grid[rIdx].length && grid[rIdx][cIdx] !== undefined && grid[rIdx][cIdx] !== null) {
+        cIdx++;
+      }
+      const txt = (cell.textContent || '').replace(/\s+/g, ' ').trim();
+      const rowspan = Math.max(1, parseInt(cell.getAttribute('rowspan') || '1', 10) || 1);
+      const colspan = Math.max(1, parseInt(cell.getAttribute('colspan') || '1', 10) || 1);
+      
+      for (let dr = 0; dr < rowspan; dr++) {
+        const targetR = rIdx + dr;
+        while (grid.length <= targetR) grid.push([]);
+        for (let dc = 0; dc < colspan; dc++) {
+          const targetC = cIdx + dc;
+          while (grid[targetR].length <= targetC) grid[targetR].push(null);
+          grid[targetR][targetC] = txt;
+        }
+      }
+      cIdx += colspan;
+    });
+  });
+  
+  // Fill nulls with empty string
+  for (let r = 0; r < grid.length; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (grid[r][c] === null || grid[r][c] === undefined) {
+        grid[r][c] = '';
+      }
+    }
+  }
+  return grid;
+}
+
+function extractDepartmentsFromGrid(grid, title) {
+  if (!grid || grid.length < 2) return [];
+  
+  let headerRowIdx = -1;
+  let colDept = -1;
+  let colAdm = -1;
+  let colApp = -1;
+  let colRatio = -1;
+  
+  for (let rIdx = 0; rIdx < Math.min(5, grid.length); rIdx++) {
+    const row = grid[rIdx];
+    let curDept = -1;
+    let curAdm = -1;
+    let curApp = -1;
+    let curRatio = -1;
+    
+    row.forEach((cell, cIdx) => {
+      const txt = (cell || '').replace(/\s+/g, '');
+      if (['경쟁률', '지원경쟁률'].some(k => txt.includes(k)) && curRatio === -1) {
+        curRatio = cIdx;
+        return;
+      }
+      if (['지원인원', '지원자수', '지원인원수'].some(k => txt.includes(k)) || txt === '지원자' || txt === '지원') {
+        if (!['자격', '구분', '유형', '분야'].some(k => txt.includes(k)) && curApp === -1) {
+          curApp = cIdx;
+          return;
+        }
+      }
+      if (['모집인원', '총모집인원', '모집정원'].some(k => txt.includes(k)) || txt === '모집') {
+        if (!['단위', '학부', '학과', '전공'].some(k => txt.includes(k)) && curAdm === -1) {
+          curAdm = cIdx;
+          return;
+        }
+      }
+      if (['모집단위', '학과명', '학과', '전공', '모집학부'].some(k => txt.includes(k))) {
+        if (curDept === -1 || (curDept !== -1 && ['계열', '구분'].some(k => (row[curDept] || '').includes(k)))) {
+          curDept = cIdx;
+          return;
+        }
+      }
+    });
+    
+    if (curDept === -1) {
+      row.forEach((cell, cIdx) => {
+        const txt = (cell || '').replace(/\s+/g, '');
+        if (['전형명', '구분'].some(k => txt.includes(k)) && ![curAdm, curApp, curRatio].includes(cIdx)) {
+          curDept = cIdx;
+        }
+      });
+    }
+    
+    if (curDept !== -1 && (curAdm !== -1 || curApp !== -1 || curRatio !== -1)) {
+      headerRowIdx = rIdx;
+      colDept = curDept;
+      colAdm = curAdm;
+      colApp = curApp;
+      colRatio = curRatio;
+      break;
+    }
+  }
+  
+  if (headerRowIdx === -1 || colDept === -1) return [];
+  
+  const depts = [];
+  for (let rIdx = headerRowIdx + 1; rIdx < grid.length; rIdx++) {
+    const row = grid[rIdx];
+    if (!row) continue;
+    const deptVal = (colDept < row.length ? row[colDept] : '').trim();
+    if (!deptVal || deptVal === 'nan' || deptVal === 'None') continue;
+    if (['모집단위', '학과명', '전형명', '구분', '계열'].includes(deptVal)) continue;
+    if (['총계', '합계', '소계'].some(w => deptVal.includes(w))) continue;
+    
+    let admVal = (colAdm !== -1 && colAdm < row.length ? row[colAdm] : '').trim();
+    let appVal = (colApp !== -1 && colApp < row.length ? row[colApp] : '').trim();
+    let ratioVal = (colRatio !== -1 && colRatio < row.length ? row[colRatio] : '').trim();
+    
+    // Column shift detection & recovery
+    if (admVal && admVal.replace(/[\d,]/g, '') !== '' && admVal !== '제한없음') {
+      if (appVal && appVal.replace(/[\d,]/g, '') === '') {
+        const realAdm = appVal;
+        const realApp = ratioVal.includes(':') ? ratioVal.replace(/\s+/g, '').split(':')[0] : ratioVal;
+        const realRatio = ratioVal.includes(':') ? ratioVal : '';
+        admVal = realAdm;
+        appVal = realApp;
+        ratioVal = realRatio;
+      }
+    }
+    
+    if (!ratioVal && admVal && appVal) {
+      try {
+        const adNum = parseFloat(admVal.replace(/,/g, ''));
+        const apNum = parseFloat(appVal.replace(/,/g, ''));
+        if (!isNaN(adNum) && adNum > 0 && !isNaN(apNum)) {
+          ratioVal = (apNum / adNum).toFixed(2) + ' : 1';
+        }
+      } catch (e) {}
+    }
+    
+    depts.push({
+      table_title: title,
+      department_name: deptVal,
+      admission_count: admVal,
+      applicant_count: appVal,
+      competition_ratio: ratioVal
+    });
+  }
+  return depts;
+}
+
 function parseUniversityHtml(htmlText, domainHint = '') {
   const parser = new DOMParser();
   const doc = parser.parseFromString(htmlText, 'text/html');
@@ -2092,67 +4026,439 @@ function parseUniversityHtml(htmlText, domainHint = '') {
     result.titles.push(headerTitle);
     result.tables_html.push(cleanTableHtml);
 
-    // Extract structured department rows
-    const rows = table.querySelectorAll('tr');
-    let colIndexes = { dept: -1, adm: -1, app: -1, ratio: -1 };
-
-    rows.forEach(tr => {
-      const ths = tr.querySelectorAll('th, td');
-      ths.forEach((cell, cIdx) => {
-        const txt = cell.textContent.trim();
-        if (/모집단위|전형명|학과|전공|모집학부|학부|계열|구분/.test(txt) && colIndexes.dept === -1) colIndexes.dept = cIdx;
-        if (/모집인원|총모집인원|모집 정원|모집/.test(txt) && colIndexes.adm === -1) colIndexes.adm = cIdx;
-        if (/지원인원|지원자수|지원인원수|지원자|지원/.test(txt) && colIndexes.app === -1) colIndexes.app = cIdx;
-        if (/경쟁률|지원경쟁률/.test(txt) && colIndexes.ratio === -1) colIndexes.ratio = cIdx;
-      });
-    });
-
-    if (colIndexes.dept !== -1) {
-      rows.forEach(tr => {
-        const tds = tr.querySelectorAll('td');
-        if (tds.length > colIndexes.dept) {
-          const deptName = (tds[colIndexes.dept]?.textContent || '').trim();
-          if (!deptName || /소계|총계|합계|모집단위|전형명|학과|전공|구분/.test(deptName)) return;
-
-          const admCount = colIndexes.adm !== -1 ? (tds[colIndexes.adm]?.textContent || '').trim() : '';
-          const appCount = colIndexes.app !== -1 ? (tds[colIndexes.app]?.textContent || '').trim() : '';
-          const compRatio = colIndexes.ratio !== -1 ? (tds[colIndexes.ratio]?.textContent || '').trim() : '';
-
-          result.parsed_departments.push({
-            table_title: headerTitle,
-            department_name: deptName,
-            admission_count: admCount,
-            applicant_count: appCount,
-            competition_ratio: compRatio
-          });
-        }
-      });
-    }
+    // Grid-based table parsing (handles rowspan/colspan and exact column matching)
+    const grid = parseHtmlTableToGrid(table);
+    const depts = extractDepartmentsFromGrid(grid, headerTitle);
+    result.parsed_departments.push(...depts);
   });
 
   return result;
 }
 
-function saveUniversitiesAndRefresh(updatedList) {
-  ALL_UNIVS = updatedList;
+async function saveUniversitiesAndRefresh(updatedList) {
+  ALL_UNIVS = Array.isArray(updatedList) ? updatedList : [];
   try {
     localStorage.setItem('ipsi_custom_universities', JSON.stringify(ALL_UNIVS));
   } catch (e) {}
   buildTree();
   renderDataSummary();
+  
+  // Try to sync with server if online
+  try {
+    const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+    if (token) {
+      fetch(getApiEndpoint('/api/save_scraped_batch'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': token
+        },
+        body: JSON.stringify({ universities: ALL_UNIVS })
+      }).catch(() => {});
+    }
+  } catch (e) {}
+
+  const yearSelect = document.getElementById('resetFilterYear');
+  if (yearSelect) {
+    const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+    const curYear = yearSelect.value;
+    yearSelect.innerHTML = `<option value="ALL">전체 학년도 (${ALL_UNIVS.length ? years.length + '개년' : '0'})</option>` +
+      years.map(y => `<option value="${e(y)}">${e(y)}학년도</option>`).join('');
+    if (years.includes(curYear)) yearSelect.value = curYear;
+  }
+  
+  const admSelect = document.getElementById('resetFilterAdm');
+  if (admSelect) {
+    const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort();
+    const curAdm = admSelect.value;
+    admSelect.innerHTML = `<option value="ALL">전체 모집시기</option>` +
+      adms.map(a => `<option value="${e(a)}">${e(a)}</option>`).join('');
+    if (adms.includes(curAdm)) admSelect.value = curAdm;
+  }
+
+  updateBatchScrapeTargetSummary();
 }
 
-// ── Batch Scraping Engine ─────────────────────────────────────
-async function startBatchScrapingEngine() {
-  const selectedYear = document.getElementById('engineBatchYear').value;
-  const targetUnivs = ALL_UNIVS.filter(u => u.url && (selectedYear === 'ALL' || u.year === selectedYear));
+// ── Periodic Real-time Scraping Scheduler Engine ────────────────
+let PERIODIC_SCRAPER = {
+  timerId: null,
+  countdownTimerId: null,
+  isRunning: false,
+  targetYear: '2027',
+  targetAdm: '수시1차',
+  intervalMinutes: 5,
+  durationMinutes: 60,
+  startTime: null,
+  endTime: null,
+  nextRunTime: null,
+  totalCycles: 0,
+  successTotal: 0,
+  failedTotal: 0,
+  lastCompletedAt: null,
+  isExecutingCycle: false
+};
 
-  if (!targetUnivs.length) {
-    alert(`해당 조건(${selectedYear}학년도)에 URL이 등록된 대학이 없습니다.`);
+function populateBatchScrapeFilterOptions() {
+  const yearSelect = document.getElementById('engineBatchYear');
+  const admSelect = document.getElementById('engineBatchAdm');
+  if (!yearSelect || !admSelect) return;
+
+  const currentYear = yearSelect.value || '2027';
+  const currentAdm = admSelect.value || '수시1차';
+
+  const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
+  if (years.length) {
+    yearSelect.innerHTML = `<option value="ALL">전체 학년도 (${years.length}개년)</option>` +
+      years.map(y => `<option value="${e(y)}"${y === currentYear ? ' selected' : ''}>${e(y)}학년도</option>`).join('');
+    if (!years.includes(currentYear) && currentYear !== 'ALL') {
+      yearSelect.value = years[0];
+    }
+  }
+
+  const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort((a,b) => {
+    const order = ['수시1차', '수시2차', '정시'];
+    const ia = order.indexOf(a), ib = order.indexOf(b);
+    if (ia !== -1 && ib !== -1) return ia - ib;
+    return a.localeCompare(b, 'ko');
+  });
+  if (adms.length) {
+    admSelect.innerHTML = `<option value="ALL">전체 모집시기</option>` +
+      adms.map(a => `<option value="${e(a)}"${a === currentAdm ? ' selected' : ''}>${e(a)}</option>`).join('');
+    if (!adms.includes(currentAdm) && currentAdm !== 'ALL') {
+      admSelect.value = adms[0];
+    }
+  }
+
+  updateBatchScrapeTargetSummary();
+}
+
+function getBatchTargetUniversities() {
+  const ySel = document.getElementById('engineBatchYear');
+  const aSel = document.getElementById('engineBatchAdm');
+  const selectedYear = ySel ? ySel.value : 'ALL';
+  const selectedAdm = aSel ? aSel.value : 'ALL';
+
+  const seenKeys = new Set();
+  const targets = [];
+  for (const u of ALL_UNIVS) {
+    const hasUrl = u.url && String(u.url).trim().startsWith('http');
+    if (!hasUrl) continue;
+    const uYear = String(u.year || '').trim();
+    const uAdm = String(u.admission_type || u.adm_type || '').trim();
+
+    if (selectedYear !== 'ALL' && uYear !== selectedYear) continue;
+    if (selectedAdm !== 'ALL' && uAdm !== selectedAdm) continue;
+
+    const key = `${u.name}_${uYear}_${uAdm}_${u.capacity_type || u.cap_type || ''}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      targets.push(u);
+    }
+  }
+
+  return targets.sort((a, b) => {
+    const ai = (a.name || '').includes('인하공업전문대학') ? 0 : 1;
+    const bi = (b.name || '').includes('인하공업전문대학') ? 0 : 1;
+    return ai - bi || (a.name || '').localeCompare(b.name || '', 'ko');
+  });
+}
+
+function updateBatchScrapeTargetSummary() {
+  const countSpan = document.getElementById('engineTargetSummaryCount');
+  const listContainer = document.getElementById('engineTargetSummaryList');
+  if (!countSpan || !listContainer) return;
+
+  const targets = getBatchTargetUniversities();
+  const ySel = document.getElementById('engineBatchYear');
+  const aSel = document.getElementById('engineBatchAdm');
+  const yText = ySel ? (ySel.value === 'ALL' ? '전체 학년도' : `${ySel.value}학년도`) : '';
+  const aText = aSel ? (aSel.value === 'ALL' ? '전체 모집시기' : aSel.value) : '';
+
+  countSpan.innerHTML = `🎯 대상 대학: <strong style="color:var(--primary-color);">${targets.length}개</strong> (${e(yText)} ${e(aText)})`;
+
+  if (!targets.length) {
+    listContainer.innerHTML = `<span style="color:#ef4444;padding:0.25rem 0;">⚠️ 선택한 조건(${e(yText)} ${e(aText)})에 유효한 URL이 등록된 대학이 없습니다.</span>`;
     return;
   }
 
-  appendEngineLog(`🚀 [배치 스크래핑] ${targetUnivs.length}개 대학 실시간 수집을 시작합니다... (대상: ${selectedYear})`);
+  listContainer.innerHTML = targets.map(u => {
+    const isInha = (u.name || '').includes('인하공업전문대학');
+    return `<span style="display:inline-flex;align-items:center;gap:0.25rem;padding:0.2rem 0.55rem;border-radius:12px;font-size:0.75rem;font-weight:600;background:${isInha ? '#faf5ff' : '#ffffff'};color:${isInha ? '#7c3aed' : '#334155'};border:1px solid ${isInha ? '#d8b4fe' : '#e2e8f0'};box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+      ${isInha ? '⭐ ' : '🏫 '}${e(u.name)} <span style="font-size:0.7rem;color:#64748b;">(${e(u.year)} ${e(u.admission_type || u.adm_type)})</span>
+    </span>`;
+  }).join('');
+}
+
+function formatDurationHms(seconds) {
+  if (isNaN(seconds) || seconds < 0) seconds = 0;
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = Math.floor(seconds % 60);
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function formatCountdownMs(ms) {
+  if (isNaN(ms) || ms < 0) ms = 0;
+  const totalSec = Math.ceil(ms / 1000);
+  const m = Math.floor(totalSec / 60);
+  const s = totalSec % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+async function startPeriodicScraping() {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [실시간 주기 스크래핑] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
+
+  const targets = getBatchTargetUniversities();
+  if (!targets.length) {
+    alert('선택한 학년도/모집시기에 URL이 등록된 대학이 없습니다.\n조건을 변경하거나 URL이 등록된 대학을 확인해 주세요.');
+    return;
+  }
+
+  const yVal = document.getElementById('engineBatchYear').value;
+  const aVal = document.getElementById('engineBatchAdm').value;
+  const intervalMin = parseInt(document.getElementById('engineBatchInterval').value, 10) || 5;
+  const durationMin = parseInt(document.getElementById('engineBatchDuration').value, 10) || 60;
+
+  if (PERIODIC_SCRAPER.isRunning) {
+    if (!confirm('이미 실행 중인 주기 스크래핑이 있습니다. 새 설정으로 다시 시작하시겠습니까?')) {
+      return;
+    }
+    stopPeriodicScraping('restart');
+  }
+
+  PERIODIC_SCRAPER.isRunning = true;
+  PERIODIC_SCRAPER.targetYear = yVal;
+  PERIODIC_SCRAPER.targetAdm = aVal;
+  PERIODIC_SCRAPER.intervalMinutes = intervalMin;
+  PERIODIC_SCRAPER.durationMinutes = durationMin;
+  PERIODIC_SCRAPER.startTime = Date.now();
+  PERIODIC_SCRAPER.endTime = durationMin > 0 ? Date.now() + (durationMin * 60 * 1000) : null;
+  PERIODIC_SCRAPER.totalCycles = 0;
+  PERIODIC_SCRAPER.successTotal = 0;
+  PERIODIC_SCRAPER.failedTotal = 0;
+  PERIODIC_SCRAPER.lastCompletedAt = null;
+
+  updatePeriodicScraperUI();
+
+  const durText = durationMin > 0 ? `${durationMin}분 동안` : '무제한(수동 중지 시까지)';
+  appendEngineLog(`🚀 [실시간 주기 스크래핑 시작] 대상: ${yVal}학년도 ${aVal} (${targets.length}개 대학) | 주기: ${intervalMin}분 간격 | 지속기간: ${durText}`, 'success');
+
+  // 즉시 1회차 실행 시작
+  await executePeriodicScrapeCycle();
+
+  // 주기적 타이머 및 카운트다운 루프 시작
+  startPeriodicSchedulerLoop();
+}
+
+function startPeriodicSchedulerLoop() {
+  if (!PERIODIC_SCRAPER.isRunning) return;
+
+  PERIODIC_SCRAPER.nextRunTime = Date.now() + (PERIODIC_SCRAPER.intervalMinutes * 60 * 1000);
+
+  if (PERIODIC_SCRAPER.countdownTimerId) clearInterval(PERIODIC_SCRAPER.countdownTimerId);
+  PERIODIC_SCRAPER.countdownTimerId = setInterval(() => {
+    if (!PERIODIC_SCRAPER.isRunning) {
+      clearInterval(PERIODIC_SCRAPER.countdownTimerId);
+      return;
+    }
+
+    const now = Date.now();
+
+    if (PERIODIC_SCRAPER.endTime && now >= PERIODIC_SCRAPER.endTime) {
+      stopPeriodicScraping('duration_expired');
+      return;
+    }
+
+    updatePeriodicScraperUI();
+
+    if (now >= PERIODIC_SCRAPER.nextRunTime && !PERIODIC_SCRAPER.isExecutingCycle) {
+      executePeriodicScrapeCycle();
+    }
+  }, 1000);
+}
+
+async function executePeriodicScrapeCycle() {
+  if (!PERIODIC_SCRAPER.isRunning || PERIODIC_SCRAPER.isExecutingCycle) return;
+
+  PERIODIC_SCRAPER.isExecutingCycle = true;
+  PERIODIC_SCRAPER.totalCycles++;
+
+  const cycleNum = PERIODIC_SCRAPER.totalCycles;
+  const targets = getBatchTargetUniversities();
+
+  appendEngineLog(`🔄 [${cycleNum}회차 스크래핑 시작] ${targets.length}개 대학 실시간 수집을 진행합니다...`);
+  setEngineStatus(`스크래핑 중 (${cycleNum}회차)...`, '#eab308');
+  updateEngineProgress(0, true);
+
+  let cycleSuccess = 0, cycleFailed = 0;
+  const updatedAll = [...ALL_UNIVS];
+
+  for (let i = 0; i < targets.length; i++) {
+    if (!PERIODIC_SCRAPER.isRunning) {
+      appendEngineLog(`⏹️ 스크래핑이 사용자에 의해 중단되었습니다.`, 'warn');
+      break;
+    }
+
+    const u = targets[i];
+    const percent = Math.round(((i + 1) / targets.length) * 100);
+    updateEngineProgress(percent);
+    appendEngineLog(`[${i + 1}/${targets.length}] ${u.name} (${u.year} ${u.admission_type || u.adm_type}) 파싱 중...`);
+
+    try {
+      const html = await fetchHtmlWithProxies(u.url);
+      const parsed = parseUniversityHtml(html, u.url);
+
+      if (!parsed.tables_html.length) throw new Error("유효한 경쟁률 표를 찾지 못함");
+
+      const idx = updatedAll.findIndex(item => item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === (u.admission_type || u.adm_type) && (item.capacity_type || item.cap_type) === (u.capacity_type || u.cap_type)));
+      const updatedRecord = {
+        ...u,
+        scraped_data: parsed,
+        departments: parsed.parsed_departments
+      };
+
+      if (idx !== -1) updatedAll[idx] = updatedRecord;
+      else updatedAll.push(updatedRecord);
+
+      cycleSuccess++;
+      PERIODIC_SCRAPER.successTotal++;
+      appendEngineLog(`✔ ${u.name} 성공 (${parsed.parsed_departments.length}개 학과 갱신)`, 'success');
+    } catch (err) {
+      cycleFailed++;
+      PERIODIC_SCRAPER.failedTotal++;
+      appendEngineLog(`✖ ${u.name} 실패: ${err.message}`, 'warn');
+    }
+  }
+
+  PERIODIC_SCRAPER.lastCompletedAt = new Date();
+  PERIODIC_SCRAPER.isExecutingCycle = false;
+
+  updateEngineProgress(100);
+  setEngineStatus(PERIODIC_SCRAPER.isRunning ? '주기 대기 중' : '완료', '#10b981');
+
+  await saveUniversitiesAndRefresh(updatedAll);
+
+  appendEngineLog(`✅ [${cycleNum}회차 완료] 성공: ${cycleSuccess}건, 실패: ${cycleFailed}건 (대시보드 데이터 최신 갱신됨)`, 'success');
+
+  if (PERIODIC_SCRAPER.isRunning) {
+    PERIODIC_SCRAPER.nextRunTime = Date.now() + (PERIODIC_SCRAPER.intervalMinutes * 60 * 1000);
+    updatePeriodicScraperUI();
+  }
+}
+
+function stopPeriodicScraping(reason = 'manual') {
+  if (!PERIODIC_SCRAPER.isRunning && reason !== 'restart') return;
+
+  PERIODIC_SCRAPER.isRunning = false;
+  PERIODIC_SCRAPER.isExecutingCycle = false;
+
+  if (PERIODIC_SCRAPER.countdownTimerId) {
+    clearInterval(PERIODIC_SCRAPER.countdownTimerId);
+    PERIODIC_SCRAPER.countdownTimerId = null;
+  }
+  if (PERIODIC_SCRAPER.timerId) {
+    clearTimeout(PERIODIC_SCRAPER.timerId);
+    PERIODIC_SCRAPER.timerId = null;
+  }
+
+  updatePeriodicScraperUI();
+  setEngineStatus('중지됨', '#ef4444');
+  updateEngineProgress(0, false);
+
+  if (reason === 'duration_expired') {
+    appendEngineLog(`🏁 [스크래핑 종료] 설정된 실행 지속 기간이 완료되어 자동 종료되었습니다. (총 ${PERIODIC_SCRAPER.totalCycles}회차 완료)`, 'success');
+    alert(`🎉 실시간 주기 스크래핑이 설정된 기간 동안 정상 완료되었습니다!\n\n총 실행 회차: ${PERIODIC_SCRAPER.totalCycles}회\n누적 성공: ${PERIODIC_SCRAPER.successTotal}건\n대시보드가 최신 데이터로 유지되었습니다.`);
+  } else if (reason === 'manual') {
+    appendEngineLog(`⏹️ [스크래핑 중지] 관리자가 실시간 주기 스크래핑을 중지했습니다. (총 ${PERIODIC_SCRAPER.totalCycles}회차)`, 'warn');
+  }
+}
+
+function updatePeriodicScraperUI() {
+  const card = document.getElementById('enginePeriodicStatusCard');
+  const btnStart = document.getElementById('btnStartPeriodicScrape');
+  const btnStop = document.getElementById('btnStopPeriodicScrape');
+  const runningBadge = document.getElementById('enginePeriodicRunningBadge');
+  const countdownSpan = document.getElementById('enginePeriodicNextCountdown');
+  const durStatus = document.getElementById('enginePeriodicDurationStatus');
+  const cycleCount = document.getElementById('enginePeriodicCycleCount');
+  const lastResult = document.getElementById('enginePeriodicLastResult');
+  const lastTime = document.getElementById('enginePeriodicLastTime');
+
+  const floatingPill = document.getElementById('floatingScraperPill');
+  const floatingText = document.getElementById('floatingPillText');
+
+  if (!PERIODIC_SCRAPER.isRunning) {
+    if (card) card.style.display = 'none';
+    if (btnStart) {
+      btnStart.style.display = 'inline-flex';
+      btnStart.innerText = '▶️ 실시간 주기 스크래핑 시작';
+    }
+    if (btnStop) btnStop.style.display = 'none';
+    if (floatingPill) floatingPill.style.display = 'none';
+    return;
+  }
+
+  // Running UI
+  if (card) card.style.display = 'block';
+  if (btnStart) btnStart.style.display = 'none';
+  if (btnStop) btnStop.style.display = 'inline-flex';
+
+  const now = Date.now();
+  const elapsedSec = Math.floor((now - PERIODIC_SCRAPER.startTime) / 1000);
+  const totalDurSec = PERIODIC_SCRAPER.durationMinutes * 60;
+  const remainDurSec = totalDurSec > 0 ? Math.max(0, totalDurSec - elapsedSec) : 0;
+
+  if (runningBadge) {
+    const isExecuting = PERIODIC_SCRAPER.isExecutingCycle;
+    runningBadge.innerHTML = isExecuting
+      ? `🟢 <strong>${PERIODIC_SCRAPER.totalCycles}회차 실시간 스크래핑 진행 중...</strong>`
+      : `🟢 <strong>실시간 주기 스크래핑 가동 중 (${PERIODIC_SCRAPER.totalCycles}회 완료)</strong>`;
+  }
+
+  const nextRemainMs = PERIODIC_SCRAPER.nextRunTime ? Math.max(0, PERIODIC_SCRAPER.nextRunTime - now) : 0;
+  const countdownStr = PERIODIC_SCRAPER.isExecutingCycle ? '데이터 수집 중...' : `다음 실행까지: ${formatCountdownMs(nextRemainMs)}`;
+  if (countdownSpan) countdownSpan.innerText = `⏳ ${countdownStr}`;
+
+  if (durStatus) {
+    durStatus.innerText = PERIODIC_SCRAPER.durationMinutes > 0
+      ? `${formatDurationHms(elapsedSec)} / ${formatDurationHms(totalDurSec)} (남은 시간: ${formatDurationHms(remainDurSec)})`
+      : `${formatDurationHms(elapsedSec)} (무제한 실행 중)`;
+  }
+
+  if (cycleCount) cycleCount.innerText = `${PERIODIC_SCRAPER.totalCycles}회차 완료 (누적 성공: ${PERIODIC_SCRAPER.successTotal}건)`;
+  if (lastResult) lastResult.innerText = `성공 ${PERIODIC_SCRAPER.successTotal}건 / 실패 ${PERIODIC_SCRAPER.failedTotal}건`;
+  if (lastTime) lastTime.innerText = PERIODIC_SCRAPER.lastCompletedAt ? PERIODIC_SCRAPER.lastCompletedAt.toLocaleTimeString('ko-KR') : '-';
+
+  if (floatingPill) {
+    floatingPill.style.display = 'flex';
+    if (floatingText) {
+      floatingText.innerText = `[${PERIODIC_SCRAPER.targetYear} ${PERIODIC_SCRAPER.targetAdm} ${PERIODIC_SCRAPER.intervalMinutes}분] ${countdownStr}`;
+    }
+  }
+}
+
+// ── Batch Scraping Engine (1회 즉시 실행) ─────────────────────
+async function startBatchScrapingEngine(isOnce = false) {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [스크래핑 엔진] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
+
+  const targetUnivs = getBatchTargetUniversities();
+  const yVal = document.getElementById('engineBatchYear') ? document.getElementById('engineBatchYear').value : 'ALL';
+  const aVal = document.getElementById('engineBatchAdm') ? document.getElementById('engineBatchAdm').value : 'ALL';
+
+  if (!targetUnivs.length) {
+    alert(`해당 조건(${yVal}학년도 ${aVal})에 URL이 등록된 대학이 없습니다.`);
+    return;
+  }
+
+  appendEngineLog(`🚀 [1회 즉시 스크래핑] ${targetUnivs.length}개 대학 실시간 수집을 시작합니다... (대상: ${yVal} ${aVal})`);
   setEngineStatus('스크래핑 중...', '#eab308');
   updateEngineProgress(0, true);
 
@@ -2161,9 +4467,9 @@ async function startBatchScrapingEngine() {
 
   for (let i = 0; i < targetUnivs.length; i++) {
     const u = targetUnivs[i];
-    const percent = Math.round(((i) / targetUnivs.length) * 100);
+    const percent = Math.round(((i + 1) / targetUnivs.length) * 100);
     updateEngineProgress(percent);
-    appendEngineLog(`[${i + 1}/${targetUnivs.length}] ${u.name} (${u.year} ${u.admission_type}) 파싱 중...`);
+    appendEngineLog(`[${i + 1}/${targetUnivs.length}] ${u.name} (${u.year} ${u.admission_type || u.adm_type}) 파싱 중...`);
 
     try {
       const html = await fetchHtmlWithProxies(u.url);
@@ -2171,7 +4477,7 @@ async function startBatchScrapingEngine() {
 
       if (!parsed.tables_html.length) throw new Error("유효한 경쟁률 표를 찾지 못함");
 
-      const idx = updatedAll.findIndex(item => item.id === u.id || (item.name === u.name && item.year === u.year && item.admission_type === u.admission_type && item.capacity_type === u.capacity_type));
+      const idx = updatedAll.findIndex(item => item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === (u.admission_type || u.adm_type) && (item.capacity_type || item.cap_type) === (u.capacity_type || u.cap_type)));
       const updatedRecord = {
         ...u,
         scraped_data: parsed,
@@ -2191,8 +4497,8 @@ async function startBatchScrapingEngine() {
 
   updateEngineProgress(100);
   setEngineStatus('완료', '#10b981');
-  saveUniversitiesAndRefresh(updatedAll);
-  appendEngineLog(`🎉 배치 스크래핑 완료! (성공: ${success}개, 실패/건너뜀: ${failed}개)`, 'success');
+  await saveUniversitiesAndRefresh(updatedAll);
+  appendEngineLog(`🎉 즉시 스크래핑 완료! (성공: ${success}개, 실패/건너뜀: ${failed}개)`, 'success');
   alert(`스크래핑 완료!\n\n성공: ${success}개 대학\n실패: ${failed}개 대학\n대시보드 데이터가 최신으로 갱신되었습니다.`);
 }
 
@@ -2202,7 +4508,7 @@ async function handleEngineDirectScrape(e) {
   const name = document.getElementById('engDirectUniv').value.trim();
   const year = document.getElementById('engDirectYear').value.trim();
   const adm = document.getElementById('engDirectAdm').value.trim();
-  const cap = document.getElementById('engDirectCap').value.trim();
+  const cap = (document.getElementById('engDirectCap') ? document.getElementById('engDirectCap').value.trim() : '') || '구분없음';
   const url = document.getElementById('engDirectUrl').value.trim();
 
   appendEngineLog(`🔍 [단일 스크래핑] ${name} (${url}) 수집 시작...`);
@@ -2299,10 +4605,10 @@ function handleEngineExcelFileSelect(input) {
 
             // 2. URL List Check
             const rows = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-            const valid = rows.slice(1).filter(r => r && r[3]);
+            const valid = extractUrlRowsFromSheet(rows);
             if (preview) {
               preview.style.display = 'block';
-              preview.innerHTML = `총 <strong>${valid.length}개</strong> 대학 URL 스크래핑 대기 중: ${valid.slice(0, 4).map(r => r[2] || '대학').join(', ')}${valid.length > 4 ? ' 외 ' + (valid.length - 4) + '개' : ''}`;
+              preview.innerHTML = `총 <strong>${valid.length}개</strong> 대학 URL 스크래핑 대기 중: ${valid.slice(0, 4).map(r => r.name || '대학').join(', ')}${valid.length > 4 ? ' 외 ' + (valid.length - 4) + '개' : ''}`;
             }
             if (startBtn) startBtn.innerText = '🚀 엑셀 전체 스크래핑 실행';
           } catch (e) {}
@@ -2361,11 +4667,11 @@ async function startEngineExcelScrape() {
     return;
   }
 
-  // If local server is reachable, execute local batch API first
+  // If server is reachable, execute batch API first
   try {
     const formData = new FormData();
     formData.append('file', ENGINE_EXCEL_FILE);
-    const localRes = await fetch('http://127.0.0.1:26240/api/upload_excel', {
+    const localRes = await fetch(getApiEndpoint('/api/upload_excel'), {
       method: 'POST',
       headers: { 'x-admin-token': 'ipsi4774!' },
       body: formData,
@@ -2402,19 +4708,21 @@ async function startEngineExcelScrape() {
       const data = new Uint8Array(evt.target.result);
       const workbook = xlsx.read(data, { type: 'array' });
       const rows = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-      const validRows = rows.slice(1).filter(r => r && r[3] && String(r[3]).trim());
+      const validRows = extractUrlRowsFromSheet(rows);
 
       let success = 0, failed = 0;
       const updatedAll = [...ALL_UNIVS];
       let curMaxId = updatedAll.reduce((max, u) => Math.max(max, u.id || 0), 0);
 
       for (let i = 0; i < validRows.length; i++) {
-        const row = validRows[i];
-        const y = String(row[0] || '2027').trim();
-        const a = String(row[1] || '수시1차').trim();
-        const n = String(row[2] || '대학').trim();
-        const u = String(row[3]).trim();
-        const c = String(row[4] || '구분없음').trim();
+        const item = validRows[i];
+        const y = item.year;
+        const a = item.admission_type;
+        const n = item.name;
+        const u = item.url;
+        const c = item.capacity_type || '구분없음';
+        const free = item.free_apply || '';
+        const multi = item.multi_apply || '';
 
         updateEngineProgress(Math.round((i / validRows.length) * 100));
         appendEngineLog(`[${i + 1}/${validRows.length}] ${n} (${y} ${a}) 수집 중...`);
@@ -2431,12 +4739,16 @@ async function startEngineExcelScrape() {
             year: y,
             admission_type: a,
             capacity_type: c,
+            free_apply: free,
+            is_free_apply: free,
+            multi_apply: multi,
+            is_multi_apply: multi,
             url: u,
             scraped_data: parsed,
             departments: parsed.parsed_departments
           };
 
-          const idx = updatedAll.findIndex(item => item.name === n && item.year === y && item.admission_type === a && item.capacity_type === c);
+          const idx = updatedAll.findIndex(target => target.name === n && target.year === y && target.admission_type === a && target.capacity_type === c);
           if (idx !== -1) updatedAll[idx] = rec;
           else updatedAll.unshift(rec);
 
@@ -2468,38 +4780,54 @@ async function startEngineExcelScrape() {
   reader.readAsArrayBuffer(ENGINE_EXCEL_FILE);
 }
 
-// ── Data Export ───────────────────────────────────────────────
-function downloadCurrentDataJson() {
-  const payload = {
-    exported_at: new Date().toISOString(),
-    total_universities: ALL_UNIVS.length,
-    universities: ALL_UNIVS
-  };
-  const jsonStr = JSON.stringify(payload, null, 2);
-  const blob = new Blob([jsonStr], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `data_${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  appendEngineLog(`📥 data.json 파일 다운로드가 완료되었습니다.`, 'success');
-}
-
-// ── Helpers ───────────────────────────────────────────────────
-function getLatestYear() {
-  const years = [...new Set(ALL_UNIVS.map(u=>u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
-  return years[0] || '2027';
-}
 async function reloadLatestData() {
   showLoading(true);
   try {
-    const res = await fetch('data/data.json?t=' + Date.now());
+    const isLocalServer = ['localhost', '127.0.0.1'].includes(location.hostname)
+                          || location.port !== '';
+    let dataUrl = isLocalServer ? '/api/data' : 'data/data.json';
+    
+    let res = await fetch(dataUrl + (dataUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
+    if (!res.ok && isLocalServer) {
+      // 로컬 서버에서 fallback 시도
+      res = await fetch('data/data.json?t=' + Date.now());
+    } else if (!res.ok && !isLocalServer) {
+      res = await fetch('/api/data?t=' + Date.now());
+    }
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const payload = await res.json();
-    ALL_UNIVS = payload.universities || [];
+    
+    // 데이터 정규화: 구버전/신버전 필드명 동시 지원
+    ALL_UNIVS = (payload.universities || []).map(u => {
+      const adm = u.admission_type || u.adm_type || '수시1차';
+      const cap = u.capacity_type || u.cap_type || '구분없음';
+      const dept = u.department_name || u.dept || '';
+      const rec = (u.admission_count != null && u.admission_count !== '') ? u.admission_count : (u.recruit_num != null ? u.recruit_num : '');
+      const app = (u.applicant_count != null && u.applicant_count !== '') ? u.applicant_count : (u.applicant_num != null ? u.applicant_num : '');
+      const rate = u.competition_ratio || u.competition_rate || '';
+      let free = u['무료접수'] || u.free_apply || u.is_free_apply || (String(u.name || '').endsWith('F') || String(u.name || '').includes('(F)') ? 'F' : '');
+      if (free === 'M') free = 'F';
+      let multi = u['중복지원'] || u.multi_apply || u.is_multi_apply || (String(u.name || '').endsWith('M') || String(u.name || '').includes('(M)') || String(u.name || '').includes('[M]') ? 'M' : '');
+      return {
+        ...u,
+        admission_type: adm,
+        adm_type: adm,
+        capacity_type: cap,
+        cap_type: cap,
+        free_apply: free,
+        is_free_apply: free,
+        multi_apply: multi,
+        is_multi_apply: multi,
+        department_name: dept,
+        dept: dept,
+        admission_count: rec,
+        recruit_num: rec,
+        applicant_count: app,
+        applicant_num: app,
+        competition_ratio: rate,
+        competition_rate: rate
+      };
+    });
     
     // Merge custom localStorage data if any
     try {
@@ -2516,27 +4844,28 @@ async function reloadLatestData() {
     buildTree();
     renderDataSummary();
     handleUrlParams();
+    
+    // 알림 토스트 표시
+    const toast = document.createElement('div');
+    toast.className = 'alert alert-success';
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:12px 20px;box-shadow:0 4px 12px rgba(0,0,0,0.15);border-radius:8px;';
+    toast.innerText = '✅ 최신 데이터가 성공적으로 갱신되었습니다.';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   } catch(e) {
     alert('최신 데이터 갱신 실패: ' + e.message);
   } finally {
     showLoading(false);
   }
 }
-function e(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function pr(s){ try{ return parseFloat((s||'').split(':')[0].trim()) || 0; } catch{ return 0; } }
-function inhaFirst(arr){ return [...arr].sort((a,b)=>{ const ai=a.includes('인하공업전문대학')?0:1, bi=b.includes('인하공업전문대학')?0:1; return ai-bi||a.localeCompare(b,'ko'); }); }
-function openTab(id,btn){
-  const p = btn.closest('.glass-card');
-  p.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-  p.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
-  const t = document.getElementById(id); if(t) t.classList.add('active'); if(btn) btn.classList.add('active');
-}
-function setActive(id){ document.querySelectorAll('.tree-link').forEach(el => el.classList.toggle('active', parseInt(el.dataset.uid) === id)); }
-function clearActive(){ document.querySelectorAll('.tree-link').forEach(el => el.classList.remove('active')); }
-function showLoading(v){ document.getElementById('loading').style.display = v ? 'flex' : 'none'; }
 
 // ── Excel & JSON Export ─────────────────────────────────────
 function downloadCurrentDataJson() {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [JSON 다운로드] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
   if (!ALL_UNIVS || !ALL_UNIVS.length) { alert('다운로드할 데이터가 없습니다.'); return; }
   const payload = { generated_at: new Date().toISOString(), universities: ALL_UNIVS };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
@@ -2549,6 +4878,11 @@ function downloadCurrentDataJson() {
 }
 
 async function downloadCurrentDataExcel() {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [엑셀 다운로드] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
   if (!ALL_UNIVS || !ALL_UNIVS.length) { alert('다운로드할 데이터가 없습니다.'); return; }
   showLoading(true);
   try {
@@ -2587,29 +4921,33 @@ async function downloadCurrentDataExcel() {
     ALL_UNIVS.forEach(u => {
       const isFree = (u['무료접수'] === 'F' || u.free_apply === 'F' || u.is_free_apply === 'F' || String(u.name || '').endsWith('F') || String(u.name || '').includes('(F)')) ? 'F' : '';
       const isMulti = (u['중복지원'] === 'M' || u.multi_apply === 'M' || u.is_multi_apply === 'M' || String(u.name || '').endsWith('M') || String(u.name || '').includes('(M)') || String(u.name || '').includes('[M]')) ? 'M' : '';
-      const key = `${u.name}_${u.year}_${u.adm_type}_${u.cap_type}`;
-      if (!univMap[key]) univMap[key] = { name: u.name, is_free: isFree, is_multi: isMulti, year: u.year, adm_type: u.adm_type, cap_type: u.cap_type, rows: [] };
-      univMap[key].rows.push(u);
+      const adm = u.adm_type || u.admission_type || '';
+      const cap = u.cap_type || u.capacity_type || '정원내/외 합산';
+      const key = `${u.name}_${u.year}_${adm}`;
+      if (!univMap[key]) {
+        univMap[key] = { name: u.name, is_free: isFree, is_multi: isMulti, year: u.year, adm_type: adm, cap_type: cap, depts: new Set() };
+      }
+      if (u.dept || u.department_name) univMap[key].depts.add(u.dept || u.department_name);
     });
     const summaryRows = Object.values(univMap).map(g => {
-      const totalRecruit = g.rows.reduce((s,r) => s + (parseFloat(r.recruit_num) || 0), 0);
-      const totalApplicant = g.rows.reduce((s,r) => s + (parseFloat(r.applicant_num) || 0), 0);
-      const avgRate = totalRecruit > 0 ? (totalApplicant / totalRecruit) : 0;
+      const s = getUnivPeriodSummary(g.name, g.year, g.adm_type);
       return {
         '대학명': g.name,
         '무료접수': g.is_free || '',
         '중복지원': g.is_multi || '',
         '학년도': g.year,
         '모집시기': g.adm_type,
-        '정원구분': g.cap_type,
-        '학과수': g.rows.length,
-        '총 모집인원': totalRecruit,
-        '총 지원인원': totalApplicant,
-        '평균 경쟁률': Math.round(avgRate * 100) / 100
+        '정원구분': '정원내/외 합산',
+        '학과수': g.depts.size,
+        '정원내 모집인원': s.inside.recruit,
+        '정원내 지원인원': s.inside.applicant,
+        '정원내 경쟁률': Math.round(s.inside.ratio * 100) / 100,
+        '정원외 지원인원': s.outside.applicant,
+        '총 지원인원': s.totalApplicant
       };
     });
     const ws2 = XLSX.utils.json_to_sheet(summaryRows);
-    ws2['!cols'] = [22,12,12,10,12,12,8,12,12,12].map(w => ({ wch: w }));
+    ws2['!cols'] = [22,12,12,10,12,16,8,14,14,14,14,14].map(w => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws2, '대학별요약');
 
     // ── Sheet 3: 연도별 비교 (대학-학과 기준)
@@ -2652,6 +4990,11 @@ async function downloadCurrentDataExcel() {
 
 // ── Data Reset & Management Engine ───────────────────────────
 function openDataResetModal(initialTab = 'selective') {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [데이터 초기화/관리] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
   const modal = document.getElementById('dataResetModal');
   if (!modal) {
     alert('초기화 모달 요소를 찾을 수 없습니다.');
@@ -2801,37 +5144,14 @@ function toggleAllResetCheckboxes(check) {
 }
 
 function getApiEndpoint(path) {
-  const isLocalServer = ['localhost', '127.0.0.1'].includes(location.hostname) || (location.port && location.port !== '');
-  if (isLocalServer) {
+  const isServer = ['localhost', '127.0.0.1', 'compi.mojuk.kr'].includes(location.hostname) || (location.port && location.port !== '');
+  if (isServer) {
     return path.startsWith('/') ? path : '/' + path;
   }
   return `http://127.0.0.1:26240${path.startsWith('/') ? path : '/' + path}`;
 }
 
-function saveUniversitiesAndRefresh(updatedList) {
-  ALL_UNIVS = Array.isArray(updatedList) ? updatedList : [];
-  buildTree();
-  renderDataSummary();
-  
-  // Re-populate modal filter options with updated unique values
-  const yearSelect = document.getElementById('resetFilterYear');
-  if (yearSelect) {
-    const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
-    const curYear = yearSelect.value;
-    yearSelect.innerHTML = `<option value="ALL">전체 학년도 (${ALL_UNIVS.length ? years.length + '개년' : '0'})</option>` +
-      years.map(y => `<option value="${e(y)}">${e(y)}학년도</option>`).join('');
-    if (years.includes(curYear)) yearSelect.value = curYear;
-  }
-  
-  const admSelect = document.getElementById('resetFilterAdm');
-  if (admSelect) {
-    const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort();
-    const curAdm = admSelect.value;
-    admSelect.innerHTML = `<option value="ALL">전체 모집시기</option>` +
-      adms.map(a => `<option value="${e(a)}">${e(a)}</option>`).join('');
-    if (adms.includes(curAdm)) admSelect.value = curAdm;
-  }
-}
+
 
 function updateResetSelectedCount() {
   const checked = document.querySelectorAll('.reset-univ-checkbox:checked');
@@ -2842,6 +5162,11 @@ function updateResetSelectedCount() {
 }
 
 async function executeSelectiveReset() {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [선택 초기화] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
   const checkedBoxes = Array.from(document.querySelectorAll('.reset-univ-checkbox:checked'));
   if (!checkedBoxes.length) {
     alert('초기화(삭제)할 대학을 최소 1개 이상 선택해 주세요.');
@@ -2914,6 +5239,11 @@ async function executeSelectiveReset() {
 }
 
 async function executeFullReset() {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [전체 초기화] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
   if (!confirm("⚠️ [경고] 모든 대학의 입시 경쟁률 데이터를 완전히 초기화하시겠습니까?\n\n이 작업은 모든 대학 및 학과 경쟁률 데이터를 영구 삭제하며 되돌릴 수 없습니다.")) {
     return;
   }
@@ -2957,6 +5287,11 @@ async function executeFullReset() {
 }
 
 async function confirmDeleteSingleUniv(id, name, year, adm) {
+  if (!isAdminLoggedIn()) {
+    alert('🔒 [대학 데이터 삭제] 관리자 권한이 필요합니다. 관리자 로그인을 진행해 주세요.');
+    openAdminLoginModal();
+    return;
+  }
   if (!confirm(`'${name} (${year} ${adm})' 대학의 모든 경쟁률 데이터를 삭제(초기화)하시겠습니까?`)) {
     return;
   }
@@ -3004,6 +5339,18 @@ window.updateResetSelectedCount = updateResetSelectedCount;
 window.executeSelectiveReset = executeSelectiveReset;
 window.executeFullReset = executeFullReset;
 window.confirmDeleteSingleUniv = confirmDeleteSingleUniv;
+window.startPeriodicScraping = startPeriodicScraping;
+window.stopPeriodicScraping = stopPeriodicScraping;
+window.startBatchScrapingEngine = startBatchScrapingEngine;
+window.updateBatchScrapeTargetSummary = updateBatchScrapeTargetSummary;
+window.populateBatchScrapeFilterOptions = populateBatchScrapeFilterOptions;
 </script>
+
+<!-- Floating Scraper Status Widget -->
+<div id="floatingScraperPill" style="display:none;position:fixed;bottom:24px;right:24px;z-index:9999;background:rgba(15,23,42,0.92);backdrop-filter:blur(8px);color:#f8fafc;padding:10px 18px;border-radius:30px;box-shadow:0 10px 25px -5px rgba(0,0,0,0.3),0 8px 10px -6px rgba(0,0,0,0.2);border:1px solid #38bdf8;font-size:0.82rem;font-weight:600;align-items:center;gap:10px;cursor:pointer;" onclick="openScraperEngineModal()" title="클릭하여 스크래핑 제어 센터 열기">
+  <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#10b981;box-shadow:0 0 8px #10b981;" class="pulse-dot"></span>
+  <span id="floatingPillText">실시간 스크래핑 작동 중</span>
+  <button onclick="event.stopPropagation();stopPeriodicScraping('manual');" style="background:#ef4444;color:#fff;border:none;padding:3px 9px;border-radius:12px;font-size:0.72rem;font-weight:700;cursor:pointer;" title="스크래핑 중지">중지</button>
+</div>
 </body>
 </html>

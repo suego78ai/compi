@@ -7,6 +7,7 @@ import json
 import pandas as pd
 import io
 from typing import Optional, List, Dict, Any
+from sqlalchemy import func
 from pydantic import BaseModel
 from database import SessionLocal, engine, Base, University, DepartmentData
 from scraper_service import scrape_university_data
@@ -30,6 +31,10 @@ app.add_middleware(
 # Mount templates and static files
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
+import os
+from pathlib import Path
+if Path("data").exists():
+    app.mount("/data", StaticFiles(directory="data"), name="data")
 
 # Admin Authentication
 ADMIN_USERNAME = "admin"
@@ -91,6 +96,11 @@ def sort_names_inha_first(names):
     others = sorted([n for n in names if "인하공업전문대학" not in n])
     return inha + others
 
+ADM_ORDER = ["정시", "수시2차", "수시1차"]
+
+def sort_adms(adms):
+    return sorted(adms, key=lambda a: ADM_ORDER.index(a) if a in ADM_ORDER else 99)
+
 def build_tree(univs):
     # tree[year][adm_type][cap_type] = [univ1, univ2...]
     tree = {}
@@ -111,109 +121,179 @@ def build_tree(univs):
                 others = sorted([u for u in tree[y][a][c] if "인하공업전문대학" not in u.name], key=lambda x: x.name)
                 tree[y][a][c] = inha + others
 
-    # Sort keys for consistent UI
-    sorted_tree = {k: tree[k] for k in sorted(tree.keys(), reverse=True)}
+    # Sort keys for consistent UI (Years desc, Adms in Jeongsi -> Susi 2 -> Susi 1)
+    sorted_tree = {}
+    for y in sorted(tree.keys(), reverse=True):
+        sorted_tree[y] = {}
+        sorted_adms = sort_adms(tree[y].keys())
+        for a in sorted_adms:
+            sorted_tree[y][a] = tree[y][a]
     return sorted_tree
 
 
-def calculate_dashboard_insights(db: Session):
+def calculate_dashboard_insights(db: Session, target_year: Optional[str] = None, target_adm: Optional[str] = None):
     insights = {
         "top_ratio": None,
         "ratio_increase": None,
         "applicant_increase": None,
-        "latest_year": None
+        "latest_year": None,
+        "selected_adm": None
     }
     
-    all_years = [u.year for u in db.query(University.year).distinct().all()]
+    all_years = [u.year for u in db.query(University.year).distinct().all() if u.year]
     if not all_years:
         return insights
         
     try:
-        sorted_years = sorted(all_years, key=lambda x: int(x), reverse=True)
-        latest_year = sorted_years[0]
-        prev_year = sorted_years[1] if len(sorted_years) > 1 else None
-    except ValueError:
+        sorted_years = sorted(all_years, key=lambda x: str(x), reverse=True)
+        
+        # 1. URL이 빈 문자열("") 또는 NULL이 아닌 존재하는 학년도 중 가장 최신 연도 결정
+        latest_year = target_year if (target_year and target_year in sorted_years) else None
+        if not latest_year:
+            univs_with_url = db.query(University).filter(
+                University.url.isnot(None),
+                University.url != "",
+                func.trim(University.url) != ""
+            ).all()
+            if univs_with_url:
+                url_years = sorted(list(set(u.year for u in univs_with_url if u.year)), key=lambda x: str(x), reverse=True)
+                if url_years:
+                    latest_year = url_years[0]
+            if not latest_year:
+                latest_year = sorted_years[0]
+                
+        # 2. 최신 학년도의 모집시기 기본 선택 우선순위: 수시1차 > 수시2차 > 정시 > 전체
+        selected_adm = target_adm
+        if not selected_adm:
+            u_in_latest = db.query(University).filter(
+                University.year == latest_year,
+                University.url.isnot(None),
+                University.url != "",
+                func.trim(University.url) != ""
+            ).all()
+            if not u_in_latest:
+                u_in_latest = db.query(University).filter(University.year == latest_year).all()
+            adms_in_year = set(u.admission_type for u in u_in_latest if u.admission_type)
+            for adm in ["수시1차", "수시2차", "정시"]:
+                if adm in adms_in_year:
+                    selected_adm = adm
+                    break
+            if not selected_adm:
+                selected_adm = "ALL"
+                
+        insights["latest_year"] = latest_year
+        insights["selected_adm"] = selected_adm
+        
+        year_idx = sorted_years.index(latest_year)
+        prev_year = sorted_years[year_idx + 1] if year_idx + 1 < len(sorted_years) else None
+    except Exception:
         return insights
         
-    insights["latest_year"] = latest_year
     latest_univs = db.query(University).filter(University.year == latest_year).all()
-    if not latest_univs: return insights
+    if selected_adm and selected_adm != "ALL":
+        latest_univs = [u for u in latest_univs if (u.admission_type or "기타") == selected_adm]
+    if not latest_univs:
+        return insights
         
-    max_ratio_val = -1
-    max_ratio_univ = ""
-    univ_stats = {}
-    
+    st = {}
     for univ in latest_univs:
-        if univ.name not in univ_stats:
-            univ_stats[univ.name] = {"latest_max_ratio": 0, "prev_max_ratio": 0, "latest_total_app": 0, "prev_total_app": 0}
+        a = univ.admission_type or "기타"
+        key = (univ.name, a)
+        if key not in st:
+            st[key] = {"name": univ.name, "adm": a, "lR": 0.0, "pR": 0.0, "lA": 0, "pA": 0}
             
-        for dept in univ.departments:
-            try:
-                r_val = float(dept.competition_ratio.split(':')[0].strip())
-            except Exception:
-                r_val = 0
-                
-            if r_val > univ_stats[univ.name]["latest_max_ratio"]:
-                univ_stats[univ.name]["latest_max_ratio"] = r_val
-            if r_val > max_ratio_val:
-                max_ratio_val = r_val
-                max_ratio_univ = univ.name
-                
+        has_summary = any("전형별" in (d.table_title or "") for d in univ.departments)
+        target_app_depts = [d for d in univ.departments if "전형별" in (d.table_title or "")] if has_summary else univ.departments
+        
+        for dept in target_app_depts:
             try:
                 app_val = int(str(dept.applicant_count).replace(',', '').strip())
+                st[key]["lA"] += app_val
             except Exception:
-                app_val = 0
-            univ_stats[univ.name]["latest_total_app"] += app_val
+                pass
+                
+        for dept in univ.departments:
+            try:
+                r_val = float(str(dept.competition_ratio).split(':')[0].strip())
+                if r_val > st[key]["lR"]:
+                    st[key]["lR"] = r_val
+            except Exception:
+                pass
+
+    max_rv = -1
+    best_ratio_key = None
+    for key, s in st.items():
+        if s["lR"] > max_rv:
+            max_rv = s["lR"]
+            best_ratio_key = key
             
-    if max_ratio_val > 0:
+    if best_ratio_key:
+        s = st[best_ratio_key]
+        disp_name = f"{s['name']} ({s['adm']})" if (not target_adm or target_adm == "ALL") else s['name']
         insights["top_ratio"] = {
-            "univ_name": max_ratio_univ,
-            "value": f"{max_ratio_val:.2f}:1"
+            "univ_name": disp_name,
+            "value": f"{max_rv:.2f}:1" if max_rv > 0 else ("0.00:1 (접수 대기)" if max_rv == 0 else "0.00:1")
         }
         
     if prev_year:
         prev_univs = db.query(University).filter(University.year == prev_year).all()
+        if target_adm and target_adm != "ALL":
+            prev_univs = [u for u in prev_univs if (u.admission_type or "기타") == target_adm]
+            
         for univ in prev_univs:
-            if univ.name not in univ_stats: continue
-            for dept in univ.departments:
-                try:
-                    r_val = float(dept.competition_ratio.split(':')[0].strip())
-                except Exception:
-                    r_val = 0
-                if r_val > univ_stats[univ.name]["prev_max_ratio"]:
-                    univ_stats[univ.name]["prev_max_ratio"] = r_val
+            a = univ.admission_type or "기타"
+            key = (univ.name, a)
+            if key not in st:
+                continue
+                
+            has_summary = any("전형별" in (d.table_title or "") for d in univ.departments)
+            target_app_depts = [d for d in univ.departments if "전형별" in (d.table_title or "")] if has_summary else univ.departments
+            
+            for dept in target_app_depts:
                 try:
                     app_val = int(str(dept.applicant_count).replace(',', '').strip())
+                    st[key]["pA"] += app_val
                 except Exception:
-                    app_val = 0
-                univ_stats[univ.name]["prev_total_app"] += app_val
-                
+                    pass
+                    
+            for dept in univ.departments:
+                try:
+                    r_val = float(str(dept.competition_ratio).split(':')[0].strip())
+                    if r_val > st[key]["pR"]:
+                        st[key]["pR"] = r_val
+                except Exception:
+                    pass
+                    
         max_ratio_inc = -9999
-        max_ratio_inc_univ = ""
+        best_r_inc_key = None
         max_app_inc = -999999
-        max_app_inc_univ = ""
+        best_a_inc_key = None
         
-        for u_name, stats in univ_stats.items():
-            if stats["prev_max_ratio"] > 0:
-                inc = stats["latest_max_ratio"] - stats["prev_max_ratio"]
+        for key, s in st.items():
+            if s["pR"] > 0 and s["lR"] > 0:
+                inc = s["lR"] - s["pR"]
                 if inc > max_ratio_inc:
                     max_ratio_inc = inc
-                    max_ratio_inc_univ = u_name
-            if stats["prev_total_app"] > 0:
-                inc = stats["latest_total_app"] - stats["prev_total_app"]
+                    best_r_inc_key = key
+            if s["pA"] > 0 and s["lA"] > 0:
+                inc = s["lA"] - s["pA"]
                 if inc > max_app_inc:
                     max_app_inc = inc
-                    max_app_inc_univ = u_name
+                    best_a_inc_key = key
                     
-        if max_ratio_inc_univ:
+        if best_r_inc_key and max_ratio_inc != -9999:
+            s = st[best_r_inc_key]
+            disp_name = f"{s['name']} ({s['adm']})" if (not target_adm or target_adm == "ALL") else s['name']
             insights["ratio_increase"] = {
-                "univ_name": max_ratio_inc_univ,
-                "value": f"+{max_ratio_inc:.2f}p 상승" if max_ratio_inc > 0 else f"{max_ratio_inc:.2f}p"
+                "univ_name": disp_name,
+                "value": f"+{max_ratio_inc:.2f}p 상승" if max_ratio_inc > 0 else (f"{max_ratio_inc:.2f}p 하락" if max_ratio_inc < 0 else "0.00p (전년 동일)")
             }
-        if max_app_inc_univ:
+        if best_a_inc_key and max_app_inc != -999999:
+            s = st[best_a_inc_key]
+            disp_name = f"{s['name']} ({s['adm']})" if (not target_adm or target_adm == "ALL") else s['name']
             insights["applicant_increase"] = {
-                "univ_name": max_app_inc_univ,
-                "value": f"+{max_app_inc:,}명 증가" if max_app_inc > 0 else f"{max_app_inc:,}명"
+                "univ_name": disp_name,
+                "value": f"+{max_app_inc:,}명 증가" if max_app_inc > 0 else (f"{max_app_inc:,}명 감소" if max_app_inc < 0 else "0명 (전년 동일)")
             }
             
     return insights
@@ -384,8 +464,7 @@ def table_priority_score(title: str) -> int:
 @app.get("/api/data")
 async def api_data(db: Session = Depends(get_db), detail: bool = False):
     """DB의 대학+학과 데이터를 프론트엔드 ALL_UNIVS 포맷(플랫 배열)으로 반환.
-    중복 제거: 같은 대학+연도+모집시기+정원구분+학과명 중 table_title 우선순위가 높은 1건만 반환.
-    detail=true 시 모든 table별 행 반환 (원시 데이터).
+    전형별 경쟁률 현황, 일반고, 특성화고, 특기자(어학) 등 모든 전형 구분을 온전히 반환.
     """
     universities = db.query(University).order_by(University.name, University.year).all()
     flat = []
@@ -408,46 +487,28 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
             })
             continue
 
-        if detail:
-            # 원시 전체 반환 (중복 포함)
-            for d in depts:
-                flat.append({
-                    "id": u.id, "name": u.name, "year": str(u.year or ""),
-                    "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
-                    "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
-                    "free_apply": is_free, "is_free_apply": is_free,
-                    "multi_apply": is_multi, "is_multi_apply": is_multi,
-                    "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
-                    "table_title": d.table_title or "",
-                    "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
-                    "applicant_num": d.applicant_count or "", "applicant_count": d.applicant_count or "",
-                    "competition_rate": d.competition_ratio or "", "competition_ratio": d.competition_ratio or "",
-                    "created_at": u.created_at.isoformat() if u.created_at else ""
-                })
-        else:
-            # 중복 제거: 같은 학과명 중 우선순위 높은 table_title 1건만 선택
-            dept_map: dict = {}
-            for d in depts:
-                key = d.department_name.strip()
-                score = table_priority_score(d.table_title or '')
-                existing = dept_map.get(key)
-                if existing is None or score < existing[0]:
-                    dept_map[key] = (score, d)
-
-            for dept_name, (_, d) in dept_map.items():
-                flat.append({
-                    "id": u.id, "name": u.name, "year": str(u.year or ""),
-                    "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
-                    "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
-                    "free_apply": is_free, "is_free_apply": is_free,
-                    "multi_apply": is_multi, "is_multi_apply": is_multi,
-                    "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
-                    "table_title": d.table_title or "",
-                    "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
-                    "applicant_num": d.applicant_count or "", "applicant_count": d.applicant_count or "",
-                    "competition_rate": d.competition_ratio or "", "competition_ratio": d.competition_ratio or "",
-                    "created_at": u.created_at.isoformat() if u.created_at else ""
-                })
+        # 모든 전형 구분(일반고, 특성화고, 특기자(어학) 등) 테이블 및 학과 행을 온전히 반환
+        seen = set()
+        for d in depts:
+            table_t = (d.table_title or '').strip()
+            dept_n = (d.department_name or '').strip()
+            key = (table_t, dept_n, str(d.admission_count or '').strip(), str(d.applicant_count or '').strip(), str(d.competition_ratio or '').strip())
+            if key in seen:
+                continue
+            seen.add(key)
+            flat.append({
+                "id": u.id, "name": u.name, "year": str(u.year or ""),
+                "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
+                "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
+                "free_apply": is_free, "is_free_apply": is_free,
+                "multi_apply": is_multi, "is_multi_apply": is_multi,
+                "url": u.url or "", "dept": dept_n, "department_name": dept_n,
+                "table_title": table_t,
+                "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
+                "applicant_num": d.applicant_count or "", "applicant_count": d.applicant_count or "",
+                "competition_rate": d.competition_ratio or "", "competition_ratio": d.competition_ratio or "",
+                "created_at": u.created_at.isoformat() if u.created_at else ""
+            })
 
     return JSONResponse({"universities": flat, "total": len(flat)})
 
@@ -603,8 +664,23 @@ async def download_template():
             "대학명": "인하공업전문대학",
             "무료접수": "",
             "중복지원": "",
-            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41260471.html",
-            "정원구분": "정원내"
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41260551.html"
+        },
+        {
+            "학년도": "2027",
+            "모집시기": "수시1차",
+            "대학명": "동양미래대학교",
+            "무료접수": "",
+            "중복지원": "",
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40580411.html"
+        },
+        {
+            "학년도": "2027",
+            "모집시기": "수시1차",
+            "대학명": "삼육보건대학교",
+            "무료접수": "",
+            "중복지원": "",
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40760541.html"
         },
         {
             "학년도": "2027",
@@ -612,26 +688,7 @@ async def download_template():
             "대학명": "경인여자대학교",
             "무료접수": "F",
             "중복지원": "M",
-            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40180641.html",
-            "정원구분": "구분없음"
-        },
-        {
-            "학년도": "2027",
-            "모집시기": "수시1차",
-            "대학명": "연성대학교",
-            "무료접수": "F",
-            "중복지원": "M",
-            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40580321.html",
-            "정원구분": "구분없음"
-        },
-        {
-            "학년도": "2027",
-            "모집시기": "수시2차",
-            "대학명": "동양미래대학교",
-            "무료접수": "",
-            "중복지원": "",
-            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio41150241.html",
-            "정원구분": "구분없음"
+            "URL": "https://addon.jinhakapply.com/RatioV1/RatioH/Ratio40180721.html"
         }
     ]
     df = pd.DataFrame(data)
@@ -641,7 +698,7 @@ async def download_template():
         
         # openpyxl 스타일 및 컬럼 너비 자동 조정
         ws = writer.sheets["경쟁률_등록서식"]
-        col_widths = {"A": 12, "B": 14, "C": 22, "D": 14, "E": 14, "F": 65, "G": 14}
+        col_widths = {"A": 12, "B": 14, "C": 22, "D": 14, "E": 14, "F": 65}
         for col, width in col_widths.items():
             ws.column_dimensions[col].width = width
 
@@ -707,6 +764,11 @@ def parse_excel_row_data(row, columns):
             if val in ["F", "f", "무료", "Y", "y", "O", "o", "true", "True"]:
                 free_apply = "F"
             break
+    if not free_apply:
+        for val in row:
+            if not pd.isna(val) and str(val).strip() in ["F", "f", "무료"]:
+                free_apply = "F"
+                break
     if not free_apply and name and (name.endswith("F") or name.endswith("(F)")):
         free_apply = "F"
 
@@ -718,17 +780,16 @@ def parse_excel_row_data(row, columns):
             if val in ["M", "m", "중복", "복수", "Y", "y", "O", "o", "true", "True"]:
                 multi_apply = "M"
             break
+    if not multi_apply:
+        for val in row:
+            if not pd.isna(val) and str(val).strip() in ["M", "m", "중복", "복수"]:
+                multi_apply = "M"
+                break
     if not multi_apply and name and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
         multi_apply = "M"
 
-    # 정원구분
+    # 정원구분 (엑셀 업로드 데이터에서 제외되어 기본값 '구분없음'으로 처리)
     cap = "구분없음"
-    for k in ["정원구분", "정원", "구분", "capacity_type"]:
-        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
-            cap = str(row.iloc[col_map[k]]).strip()
-            break
-    if not cap and len(row) > 6 and not pd.isna(row.iloc[6]):
-        cap = str(row.iloc[6]).strip()
 
     return {
         "year": year,
@@ -887,6 +948,139 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
         return {"success": True, "count": success_count, "message": f"{success_count}개 대학 데이터가 성공적으로 스크래핑 및 등록되었습니다."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+class ScrapedUnivItem(BaseModel):
+    name: str
+    year: str
+    admission_type: Optional[str] = "수시1차"
+    capacity_type: Optional[str] = "구분없음"
+    url: Optional[str] = ""
+    is_free_apply: Optional[str] = ""
+    is_multi_apply: Optional[str] = ""
+    scraped_data: Optional[Dict[str, Any]] = None
+    departments: Optional[List[Dict[str, Any]]] = None
+
+class SaveScrapedBatchRequest(BaseModel):
+    universities: List[ScrapedUnivItem]
+
+@app.post("/api/save_scraped_batch")
+async def api_save_scraped_batch(request: Request, body: SaveScrapedBatchRequest, db: Session = Depends(get_db)):
+    if not check_admin_access(request):
+        token = request.headers.get("x-admin-token") or request.query_params.get("token")
+        if token != create_admin_token() and token != "ipsi4774!":
+            raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
+    
+    saved_count = 0
+    try:
+        for item in body.universities:
+            name = item.name
+            year = str(item.year)
+            adm = item.admission_type or "수시1차"
+            cap = item.capacity_type or "구분없음"
+            url = item.url or ""
+            free = item.is_free_apply or ""
+            multi = item.is_multi_apply or ""
+            scraped_data = item.scraped_data or {}
+            departments = item.departments or scraped_data.get("parsed_departments", [])
+
+            existing_univ = db.query(University).filter(
+                University.name == name,
+                University.year == year,
+                University.admission_type == adm,
+                University.capacity_type == cap
+            ).first()
+
+            if existing_univ:
+                if url: existing_univ.url = url
+                if free: existing_univ.is_free_apply = free
+                if multi: existing_univ.is_multi_apply = multi
+                if scraped_data: existing_univ.scraped_data = json.dumps(scraped_data)
+                db.commit()
+                if departments:
+                    save_departments(db, existing_univ.id, departments)
+            else:
+                new_univ = University(
+                    name=name,
+                    year=year,
+                    admission_type=adm,
+                    capacity_type=cap,
+                    url=url,
+                    is_free_apply=free,
+                    is_multi_apply=multi,
+                    scraped_data=json.dumps(scraped_data) if scraped_data else "{}"
+                )
+                db.add(new_univ)
+                db.commit()
+                db.refresh(new_univ)
+                if departments:
+                    save_departments(db, new_univ.id, departments)
+            saved_count += 1
+
+        try:
+            export_to_json(db)
+        except Exception as ex:
+            print(f"[경고] JSON 자동 갱신 실패: {ex}")
+
+        return {"success": True, "saved_count": saved_count, "message": f"{saved_count}개 대학 데이터가 성공적으로 저장 및 갱신되었습니다."}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+class BatchScrapeServerRequest(BaseModel):
+    year: Optional[str] = "ALL"
+    admission_type: Optional[str] = "ALL"
+
+@app.post("/api/batch_scrape_server")
+async def api_batch_scrape_server(request: Request, body: BatchScrapeServerRequest, db: Session = Depends(get_db)):
+    if not check_admin_access(request):
+        token = request.headers.get("x-admin-token") or request.query_params.get("token")
+        if token != create_admin_token() and token != "ipsi4774!":
+            raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
+    
+    query = db.query(University).filter(
+        University.url.isnot(None),
+        University.url != "",
+        func.trim(University.url) != ""
+    )
+    if body.year and body.year != "ALL":
+        query = query.filter(University.year == body.year)
+    if body.admission_type and body.admission_type != "ALL":
+        query = query.filter(University.admission_type == body.admission_type)
+
+    target_univs = query.all()
+    results = []
+    success_cnt = 0
+    fail_cnt = 0
+
+    for u in target_univs:
+        try:
+            scraped = scrape_university_data(u.url)
+            if scraped and scraped.get("tables_html"):
+                u.scraped_data = json.dumps(scraped)
+                db.commit()
+                save_departments(db, u.id, scraped.get("parsed_departments", []))
+                success_cnt += 1
+                results.append({"id": u.id, "name": u.name, "status": "success", "dept_count": len(scraped.get("parsed_departments", []))})
+            else:
+                fail_cnt += 1
+                results.append({"id": u.id, "name": u.name, "status": "no_tables"})
+        except Exception as e:
+            fail_cnt += 1
+            results.append({"id": u.id, "name": u.name, "status": "error", "error": str(e)})
+
+    try:
+        export_to_json(db)
+    except Exception as ex:
+        print(f"[경고] JSON 자동 갱신 실패: {ex}")
+
+    return {
+        "success": True,
+        "total": len(target_univs),
+        "success_count": success_cnt,
+        "fail_count": fail_cnt,
+        "results": results,
+        "message": f"서버 스크래핑 완료: 성공 {success_cnt}건, 실패 {fail_cnt}건"
+    }
 
 @app.post("/api/deploy_github")
 async def api_deploy_github(request: Request):
@@ -1186,28 +1380,52 @@ async def custom_report(
         sum_adm = 0
         sum_app = 0
         
+        # 정원외 키워드 목록
+        outside_kws = [
+            '정원외', '정원 외', '[정원외]', '(정원외)',
+            '전문대', '학사',
+            '농어촌', '수급자', '차상위', '한부모', '기초생활', '기회균형',
+            '재외국민', '외국인', '북한', '이탈주민', '통일인재', '전교육과정',
+            '만학도', '재직자', '단원', '서해5도', '서해 5도', '장애', '특수교육', '취업자'
+        ]
+
+        # 모집단위 / 학과명에 일반고, 특성화고, 특기자(어학), 연계교육, 정원내 등으로 표기되는 정원내 항목
+        inside_kws = [
+            '정원내', '정원 내',
+            '일반고', '특성화고', '특기자', '연계교육',
+            '일반전형', '일반 전형', '일반', '내신', '수능', '실기',
+            '대학자체', '성인학습자', '성인친화', '글로벌인재', 'SDA', '특별전형'
+        ]
+
+        def is_inside_d(dept_item, cap_type):
+            if cap_type and ('정원외' in cap_type or '정원 외' in cap_type):
+                return False
+            tt = (dept_item.table_title or '').strip()
+            if any(kw in tt for kw in ['정원외', '정원 외', '[정원외]', '(정원외)']):
+                return False
+            dept_name = (dept_item.department_name or '').strip()
+            if any(kw in dept_name for kw in outside_kws):
+                return False
+            if '전형별' in tt:
+                return any(kw in dept_name for kw in inside_kws)
+            return True
+
         # '전형별' 요약 테이블이 있는지 확인
-        has_summary = any('전형별' in d.table_title for d in univ.departments)
+        has_summary = any('전형별' in (d.table_title or '') for d in univ.departments)
         
         for d in univ.departments:
-            # 정원외 키워드
-            outside_kws = ['농어촌', '수급자', '차상위', '전문대졸', '학사', '북한', '재외국민', '외국인', '만학도', '단원', '취업자', '장애']
-            
+            if not is_inside_d(d, univ.capacity_type):
+                continue
+                
             if has_summary:
-                # 요약 테이블이 있는 경우, '전형별' 테이블의 행만 사용하여 중복 방지
-                if '전형별' not in d.table_title:
+                # 요약 테이블이 있는 경우, '전형별' 테이블의 정원내 행만 사용하여 중복 합산 방지
+                if '전형별' not in (d.table_title or ''):
                     continue
-                # 정원외 전형은 제외하여 '정원내 소계'와 동일하게 맞춤
-                if any(kw in d.department_name for kw in outside_kws):
-                    continue
-            else:
-                # 요약 테이블이 없는 경우, 일반 학과 테이블들을 합산 (정원외 제외)
-                if any(kw in d.table_title or kw in d.department_name for kw in outside_kws):
-                    continue
+            # 요약 테이블이 없는 경우, 모집단위(학과별) 테이블 중 정원내 행만 합산
                     
-            try: sum_adm += int(d.admission_count.replace(',', ''))
+            try: sum_adm += int(str(d.admission_count).replace(',', ''))
             except: pass
-            try: sum_app += int(d.applicant_count.replace(',', ''))
+            try: sum_app += int(str(d.applicant_count).replace(',', ''))
             except: pass
             
         report_data["univs"][uname]["adm_count"][y] += sum_adm

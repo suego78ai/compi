@@ -65,23 +65,22 @@ def export_to_json(db=None):
                 })
                 continue
 
-            dept_map = {}
+            seen = set()
             for d in depts:
-                key = (d.department_name or '').strip()
-                score = p_score(d.table_title)
-                existing = dept_map.get(key)
-                if existing is None or score < existing[0]:
-                    dept_map[key] = (score, d)
-
-            for dept_name, (_, d) in dept_map.items():
+                table_t = (d.table_title or '').strip()
+                dept_n = (d.department_name or '').strip()
+                key = (table_t, dept_n, str(d.admission_count or '').strip(), str(d.applicant_count or '').strip(), str(d.competition_ratio or '').strip())
+                if key in seen:
+                    continue
+                seen.add(key)
                 records.append({
                     "id": u.id, "name": u.name or "", "year": str(u.year or ""),
                     "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
                     "cap_type": u.capacity_type or "구분없음", "capacity_type": u.capacity_type or "구분없음",
                     "free_apply": is_free, "is_free_apply": is_free, "무료접수": is_free,
                     "multi_apply": is_multi, "is_multi_apply": is_multi, "중복지원": is_multi,
-                    "url": u.url or "", "dept": d.department_name or "", "department_name": d.department_name or "",
-                    "table_title": d.table_title or "",
+                    "url": u.url or "", "dept": dept_n, "department_name": dept_n,
+                    "table_title": table_t,
                     "recruit_num": d.admission_count or "", "admission_count": d.admission_count or "",
                     "applicant_num": d.applicant_count or "", "applicant_count": d.applicant_count or "",
                     "competition_rate": d.competition_ratio or "", "competition_ratio": d.competition_ratio or ""

@@ -149,19 +149,144 @@ class BaseScraperAdapter(ABC):
 
         return BeautifulSoup(html_text, 'html.parser')
 
-    def find_col(self, df: pd.DataFrame, possible_names: List[str]):
-        for name in possible_names:
-            for col in df.columns:
-                if name in str(col):
-                    return col
-        return None
-
     def clean_html_table(self, df: pd.DataFrame) -> str:
         clean_html = df.to_html(index=False, classes=[], border=0)
         clean_html = clean_html.replace('class="dataframe"', '')
         clean_html = clean_html.replace('border="0"', '')
         clean_html = clean_html.replace('style="text-align: right;"', '')
         return clean_html
+
+    def parse_table_to_grid(self, table_tag) -> List[List[str]]:
+        grid: List[List[str]] = []
+        rows = table_tag.find_all('tr')
+        for r_idx, tr in enumerate(rows):
+            while len(grid) <= r_idx:
+                grid.append([])
+            cells = tr.find_all(['th', 'td'])
+            c_idx = 0
+            for cell in cells:
+                while c_idx < len(grid[r_idx]) and grid[r_idx][c_idx] is not None:
+                    c_idx += 1
+                txt = re.sub(r'\s+', ' ', cell.get_text(separator=' ', strip=True)).strip()
+                rowspan = 1
+                colspan = 1
+                try:
+                    if cell.get('rowspan'):
+                        rowspan = max(1, int(cell['rowspan']))
+                except (ValueError, TypeError):
+                    pass
+                try:
+                    if cell.get('colspan'):
+                        colspan = max(1, int(cell['colspan']))
+                except (ValueError, TypeError):
+                    pass
+                for dr in range(rowspan):
+                    target_r = r_idx + dr
+                    while len(grid) <= target_r:
+                        grid.append([])
+                    for dc in range(colspan):
+                        target_c = c_idx + dc
+                        while len(grid[target_r]) <= target_c:
+                            grid[target_r].append(None)
+                        grid[target_r][target_c] = txt
+                c_idx += colspan
+        for r in range(len(grid)):
+            for c in range(len(grid[r])):
+                if grid[r][c] is None:
+                    grid[r][c] = ""
+        return grid
+
+    def extract_departments_from_grid(self, grid: List[List[str]], title: str) -> List[DepartmentDataModel]:
+        if not grid or len(grid) < 2:
+            return []
+        header_row_idx = -1
+        col_dept = -1
+        col_adm = -1
+        col_app = -1
+        col_ratio = -1
+
+        for r_idx in range(min(5, len(grid))):
+            row = grid[r_idx]
+            cur_dept = -1
+            cur_adm = -1
+            cur_app = -1
+            cur_ratio = -1
+
+            for c_idx, cell in enumerate(row):
+                txt = cell.replace(' ', '')
+                if any(k in txt for k in ['경쟁률', '지원경쟁률']) and cur_ratio == -1:
+                    cur_ratio = c_idx
+                    continue
+                if (any(k in txt for k in ['지원인원', '지원자수', '지원인원수']) or txt in ['지원자', '지원']):
+                    if not any(k in txt for k in ['자격', '구분', '유형', '분야']) and cur_app == -1:
+                        cur_app = c_idx
+                        continue
+                if (any(k in txt for k in ['모집인원', '총모집인원', '모집정원']) or txt == '모집'):
+                    if not any(k in txt for k in ['단위', '학부', '학과', '전공']) and cur_adm == -1:
+                        cur_adm = c_idx
+                        continue
+                if any(k in txt for k in ['모집단위', '학과명', '학과', '전공', '모집학부']):
+                    if cur_dept == -1 or any(k in row[cur_dept] for k in ['계열', '구분']):
+                        cur_dept = c_idx
+                        continue
+
+            if cur_dept == -1:
+                for c_idx, cell in enumerate(row):
+                    txt = cell.replace(' ', '')
+                    if any(k in txt for k in ['전형명', '구분']) and c_idx not in [cur_adm, cur_app, cur_ratio]:
+                        cur_dept = c_idx
+                        break
+
+            if cur_dept != -1 and (cur_adm != -1 or cur_app != -1 or cur_ratio != -1):
+                header_row_idx = r_idx
+                col_dept, col_adm, col_app, col_ratio = cur_dept, cur_adm, cur_app, cur_ratio
+                break
+
+        if header_row_idx == -1 or col_dept == -1:
+            return []
+
+        depts = []
+        for r_idx in range(header_row_idx + 1, len(grid)):
+            row = grid[r_idx]
+            if not row:
+                continue
+            dept_val = row[col_dept].strip() if col_dept < len(row) else ""
+            if not dept_val or dept_val in ['nan', 'None']:
+                continue
+            if any(dept_val == h for h in ['모집단위', '학과명', '전형명', '구분', '계열']):
+                continue
+            if any(w in dept_val for w in ['총계', '합계', '소계']):
+                continue
+
+            adm_val = row[col_adm].strip() if (col_adm != -1 and col_adm < len(row)) else ""
+            app_val = row[col_app].strip() if (col_app != -1 and col_app < len(row)) else ""
+            ratio_val = row[col_ratio].strip() if (col_ratio != -1 and col_ratio < len(row)) else ""
+
+            # 컬럼 밀림 감지 및 복원
+            if adm_val and not re.sub(r'[\d,]', '', adm_val) == '' and adm_val != '제한없음':
+                if re.sub(r'[\d,]', '', app_val) == '' and app_val:
+                    real_adm = app_val
+                    real_app = ratio_val.replace(' ', '').split(':')[0] if ':' in ratio_val else ratio_val
+                    real_ratio = ratio_val if ':' in ratio_val else ''
+                    adm_val, app_val, ratio_val = real_adm, real_app, real_ratio
+
+            if not ratio_val and adm_val and app_val:
+                try:
+                    ad_num = float(adm_val.replace(',', ''))
+                    ap_num = float(app_val.replace(',', ''))
+                    if ad_num > 0:
+                        ratio_val = f"{ap_num / ad_num:.2f} : 1"
+                except Exception:
+                    pass
+
+            depts.append(DepartmentDataModel(
+                table_title=title,
+                department_name=dept_val,
+                admission_count=adm_val,
+                applicant_count=app_val,
+                competition_ratio=ratio_val
+            ))
+        return depts
 
     @abstractmethod
     def is_valid_table(self, classes: List[str]) -> bool:
@@ -175,39 +300,26 @@ class BaseScraperAdapter(ABC):
             classes = table_tag.get('class', [])
             
             if self.is_valid_table(classes):
-                # 제목을 h1~h4, div 등에서 가장 가까운 것을 탐색
                 header = table_tag.find_previous(['h1', 'h2', 'h3', 'h4', 'div', 'p'])
                 title = header.text.strip() if header else f"Sheet{len(result.tables_html)+1}"
                 title = ' '.join(title.split())
                 
                 try:
+                    # 1. HTML 클린 저장
                     df_list = pd.read_html(io.StringIO(str(table_tag)))
                     if df_list:
                         df = df_list[0]
                         clean_html = self.clean_html_table(df)
-                        
                         result.titles.append(title)
                         result.tables_html.append(clean_html)
-                        
-                        # Extract structured data
-                        c_dept = self.find_col(df, ['모집단위', '전형명', '전형명.1', '학과', '구분.1', '구분'])
-                        c_adm = self.find_col(df, ['모집인원', '총모집인원'])
-                        c_app = self.find_col(df, ['지원인원'])
-                        c_ratio = self.find_col(df, ['경쟁률'])
-                        
-                        if c_dept:
-                            for _, row in df.iterrows():
-                                dept_val = str(row[c_dept]).strip()
-                                if not dept_val or dept_val == 'nan' or dept_val == str(c_dept) or '소계' in dept_val or '총계' in dept_val or '합계' in dept_val:
-                                    continue
-                                
-                                result.parsed_departments.append(DepartmentDataModel(
-                                    table_title=title,
-                                    department_name=dept_val,
-                                    admission_count=str(row[c_adm]).strip() if c_adm else "",
-                                    applicant_count=str(row[c_app]).strip() if c_app else "",
-                                    competition_ratio=str(row[c_ratio]).strip() if c_ratio else ""
-                                ))
+                    else:
+                        result.titles.append(title)
+                        result.tables_html.append(str(table_tag))
+
+                    # 2. 2D 그리드 행렬 기반 정밀 학과/모집인원/지원인원 추출 (rowspan, colspan 완벽 지원)
+                    grid = self.parse_table_to_grid(table_tag)
+                    extracted = self.extract_departments_from_grid(grid, title)
+                    result.parsed_departments.extend(extracted)
                 except Exception:
                     pass
 
