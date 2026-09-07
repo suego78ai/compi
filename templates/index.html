@@ -1286,6 +1286,8 @@ function buildTree() {
 
 // ── Home & Tabs ───────────────────────────────────────────────
 let CURRENT_HOME_TAB = 'insights';
+let CURRENT_ACTIVE_DETAIL_ID = null;
+let CURRENT_ACTIVE_DETAIL_HINT = null;
 
 function switchHomeTab(tabName) {
   CURRENT_HOME_TAB = tabName;
@@ -1293,6 +1295,8 @@ function switchHomeTab(tabName) {
 }
 
 function showHome(pushUrl = true, selectedYear = null, selectedAdm = null, activeTab = null) {
+  CURRENT_ACTIVE_DETAIL_ID = null;
+  CURRENT_ACTIVE_DETAIL_HINT = null;
   setNavActive('home');
   document.getElementById('searchInput').value = '';
   if (activeTab) CURRENT_HOME_TAB = activeTab;
@@ -2325,6 +2329,8 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
   if (!rows.length) return;
 
   const first = rows[0];
+  CURRENT_ACTIVE_DETAIL_ID = first.id;
+  CURRENT_ACTIVE_DETAIL_HINT = { name: first.name, year: first.year, adm: first.admission_type || first.adm_type || '수시1차' };
   setActive(id);
   if (pushUrl) updateUrl({ univ_id: id });
 
@@ -4351,12 +4357,24 @@ function extractDepartmentsFromGrid(grid, title) {
     });
     
     if (curDept === -1) {
-      row.forEach((cell, cIdx) => {
-        const txt = (cell || '').replace(/\s+/g, '');
-        if (['전형명', '구분'].some(k => txt.includes(k)) && ![curAdm, curApp, curRatio].includes(cIdx)) {
+      // 1순위: '전형명', '전형구분', '전형유형' 등 구체적 전형 단위 우선
+      for (let cIdx = 0; cIdx < row.length; cIdx++) {
+        const txt = (row[cIdx] || '').replace(/\s+/g, '');
+        if (['전형명', '전형구분', '전형유형'].some(k => txt.includes(k)) && ![curAdm, curApp, curRatio].includes(cIdx)) {
           curDept = cIdx;
+          break;
         }
-      });
+      }
+    }
+    if (curDept === -1) {
+      // 2순위: '구분' (전형명 컬럼이 없는 경우에만)
+      for (let cIdx = 0; cIdx < row.length; cIdx++) {
+        const txt = (row[cIdx] || '').replace(/\s+/g, '');
+        if (txt.includes('구분') && ![curAdm, curApp, curRatio].includes(cIdx)) {
+          curDept = cIdx;
+          break;
+        }
+      }
     }
     
     if (curDept !== -1 && (curAdm !== -1 || curApp !== -1 || curRatio !== -1)) {
@@ -4370,15 +4388,33 @@ function extractDepartmentsFromGrid(grid, title) {
   }
   
   if (headerRowIdx === -1 || colDept === -1) return [];
+
+  // 별도의 '구분' 컬럼(정원내, 정원외) 감지
+  const headerRow = grid[headerRowIdx] || [];
+  let colCategory = -1;
+  headerRow.forEach((hCell, cIdx) => {
+    const hTxt = (hCell || '').replace(/\s+/g, '');
+    if (hTxt.includes('구분') && cIdx !== colDept && ![colAdm, colApp, colRatio].includes(cIdx)) {
+      colCategory = cIdx;
+    }
+  });
   
   const depts = [];
   for (let rIdx = headerRowIdx + 1; rIdx < grid.length; rIdx++) {
     const row = grid[rIdx];
     if (!row) continue;
-    const deptVal = (colDept < row.length ? row[colDept] : '').trim();
+    let deptVal = (colDept < row.length ? row[colDept] : '').trim();
     if (!deptVal || deptVal === 'nan' || deptVal === 'None') continue;
     if (['모집단위', '학과명', '전형명', '구분', '계열'].includes(deptVal)) continue;
     if (['총계', '합계', '소계'].some(w => deptVal.includes(w))) continue;
+
+    // 구분(정원내/정원외) 컬럼이 별도로 존재할 경우 결합하여 고유 전형명 생성
+    if (colCategory !== -1 && colCategory < row.length) {
+      const catVal = (row[colCategory] || '').trim();
+      if (catVal && !['nan', 'None', '구분'].includes(catVal) && !deptVal.includes(catVal)) {
+        deptVal = `[${catVal}] ${deptVal}`;
+      }
+    }
     
     let admVal = (colAdm !== -1 && colAdm < row.length ? row[colAdm] : '').trim();
     let appVal = (colApp !== -1 && colApp < row.length ? row[colApp] : '').trim();
@@ -5438,7 +5474,13 @@ async function reloadLatestData() {
 
     buildTree();
     renderDataSummary();
-    handleUrlParams();
+    if (CURRENT_ACTIVE_DETAIL_ID) {
+      showUnivDetail(CURRENT_ACTIVE_DETAIL_ID, false, CURRENT_ACTIVE_DETAIL_HINT?.name, CURRENT_ACTIVE_DETAIL_HINT?.year, CURRENT_ACTIVE_DETAIL_HINT?.adm);
+    } else if (typeof CURRENT_HOME_TAB !== 'undefined' && CURRENT_HOME_TAB === 'inha') {
+      showHome(false, null, null, 'inha');
+    } else {
+      handleUrlParams();
+    }
     return true;
   } catch(e) {
     console.error('최신 데이터 갱신 실패:', e);
@@ -5499,19 +5541,15 @@ async function refreshLatestDataWithFeedback(btn = null) {
     let activeYear = '2027';
     let activeAdm = 'ALL';
 
-    if (typeof CURRENT_VIEW_YEAR !== 'undefined' && CURRENT_VIEW_YEAR) {
-      activeYear = CURRENT_VIEW_YEAR;
+    if (CURRENT_ACTIVE_DETAIL_HINT) {
+      activeYear = CURRENT_ACTIVE_DETAIL_HINT.year || '2027';
+      activeAdm = CURRENT_ACTIVE_DETAIL_HINT.adm || 'ALL';
     } else {
-      const ySelect = document.getElementById('engineBatchYear') || document.getElementById('filterYear');
+      const ySelect = document.getElementById('inhaCurYear') || document.getElementById('qYear') || document.getElementById('homeInsightYearSelect') || document.getElementById('engineBatchYear');
       if (ySelect && ySelect.value && ySelect.value !== 'ALL') {
         activeYear = ySelect.value;
       }
-    }
-
-    if (typeof CURRENT_VIEW_ADM !== 'undefined' && CURRENT_VIEW_ADM) {
-      activeAdm = CURRENT_VIEW_ADM;
-    } else {
-      const aSelect = document.getElementById('engineBatchAdm') || document.getElementById('filterAdmission');
+      const aSelect = document.getElementById('inhaAdm') || document.getElementById('qAdm') || document.getElementById('homeInsightAdmSelect') || document.getElementById('engineBatchAdm');
       if (aSelect && aSelect.value && aSelect.value !== 'ALL') {
         activeAdm = aSelect.value;
       }
@@ -5596,8 +5634,10 @@ async function refreshLatestDataWithFeedback(btn = null) {
 
     // 4. 최신 데이터 다시 로드 및 대시보드 화면 전체 재렌더링
     await reloadLatestData();
-    if (typeof loadAllUnivsFromDb === 'function') {
-      try { await loadAllUnivsFromDb(false); } catch (e) {}
+    if (CURRENT_ACTIVE_DETAIL_ID) {
+      showUnivDetail(CURRENT_ACTIVE_DETAIL_ID, false, CURRENT_ACTIVE_DETAIL_HINT?.name, CURRENT_ACTIVE_DETAIL_HINT?.year, CURRENT_ACTIVE_DETAIL_HINT?.adm);
+    } else if (typeof CURRENT_HOME_TAB !== 'undefined' && CURRENT_HOME_TAB === 'inha') {
+      showHome(false, null, null, 'inha');
     }
 
     const successMsg = updatedCount > 0

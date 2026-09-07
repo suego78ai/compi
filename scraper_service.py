@@ -285,9 +285,18 @@ class BaseScraperAdapter(ABC):
                         continue
 
             if cur_dept == -1:
+                # 1순위: '전형명', '전형구분', '전형유형' 등 구체적 전형 단위 우선
                 for c_idx, cell in enumerate(row):
                     txt = cell.replace(' ', '')
-                    if any(k in txt for k in ['전형명', '구분']) and c_idx not in [cur_adm, cur_app, cur_ratio]:
+                    if any(k in txt for k in ['전형명', '전형구분', '전형유형']) and c_idx not in [cur_adm, cur_app, cur_ratio]:
+                        cur_dept = c_idx
+                        break
+
+            if cur_dept == -1:
+                # 2순위: '구분' (전형명 컬럼이 아예 없는 경우)
+                for c_idx, cell in enumerate(row):
+                    txt = cell.replace(' ', '')
+                    if '구분' in txt and c_idx not in [cur_adm, cur_app, cur_ratio]:
                         cur_dept = c_idx
                         break
 
@@ -298,6 +307,15 @@ class BaseScraperAdapter(ABC):
 
         if header_row_idx == -1 or col_dept == -1:
             return []
+
+        # '구분' 컬럼(정원내, 정원외 등)이 별도로 존재하는지 확인하여 명칭 보강
+        header_row = grid[header_row_idx]
+        col_category = -1
+        for c_idx, h_cell in enumerate(header_row):
+            h_txt = h_cell.replace(' ', '')
+            if '구분' in h_txt and c_idx != col_dept and c_idx not in [col_adm, col_app, col_ratio]:
+                col_category = c_idx
+                break
 
         depts = []
         for r_idx in range(header_row_idx + 1, len(grid)):
@@ -311,6 +329,12 @@ class BaseScraperAdapter(ABC):
                 continue
             if any(w in dept_val for w in ['총계', '합계', '소계']):
                 continue
+
+            # 구분(정원내/정원외) 컬럼이 별도로 있을 경우 결합하여 고유 전형명 생성
+            if col_category != -1 and col_category < len(row):
+                cat_val = row[col_category].strip()
+                if cat_val and cat_val not in ['nan', 'None', '구분'] and cat_val not in dept_val:
+                    dept_val = f"[{cat_val}] {dept_val}"
 
             adm_val = row[col_adm].strip() if (col_adm != -1 and col_adm < len(row)) else ""
             app_val = row[col_app].strip() if (col_app != -1 and col_app < len(row)) else ""
