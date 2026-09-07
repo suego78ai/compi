@@ -45,10 +45,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "30",
       "admission_count": "30",
-      "applicant_num": "5",
-      "applicant_count": "5",
-      "competition_rate": "0.17 : 1",
-      "competition_ratio": "0.17 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "0.20 : 1",
+      "competition_ratio": "0.20 : 1"
     },
     {
       "id": 64,
@@ -70,10 +70,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "37",
       "admission_count": "37",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.05 : 1",
-      "competition_ratio": "0.05 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.11 : 1",
+      "competition_ratio": "0.11 : 1"
     },
     {
       "id": 64,
@@ -95,10 +95,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "41",
       "admission_count": "41",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.07 : 1",
-      "competition_ratio": "0.07 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.12 : 1",
+      "competition_ratio": "0.12 : 1"
     },
     {
       "id": 64,
@@ -120,10 +120,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "71",
       "admission_count": "71",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "0.10 : 1",
-      "competition_ratio": "0.10 : 1"
+      "applicant_num": "9",
+      "applicant_count": "9",
+      "competition_rate": "0.13 : 1",
+      "competition_ratio": "0.13 : 1"
     },
     {
       "id": 64,
@@ -145,10 +145,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "33",
       "admission_count": "33",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "0.21 : 1",
-      "competition_ratio": "0.21 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "0.30 : 1",
+      "competition_ratio": "0.30 : 1"
     },
     {
       "id": 64,
@@ -170,10 +170,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.04 : 1",
-      "competition_ratio": "0.04 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.13 : 1",
+      "competition_ratio": "0.13 : 1"
     },
     {
       "id": 64,
@@ -245,10 +245,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "18",
       "admission_count": "18",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.06 : 1",
+      "competition_ratio": "0.06 : 1"
     },
     {
       "id": 64,
@@ -270,10 +270,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "29",
       "admission_count": "29",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.10 : 1",
-      "competition_ratio": "0.10 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.14 : 1",
+      "competition_ratio": "0.14 : 1"
     },
     {
       "id": 64,
@@ -320,10 +320,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.17 : 1",
-      "competition_ratio": "0.17 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.21 : 1",
+      "competition_ratio": "0.21 : 1"
     },
     {
       "id": 64,
@@ -345,10 +345,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.07 : 1",
+      "competition_ratio": "0.07 : 1"
     },
     {
       "id": 64,
@@ -420,10 +420,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "20",
       "admission_count": "20",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.10 : 1",
+      "competition_ratio": "0.10 : 1"
     },
     {
       "id": 64,
@@ -445,10 +445,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.25 : 1",
-      "competition_ratio": "0.25 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "0.33 : 1",
+      "competition_ratio": "0.33 : 1"
     },
     {
       "id": 64,
@@ -470,10 +470,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.04 : 1",
-      "competition_ratio": "0.04 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.08 : 1",
+      "competition_ratio": "0.08 : 1"
     },
     {
       "id": 64,
@@ -495,10 +495,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "26",
       "admission_count": "26",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.12 : 1",
-      "competition_ratio": "0.12 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.15 : 1",
+      "competition_ratio": "0.15 : 1"
     },
     {
       "id": 64,
@@ -520,10 +520,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "80",
       "admission_count": "80",
-      "applicant_num": "14",
-      "applicant_count": "14",
-      "competition_rate": "0.18 : 1",
-      "competition_ratio": "0.18 : 1"
+      "applicant_num": "15",
+      "applicant_count": "15",
+      "competition_rate": "0.19 : 1",
+      "competition_ratio": "0.19 : 1"
     },
     {
       "id": 64,
@@ -595,10 +595,10 @@
       "table_title": "일반전형 경쟁률 현황",
       "recruit_num": "93",
       "admission_count": "93",
-      "applicant_num": "74",
-      "applicant_count": "74",
-      "competition_rate": "0.80 : 1",
-      "competition_ratio": "0.80 : 1"
+      "applicant_num": "79",
+      "applicant_count": "79",
+      "competition_rate": "0.85 : 1",
+      "competition_ratio": "0.85 : 1"
     },
     {
       "id": 64,
@@ -645,10 +645,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "61",
       "admission_count": "61",
-      "applicant_num": "12",
-      "applicant_count": "12",
-      "competition_rate": "0.20 : 1",
-      "competition_ratio": "0.20 : 1"
+      "applicant_num": "14",
+      "applicant_count": "14",
+      "competition_rate": "0.23 : 1",
+      "competition_ratio": "0.23 : 1"
     },
     {
       "id": 64,
@@ -670,10 +670,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "26",
       "admission_count": "26",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.08 : 1",
-      "competition_ratio": "0.08 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.12 : 1",
+      "competition_ratio": "0.12 : 1"
     },
     {
       "id": 64,
@@ -720,10 +720,10 @@
       "table_title": "특성화고전형 경쟁률 현황",
       "recruit_num": "5",
       "admission_count": "5",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.60 : 1",
-      "competition_ratio": "0.60 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.80 : 1",
+      "competition_ratio": "0.80 : 1"
     },
     {
       "id": 64,
@@ -1370,10 +1370,10 @@
       "table_title": "전문대 이상 졸업자전형 경쟁률 현황",
       "recruit_num": "23",
       "admission_count": "23",
-      "applicant_num": "23",
-      "applicant_count": "23",
-      "competition_rate": "1.00 : 1",
-      "competition_ratio": "1.00 : 1"
+      "applicant_num": "27",
+      "applicant_count": "27",
+      "competition_rate": "1.17 : 1",
+      "competition_ratio": "1.17 : 1"
     },
     {
       "id": 64,
@@ -1920,10 +1920,10 @@
       "table_title": "기초생활수급자 및 차상위계층 경쟁률 현황",
       "recruit_num": "1",
       "admission_count": "1",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "1.00 : 1",
-      "competition_ratio": "1.00 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "2.00 : 1",
+      "competition_ratio": "2.00 : 1"
     },
     {
       "id": 64,
@@ -2195,10 +2195,10 @@
       "table_title": "전형별 지원율 현황",
       "recruit_num": "287",
       "admission_count": "287",
-      "applicant_num": "83",
-      "applicant_count": "83",
-      "competition_rate": "0.29 : 1",
-      "competition_ratio": "0.29 : 1"
+      "applicant_num": "88",
+      "applicant_count": "88",
+      "competition_rate": "0.31 : 1",
+      "competition_ratio": "0.31 : 1"
     },
     {
       "id": 71,
@@ -2245,10 +2245,10 @@
       "table_title": "정원내 일반전형 지원율 현황",
       "recruit_num": "85",
       "admission_count": "85",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.07 : 1",
-      "competition_ratio": "0.07 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.08 : 1",
+      "competition_ratio": "0.08 : 1"
     },
     {
       "id": 71,
@@ -2320,10 +2320,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "38",
       "admission_count": "38",
-      "applicant_num": "9",
-      "applicant_count": "9",
-      "competition_rate": "0.24 : 1",
-      "competition_ratio": "0.24 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "0.26 : 1",
+      "competition_ratio": "0.26 : 1"
     },
     {
       "id": 71,
@@ -2345,10 +2345,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "65",
       "admission_count": "65",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.06 : 1",
-      "competition_ratio": "0.06 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.08 : 1",
+      "competition_ratio": "0.08 : 1"
     },
     {
       "id": 71,
@@ -2370,10 +2370,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "80",
       "admission_count": "80",
-      "applicant_num": "19",
-      "applicant_count": "19",
-      "competition_rate": "0.24 : 1",
-      "competition_ratio": "0.24 : 1"
+      "applicant_num": "20",
+      "applicant_count": "20",
+      "competition_rate": "0.25 : 1",
+      "competition_ratio": "0.25 : 1"
     },
     {
       "id": 71,
@@ -2520,10 +2520,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "44",
       "admission_count": "44",
-      "applicant_num": "10",
-      "applicant_count": "10",
-      "competition_rate": "0.23 : 1",
-      "competition_ratio": "0.23 : 1"
+      "applicant_num": "11",
+      "applicant_count": "11",
+      "competition_rate": "0.25 : 1",
+      "competition_ratio": "0.25 : 1"
     },
     {
       "id": 71,
@@ -2595,10 +2595,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "46",
       "admission_count": "46",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.02 : 1",
+      "competition_ratio": "0.02 : 1"
     },
     {
       "id": 71,
@@ -2720,10 +2720,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "46",
       "admission_count": "46",
-      "applicant_num": "11",
-      "applicant_count": "11",
-      "competition_rate": "0.24 : 1",
-      "competition_ratio": "0.24 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "0.28 : 1",
+      "competition_ratio": "0.28 : 1"
     },
     {
       "id": 71,
@@ -2745,10 +2745,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "26",
       "admission_count": "26",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.12 : 1",
-      "competition_ratio": "0.12 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.15 : 1",
+      "competition_ratio": "0.15 : 1"
     },
     {
       "id": 71,
@@ -2795,10 +2795,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "66",
       "admission_count": "66",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.02 : 1",
-      "competition_ratio": "0.02 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.03 : 1",
+      "competition_ratio": "0.03 : 1"
     },
     {
       "id": 71,
@@ -2845,10 +2845,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "26",
       "admission_count": "26",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "0.31 : 1",
-      "competition_ratio": "0.31 : 1"
+      "applicant_num": "9",
+      "applicant_count": "9",
+      "competition_rate": "0.35 : 1",
+      "competition_ratio": "0.35 : 1"
     },
     {
       "id": 71,
@@ -2920,10 +2920,10 @@
       "table_title": "정원내 특별전형(일반고전형) 지원율 현황",
       "recruit_num": "47",
       "admission_count": "47",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "0.15 : 1",
-      "competition_ratio": "0.15 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "0.17 : 1",
+      "competition_ratio": "0.17 : 1"
     },
     {
       "id": 71,
@@ -3045,10 +3045,10 @@
       "table_title": "정원내 특별전형(특성화고전형) 지원율 현황",
       "recruit_num": "20",
       "admission_count": "20",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "0.35 : 1",
-      "competition_ratio": "0.35 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "0.40 : 1",
+      "competition_ratio": "0.40 : 1"
     },
     {
       "id": 71,
@@ -3270,10 +3270,10 @@
       "table_title": "정원내 특별전형(특성화고전형) 지원율 현황",
       "recruit_num": "17",
       "admission_count": "17",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.06 : 1",
-      "competition_ratio": "0.06 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.12 : 1",
+      "competition_ratio": "0.12 : 1"
     },
     {
       "id": 71,
@@ -3470,10 +3470,10 @@
       "table_title": "정원내 특별전형(특성화고전형) 지원율 현황",
       "recruit_num": "17",
       "admission_count": "17",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.24 : 1",
-      "competition_ratio": "0.24 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.29 : 1",
+      "competition_ratio": "0.29 : 1"
     },
     {
       "id": 71,
@@ -3495,10 +3495,10 @@
       "table_title": "정원내 특별전형(특성화고전형) 지원율 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.17 : 1",
-      "competition_ratio": "0.17 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.21 : 1",
+      "competition_ratio": "0.21 : 1"
     },
     {
       "id": 71,
@@ -3570,10 +3570,10 @@
       "table_title": "정원내 특별전형(특성화고전형) 지원율 현황",
       "recruit_num": "6",
       "admission_count": "6",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "1.17 : 1",
-      "competition_ratio": "1.17 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "1.33 : 1",
+      "competition_ratio": "1.33 : 1"
     },
     {
       "id": 71,
@@ -4045,10 +4045,10 @@
       "table_title": "정원외 기초생활수급자 및 차상위전형 지원율 현황",
       "recruit_num": "4",
       "admission_count": "4",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.25 : 1",
+      "competition_ratio": "0.25 : 1"
     },
     {
       "id": 71,
@@ -4120,10 +4120,10 @@
       "table_title": "정원외 기초생활수급자 및 차상위전형 지원율 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.67 : 1",
+      "competition_ratio": "0.67 : 1"
     },
     {
       "id": 71,
@@ -4295,10 +4295,10 @@
       "table_title": "정원외 기초생활수급자 및 차상위전형 지원율 현황",
       "recruit_num": "2",
       "admission_count": "2",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "1.00 : 1",
-      "competition_ratio": "1.00 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "1.50 : 1",
+      "competition_ratio": "1.50 : 1"
     },
     {
       "id": 71,
@@ -5570,10 +5570,10 @@
       "table_title": "정원내 일반전형 경쟁률 현황",
       "recruit_num": "25",
       "admission_count": "25",
-      "applicant_num": "115",
-      "applicant_count": "115",
-      "competition_rate": "4.60 : 1",
-      "competition_ratio": "4.60 : 1"
+      "applicant_num": "121",
+      "applicant_count": "121",
+      "competition_rate": "4.84 : 1",
+      "competition_ratio": "4.84 : 1"
     },
     {
       "id": 66,
@@ -5595,10 +5595,10 @@
       "table_title": "정원내 일반전형 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "18",
-      "applicant_count": "18",
-      "competition_rate": "1.20 : 1",
-      "competition_ratio": "1.20 : 1"
+      "applicant_num": "19",
+      "applicant_count": "19",
+      "competition_rate": "1.27 : 1",
+      "competition_ratio": "1.27 : 1"
     },
     {
       "id": 66,
@@ -5645,10 +5645,10 @@
       "table_title": "정원내 일반전형 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "22",
-      "applicant_count": "22",
-      "competition_rate": "1.47 : 1",
-      "competition_ratio": "1.47 : 1"
+      "applicant_num": "24",
+      "applicant_count": "24",
+      "competition_rate": "1.60 : 1",
+      "competition_ratio": "1.60 : 1"
     },
     {
       "id": 66,
@@ -5695,10 +5695,10 @@
       "table_title": "정원내 일반전형 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "17",
-      "applicant_count": "17",
-      "competition_rate": "1.70 : 1",
-      "competition_ratio": "1.70 : 1"
+      "applicant_num": "18",
+      "applicant_count": "18",
+      "competition_rate": "1.80 : 1",
+      "competition_ratio": "1.80 : 1"
     },
     {
       "id": 66,
@@ -5970,10 +5970,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "36",
       "admission_count": "36",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.06 : 1",
-      "competition_ratio": "0.06 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.08 : 1",
+      "competition_ratio": "0.08 : 1"
     },
     {
       "id": 66,
@@ -6020,10 +6020,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.13 : 1",
-      "competition_ratio": "0.13 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.20 : 1",
+      "competition_ratio": "0.20 : 1"
     },
     {
       "id": 66,
@@ -6195,10 +6195,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.07 : 1",
-      "competition_ratio": "0.07 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.13 : 1",
+      "competition_ratio": "0.13 : 1"
     },
     {
       "id": 66,
@@ -6245,10 +6245,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "38",
       "admission_count": "38",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "0.18 : 1",
-      "competition_ratio": "0.18 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "0.21 : 1",
+      "competition_ratio": "0.21 : 1"
     },
     {
       "id": 66,
@@ -6270,10 +6270,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "0.29 : 1",
-      "competition_ratio": "0.29 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "0.33 : 1",
+      "competition_ratio": "0.33 : 1"
     },
     {
       "id": 66,
@@ -6295,10 +6295,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "25",
       "admission_count": "25",
-      "applicant_num": "10",
-      "applicant_count": "10",
-      "competition_rate": "0.40 : 1",
-      "competition_ratio": "0.40 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "0.52 : 1",
+      "competition_ratio": "0.52 : 1"
     },
     {
       "id": 66,
@@ -6320,10 +6320,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "25",
       "admission_count": "25",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.16 : 1",
-      "competition_ratio": "0.16 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.20 : 1",
+      "competition_ratio": "0.20 : 1"
     },
     {
       "id": 66,
@@ -6345,10 +6345,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "42",
       "admission_count": "42",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "0.19 : 1",
-      "competition_ratio": "0.19 : 1"
+      "applicant_num": "9",
+      "applicant_count": "9",
+      "competition_rate": "0.21 : 1",
+      "competition_ratio": "0.21 : 1"
     },
     {
       "id": 66,
@@ -6470,10 +6470,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "23",
       "admission_count": "23",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.17 : 1",
-      "competition_ratio": "0.17 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.22 : 1",
+      "competition_ratio": "0.22 : 1"
     },
     {
       "id": 66,
@@ -6645,10 +6645,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "46",
       "admission_count": "46",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.04 : 1",
-      "competition_ratio": "0.04 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.07 : 1",
+      "competition_ratio": "0.07 : 1"
     },
     {
       "id": 66,
@@ -6720,10 +6720,10 @@
       "table_title": "정원내 일반고전형 경쟁률 현황",
       "recruit_num": "33",
       "admission_count": "33",
-      "applicant_num": "14",
-      "applicant_count": "14",
-      "competition_rate": "0.42 : 1",
-      "competition_ratio": "0.42 : 1"
+      "applicant_num": "15",
+      "applicant_count": "15",
+      "competition_rate": "0.45 : 1",
+      "competition_ratio": "0.45 : 1"
     },
     {
       "id": 66,
@@ -7045,10 +7045,10 @@
       "table_title": "정원내 특성화고전형 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.20 : 1",
-      "competition_ratio": "0.20 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.30 : 1",
+      "competition_ratio": "0.30 : 1"
     },
     {
       "id": 66,
@@ -7170,10 +7170,10 @@
       "table_title": "정원내 특성화고전형 경쟁률 현황",
       "recruit_num": "2",
       "admission_count": "2",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.50 : 1",
+      "competition_ratio": "0.50 : 1"
     },
     {
       "id": 66,
@@ -7270,10 +7270,10 @@
       "table_title": "정원내 특성화고전형 경쟁률 현황",
       "recruit_num": "7",
       "admission_count": "7",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.43 : 1",
-      "competition_ratio": "0.43 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.57 : 1",
+      "competition_ratio": "0.57 : 1"
     },
     {
       "id": 66,
@@ -7345,10 +7345,10 @@
       "table_title": "정원내 특성화고전형 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.10 : 1",
-      "competition_ratio": "0.10 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.20 : 1",
+      "competition_ratio": "0.20 : 1"
     },
     {
       "id": 66,
@@ -7895,10 +7895,10 @@
       "table_title": "정원내 대학자체전형 경쟁률 현황",
       "recruit_num": "2",
       "admission_count": "2",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "1.50 : 1",
-      "competition_ratio": "1.50 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "2.00 : 1",
+      "competition_ratio": "2.00 : 1"
     },
     {
       "id": 66,
@@ -8020,10 +8020,10 @@
       "table_title": "정원내 대학자체전형 경쟁률 현황",
       "recruit_num": "2",
       "admission_count": "2",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "1.00 : 1",
-      "competition_ratio": "1.00 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "1.50 : 1",
+      "competition_ratio": "1.50 : 1"
     },
     {
       "id": 66,
@@ -9770,10 +9770,10 @@
       "table_title": "정원외 기초생활수급자전형 경쟁률 현황",
       "recruit_num": "2",
       "admission_count": "2",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "1.00 : 1",
-      "competition_ratio": "1.00 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "1.50 : 1",
+      "competition_ratio": "1.50 : 1"
     },
     {
       "id": 66,
@@ -15645,10 +15645,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "33",
       "admission_count": "33",
-      "applicant_num": "21",
-      "applicant_count": "21",
-      "competition_rate": "0.64 : 1",
-      "competition_ratio": "0.64 : 1"
+      "applicant_num": "23",
+      "applicant_count": "23",
+      "competition_rate": "0.70 : 1",
+      "competition_ratio": "0.70 : 1"
     },
     {
       "id": 67,
@@ -15895,10 +15895,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "38",
       "admission_count": "38",
-      "applicant_num": "5",
-      "applicant_count": "5",
-      "competition_rate": "0.13 : 1",
-      "competition_ratio": "0.13 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.18 : 1",
+      "competition_ratio": "0.18 : 1"
     },
     {
       "id": 67,
@@ -15945,10 +15945,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "37",
       "admission_count": "37",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.08 : 1",
-      "competition_ratio": "0.08 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.11 : 1",
+      "competition_ratio": "0.11 : 1"
     },
     {
       "id": 67,
@@ -15970,10 +15970,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "36",
       "admission_count": "36",
-      "applicant_num": "10",
-      "applicant_count": "10",
-      "competition_rate": "0.28 : 1",
-      "competition_ratio": "0.28 : 1"
+      "applicant_num": "11",
+      "applicant_count": "11",
+      "competition_rate": "0.31 : 1",
+      "competition_ratio": "0.31 : 1"
     },
     {
       "id": 67,
@@ -16020,10 +16020,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "27",
       "admission_count": "27",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.07 : 1",
-      "competition_ratio": "0.07 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.11 : 1",
+      "competition_ratio": "0.11 : 1"
     },
     {
       "id": 67,
@@ -16070,10 +16070,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "60",
       "admission_count": "60",
-      "applicant_num": "14",
-      "applicant_count": "14",
-      "competition_rate": "0.23 : 1",
-      "competition_ratio": "0.23 : 1"
+      "applicant_num": "16",
+      "applicant_count": "16",
+      "competition_rate": "0.27 : 1",
+      "competition_ratio": "0.27 : 1"
     },
     {
       "id": 67,
@@ -16095,10 +16095,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "90",
       "admission_count": "90",
-      "applicant_num": "204",
-      "applicant_count": "204",
-      "competition_rate": "2.27 : 1",
-      "competition_ratio": "2.27 : 1"
+      "applicant_num": "212",
+      "applicant_count": "212",
+      "competition_rate": "2.36 : 1",
+      "competition_ratio": "2.36 : 1"
     },
     {
       "id": 67,
@@ -16145,10 +16145,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "45",
       "admission_count": "45",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "0.16 : 1",
-      "competition_ratio": "0.16 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "0.18 : 1",
+      "competition_ratio": "0.18 : 1"
     },
     {
       "id": 67,
@@ -16170,10 +16170,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "30",
       "admission_count": "30",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.10 : 1",
-      "competition_ratio": "0.10 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.13 : 1",
+      "competition_ratio": "0.13 : 1"
     },
     {
       "id": 67,
@@ -16220,10 +16220,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "22",
       "admission_count": "22",
-      "applicant_num": "19",
-      "applicant_count": "19",
-      "competition_rate": "0.86 : 1",
-      "competition_ratio": "0.86 : 1"
+      "applicant_num": "21",
+      "applicant_count": "21",
+      "competition_rate": "0.95 : 1",
+      "competition_ratio": "0.95 : 1"
     },
     {
       "id": 67,
@@ -16245,10 +16245,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "21",
       "admission_count": "21",
-      "applicant_num": "11",
-      "applicant_count": "11",
-      "competition_rate": "0.52 : 1",
-      "competition_ratio": "0.52 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "0.62 : 1",
+      "competition_ratio": "0.62 : 1"
     },
     {
       "id": 67,
@@ -16370,10 +16370,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "52",
       "admission_count": "52",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "0.15 : 1",
-      "competition_ratio": "0.15 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "0.19 : 1",
+      "competition_ratio": "0.19 : 1"
     },
     {
       "id": 67,
@@ -16395,10 +16395,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "41",
       "admission_count": "41",
-      "applicant_num": "19",
-      "applicant_count": "19",
-      "competition_rate": "0.46 : 1",
-      "competition_ratio": "0.46 : 1"
+      "applicant_num": "23",
+      "applicant_count": "23",
+      "competition_rate": "0.56 : 1",
+      "competition_ratio": "0.56 : 1"
     },
     {
       "id": 67,
@@ -16445,10 +16445,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "26",
       "admission_count": "26",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.23 : 1",
-      "competition_ratio": "0.23 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.27 : 1",
+      "competition_ratio": "0.27 : 1"
     },
     {
       "id": 67,
@@ -16470,10 +16470,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "5",
-      "applicant_count": "5",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "0.40 : 1",
+      "competition_ratio": "0.40 : 1"
     },
     {
       "id": 67,
@@ -16495,10 +16495,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "33",
       "admission_count": "33",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "0.24 : 1",
-      "competition_ratio": "0.24 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "0.30 : 1",
+      "competition_ratio": "0.30 : 1"
     },
     {
       "id": 67,
@@ -16520,10 +16520,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "12",
-      "applicant_count": "12",
-      "competition_rate": "0.50 : 1",
-      "competition_ratio": "0.50 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "0.54 : 1",
+      "competition_ratio": "0.54 : 1"
     },
     {
       "id": 67,
@@ -16595,10 +16595,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "4",
       "admission_count": "4",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "1.75 : 1",
-      "competition_ratio": "1.75 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "2.00 : 1",
+      "competition_ratio": "2.00 : 1"
     },
     {
       "id": 67,
@@ -16720,10 +16720,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "7",
       "admission_count": "7",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.29 : 1",
+      "competition_ratio": "0.29 : 1"
     },
     {
       "id": 67,
@@ -16820,10 +16820,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "7",
       "admission_count": "7",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.14 : 1",
-      "competition_ratio": "0.14 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.43 : 1",
+      "competition_ratio": "0.43 : 1"
     },
     {
       "id": 67,
@@ -17045,10 +17045,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "14",
       "admission_count": "14",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.43 : 1",
-      "competition_ratio": "0.43 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.50 : 1",
+      "competition_ratio": "0.50 : 1"
     },
     {
       "id": 67,
@@ -17070,10 +17070,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "6",
       "admission_count": "6",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.67 : 1",
-      "competition_ratio": "0.67 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "1.00 : 1",
+      "competition_ratio": "1.00 : 1"
     },
     {
       "id": 67,
@@ -17095,10 +17095,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "5",
       "admission_count": "5",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "1.60 : 1",
-      "competition_ratio": "1.60 : 1"
+      "applicant_num": "9",
+      "applicant_count": "9",
+      "competition_rate": "1.80 : 1",
+      "competition_ratio": "1.80 : 1"
     },
     {
       "id": 67,
@@ -17145,10 +17145,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.30 : 1",
-      "competition_ratio": "0.30 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.40 : 1",
+      "competition_ratio": "0.40 : 1"
     },
     {
       "id": 67,
@@ -17170,10 +17170,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "4",
       "admission_count": "4",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "1.00 : 1",
-      "competition_ratio": "1.00 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "1.25 : 1",
+      "competition_ratio": "1.25 : 1"
     },
     {
       "id": 67,
@@ -17245,10 +17245,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "4",
       "admission_count": "4",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.50 : 1",
-      "competition_ratio": "0.50 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.75 : 1",
+      "competition_ratio": "0.75 : 1"
     },
     {
       "id": 67,
@@ -17295,10 +17295,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.67 : 1",
-      "competition_ratio": "0.67 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "1.00 : 1",
+      "competition_ratio": "1.00 : 1"
     },
     {
       "id": 67,
@@ -17395,10 +17395,10 @@
       "table_title": "특기자 경쟁률 현황",
       "recruit_num": "5",
       "admission_count": "5",
-      "applicant_num": "12",
-      "applicant_count": "12",
-      "competition_rate": "2.40 : 1",
-      "competition_ratio": "2.40 : 1"
+      "applicant_num": "14",
+      "applicant_count": "14",
+      "competition_rate": "2.80 : 1",
+      "competition_ratio": "2.80 : 1"
     },
     {
       "id": 67,
@@ -20770,10 +20770,10 @@
       "table_title": "전문대이상 졸업자 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "20",
-      "applicant_count": "20",
-      "competition_rate": "1.33 : 1",
-      "competition_ratio": "1.33 : 1"
+      "applicant_num": "21",
+      "applicant_count": "21",
+      "competition_rate": "1.40 : 1",
+      "competition_ratio": "1.40 : 1"
     },
     {
       "id": 67,
@@ -22820,10 +22820,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "127",
       "admission_count": "127",
-      "applicant_num": "52",
-      "applicant_count": "52",
-      "competition_rate": "0.41 : 1",
-      "competition_ratio": "0.41 : 1"
+      "applicant_num": "53",
+      "applicant_count": "53",
+      "competition_rate": "0.42 : 1",
+      "competition_ratio": "0.42 : 1"
     },
     {
       "id": 63,
@@ -22845,10 +22845,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "62",
       "admission_count": "62",
-      "applicant_num": "9",
-      "applicant_count": "9",
-      "competition_rate": "0.15 : 1",
-      "competition_ratio": "0.15 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "0.16 : 1",
+      "competition_ratio": "0.16 : 1"
     },
     {
       "id": 63,
@@ -22995,10 +22995,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "33",
       "admission_count": "33",
-      "applicant_num": "17",
-      "applicant_count": "17",
-      "competition_rate": "0.52 : 1",
-      "competition_ratio": "0.52 : 1"
+      "applicant_num": "18",
+      "applicant_count": "18",
+      "competition_rate": "0.55 : 1",
+      "competition_ratio": "0.55 : 1"
     },
     {
       "id": 63,
@@ -23045,10 +23045,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.60 : 1",
-      "competition_ratio": "0.60 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.70 : 1",
+      "competition_ratio": "0.70 : 1"
     },
     {
       "id": 63,
@@ -23145,10 +23145,10 @@
       "table_title": "일반 전형 경쟁률 현황",
       "recruit_num": "8",
       "admission_count": "8",
-      "applicant_num": "10",
-      "applicant_count": "10",
-      "competition_rate": "1.25 : 1",
-      "competition_ratio": "1.25 : 1"
+      "applicant_num": "11",
+      "applicant_count": "11",
+      "competition_rate": "1.38 : 1",
+      "competition_ratio": "1.38 : 1"
     },
     {
       "id": 63,
@@ -23320,10 +23320,10 @@
       "table_title": "일반고 특별전형 경쟁률 현황",
       "recruit_num": "35",
       "admission_count": "35",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.09 : 1",
-      "competition_ratio": "0.09 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.11 : 1",
+      "competition_ratio": "0.11 : 1"
     },
     {
       "id": 63,
@@ -23695,10 +23695,10 @@
       "table_title": "전문대학이상졸업자 전형 경쟁률 현황",
       "recruit_num": "20",
       "admission_count": "20",
-      "applicant_num": "17",
-      "applicant_count": "17",
-      "competition_rate": "0.85 : 1",
-      "competition_ratio": "0.85 : 1"
+      "applicant_num": "18",
+      "applicant_count": "18",
+      "competition_rate": "0.90 : 1",
+      "competition_ratio": "0.90 : 1"
     },
     {
       "id": 63,
@@ -23970,10 +23970,10 @@
       "table_title": "기초생활수급자 및 차상위계층전형 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "2.00 : 1",
-      "competition_ratio": "2.00 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "2.33 : 1",
+      "competition_ratio": "2.33 : 1"
     },
     {
       "id": 63,
@@ -24395,10 +24395,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "58",
       "admission_count": "58",
-      "applicant_num": "50",
-      "applicant_count": "50",
-      "competition_rate": "0.86 : 1",
-      "competition_ratio": "0.86 : 1"
+      "applicant_num": "54",
+      "applicant_count": "54",
+      "competition_rate": "0.93 : 1",
+      "competition_ratio": "0.93 : 1"
     },
     {
       "id": 70,
@@ -24420,10 +24420,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "48",
       "admission_count": "48",
-      "applicant_num": "20",
-      "applicant_count": "20",
-      "competition_rate": "0.42 : 1",
-      "competition_ratio": "0.42 : 1"
+      "applicant_num": "22",
+      "applicant_count": "22",
+      "competition_rate": "0.46 : 1",
+      "competition_ratio": "0.46 : 1"
     },
     {
       "id": 70,
@@ -24445,10 +24445,10 @@
       "table_title": "정원내 일반전형 경쟁률 현황",
       "recruit_num": "30",
       "admission_count": "30",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.07 : 1",
-      "competition_ratio": "0.07 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.10 : 1",
+      "competition_ratio": "0.10 : 1"
     },
     {
       "id": 70,
@@ -24470,10 +24470,10 @@
       "table_title": "정원내 일반전형 경쟁률 현황",
       "recruit_num": "27",
       "admission_count": "27",
-      "applicant_num": "9",
-      "applicant_count": "9",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "0.37 : 1",
+      "competition_ratio": "0.37 : 1"
     },
     {
       "id": 70,
@@ -24495,10 +24495,10 @@
       "table_title": "정원내 일반전형 경쟁률 현황",
       "recruit_num": "43",
       "admission_count": "43",
-      "applicant_num": "21",
-      "applicant_count": "21",
-      "competition_rate": "0.49 : 1",
-      "competition_ratio": "0.49 : 1"
+      "applicant_num": "22",
+      "applicant_count": "22",
+      "competition_rate": "0.51 : 1",
+      "competition_ratio": "0.51 : 1"
     },
     {
       "id": 70,
@@ -24595,10 +24595,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "22",
       "admission_count": "22",
-      "applicant_num": "5",
-      "applicant_count": "5",
-      "competition_rate": "0.23 : 1",
-      "competition_ratio": "0.23 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "0.27 : 1",
+      "competition_ratio": "0.27 : 1"
     },
     {
       "id": 70,
@@ -24620,10 +24620,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.17 : 1",
-      "competition_ratio": "0.17 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.21 : 1",
+      "competition_ratio": "0.21 : 1"
     },
     {
       "id": 70,
@@ -24720,10 +24720,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "41",
       "admission_count": "41",
-      "applicant_num": "49",
-      "applicant_count": "49",
-      "competition_rate": "1.20 : 1",
-      "competition_ratio": "1.20 : 1"
+      "applicant_num": "54",
+      "applicant_count": "54",
+      "competition_rate": "1.32 : 1",
+      "competition_ratio": "1.32 : 1"
     },
     {
       "id": 70,
@@ -24745,10 +24745,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "28",
       "admission_count": "28",
-      "applicant_num": "35",
-      "applicant_count": "35",
-      "competition_rate": "1.25 : 1",
-      "competition_ratio": "1.25 : 1"
+      "applicant_num": "43",
+      "applicant_count": "43",
+      "competition_rate": "1.54 : 1",
+      "competition_ratio": "1.54 : 1"
     },
     {
       "id": 70,
@@ -24770,10 +24770,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "29",
       "admission_count": "29",
-      "applicant_num": "10",
-      "applicant_count": "10",
-      "competition_rate": "0.34 : 1",
-      "competition_ratio": "0.34 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "0.45 : 1",
+      "competition_ratio": "0.45 : 1"
     },
     {
       "id": 70,
@@ -24895,10 +24895,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "22",
       "admission_count": "22",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.18 : 1",
-      "competition_ratio": "0.18 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.23 : 1",
+      "competition_ratio": "0.23 : 1"
     },
     {
       "id": 70,
@@ -24995,10 +24995,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "68",
       "admission_count": "68",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.04 : 1",
-      "competition_ratio": "0.04 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.06 : 1",
+      "competition_ratio": "0.06 : 1"
     },
     {
       "id": 70,
@@ -25020,10 +25020,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "40",
       "admission_count": "40",
-      "applicant_num": "9",
-      "applicant_count": "9",
-      "competition_rate": "0.23 : 1",
-      "competition_ratio": "0.23 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "0.25 : 1",
+      "competition_ratio": "0.25 : 1"
     },
     {
       "id": 70,
@@ -25095,10 +25095,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.20 : 1",
-      "competition_ratio": "0.20 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.27 : 1",
+      "competition_ratio": "0.27 : 1"
     },
     {
       "id": 70,
@@ -25120,10 +25120,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "26",
       "admission_count": "26",
-      "applicant_num": "9",
-      "applicant_count": "9",
-      "competition_rate": "0.35 : 1",
-      "competition_ratio": "0.35 : 1"
+      "applicant_num": "11",
+      "applicant_count": "11",
+      "competition_rate": "0.42 : 1",
+      "competition_ratio": "0.42 : 1"
     },
     {
       "id": 70,
@@ -25170,10 +25170,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "22",
       "admission_count": "22",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.14 : 1",
-      "competition_ratio": "0.14 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.18 : 1",
+      "competition_ratio": "0.18 : 1"
     },
     {
       "id": 70,
@@ -25220,10 +25220,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "37",
       "admission_count": "37",
-      "applicant_num": "15",
-      "applicant_count": "15",
-      "competition_rate": "0.41 : 1",
-      "competition_ratio": "0.41 : 1"
+      "applicant_num": "17",
+      "applicant_count": "17",
+      "competition_rate": "0.46 : 1",
+      "competition_ratio": "0.46 : 1"
     },
     {
       "id": 70,
@@ -25270,10 +25270,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "72",
       "admission_count": "72",
-      "applicant_num": "239",
-      "applicant_count": "239",
-      "competition_rate": "3.32 : 1",
-      "competition_ratio": "3.32 : 1"
+      "applicant_num": "247",
+      "applicant_count": "247",
+      "competition_rate": "3.43 : 1",
+      "competition_ratio": "3.43 : 1"
     },
     {
       "id": 70,
@@ -25295,10 +25295,10 @@
       "table_title": "정원내 특별전형-일반고 경쟁률 현황",
       "recruit_num": "51",
       "admission_count": "51",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.08 : 1",
-      "competition_ratio": "0.08 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "0.12 : 1",
+      "competition_ratio": "0.12 : 1"
     },
     {
       "id": 70,
@@ -25445,10 +25445,10 @@
       "table_title": "정원내 특별전형-특성화고 경쟁률 현황",
       "recruit_num": "8",
       "admission_count": "8",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.25 : 1",
-      "competition_ratio": "0.25 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.38 : 1",
+      "competition_ratio": "0.38 : 1"
     },
     {
       "id": 70,
@@ -25495,10 +25495,10 @@
       "table_title": "정원내 특별전형-특성화고 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "9",
-      "applicant_count": "9",
-      "competition_rate": "0.90 : 1",
-      "competition_ratio": "0.90 : 1"
+      "applicant_num": "11",
+      "applicant_count": "11",
+      "competition_rate": "1.10 : 1",
+      "competition_ratio": "1.10 : 1"
     },
     {
       "id": 70,
@@ -25520,10 +25520,10 @@
       "table_title": "정원내 특별전형-특성화고 경쟁률 현황",
       "recruit_num": "5",
       "admission_count": "5",
-      "applicant_num": "9",
-      "applicant_count": "9",
-      "competition_rate": "1.80 : 1",
-      "competition_ratio": "1.80 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "2.00 : 1",
+      "competition_ratio": "2.00 : 1"
     },
     {
       "id": 70,
@@ -25570,10 +25570,10 @@
       "table_title": "정원내 특별전형-특성화고 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.30 : 1",
-      "competition_ratio": "0.30 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.40 : 1",
+      "competition_ratio": "0.40 : 1"
     },
     {
       "id": 70,
@@ -25895,10 +25895,10 @@
       "table_title": "정원내 특별전형-특성화고 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.67 : 1",
+      "competition_ratio": "0.67 : 1"
     },
     {
       "id": 70,
@@ -25970,10 +25970,10 @@
       "table_title": "정원내 특별전형-특성화고 경쟁률 현황",
       "recruit_num": "6",
       "admission_count": "6",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.17 : 1",
-      "competition_ratio": "0.17 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.33 : 1",
+      "competition_ratio": "0.33 : 1"
     },
     {
       "id": 70,
@@ -26045,10 +26045,10 @@
       "table_title": "정원내 특별전형-특성화고 경쟁률 현황",
       "recruit_num": "6",
       "admission_count": "6",
-      "applicant_num": "23",
-      "applicant_count": "23",
-      "competition_rate": "3.83 : 1",
-      "competition_ratio": "3.83 : 1"
+      "applicant_num": "24",
+      "applicant_count": "24",
+      "competition_rate": "4.00 : 1",
+      "competition_ratio": "4.00 : 1"
     },
     {
       "id": 70,
@@ -26070,10 +26070,10 @@
       "table_title": "정원내 특별전형-특성화고 경쟁률 현황",
       "recruit_num": "14",
       "admission_count": "14",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "0.57 : 1",
-      "competition_ratio": "0.57 : 1"
+      "applicant_num": "9",
+      "applicant_count": "9",
+      "competition_rate": "0.64 : 1",
+      "competition_ratio": "0.64 : 1"
     },
     {
       "id": 70,
@@ -26095,10 +26095,10 @@
       "table_title": "정원내 대학자체 경쟁률 현황",
       "recruit_num": "4",
       "admission_count": "4",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "2.00 : 1",
-      "competition_ratio": "2.00 : 1"
+      "applicant_num": "9",
+      "applicant_count": "9",
+      "competition_rate": "2.25 : 1",
+      "competition_ratio": "2.25 : 1"
     },
     {
       "id": 70,
@@ -26145,10 +26145,10 @@
       "table_title": "정원내 대학자체 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.33 : 1",
+      "competition_ratio": "0.33 : 1"
     },
     {
       "id": 70,
@@ -26220,10 +26220,10 @@
       "table_title": "정원내 대학자체 경쟁률 현황",
       "recruit_num": "5",
       "admission_count": "5",
-      "applicant_num": "35",
-      "applicant_count": "35",
-      "competition_rate": "7.00 : 1",
-      "competition_ratio": "7.00 : 1"
+      "applicant_num": "37",
+      "applicant_count": "37",
+      "competition_rate": "7.40 : 1",
+      "competition_ratio": "7.40 : 1"
     },
     {
       "id": 70,
@@ -26420,10 +26420,10 @@
       "table_title": "정원외 기초수급 및 차상위 경쟁률 현황",
       "recruit_num": "4",
       "admission_count": "4",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "1.00 : 1",
-      "competition_ratio": "1.00 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "1.25 : 1",
+      "competition_ratio": "1.25 : 1"
     },
     {
       "id": 70,
@@ -26720,10 +26720,10 @@
       "table_title": "정원외 기초수급 및 차상위 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.67 : 1",
+      "competition_ratio": "0.67 : 1"
     },
     {
       "id": 70,
@@ -26745,10 +26745,10 @@
       "table_title": "정원외 기초수급 및 차상위 경쟁률 현황",
       "recruit_num": "2",
       "admission_count": "2",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "1.00 : 1",
-      "competition_ratio": "1.00 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "1.50 : 1",
+      "competition_ratio": "1.50 : 1"
     },
     {
       "id": 70,
@@ -26845,10 +26845,10 @@
       "table_title": "정원외 기초수급 및 차상위 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.33 : 1",
+      "competition_ratio": "0.33 : 1"
     },
     {
       "id": 70,
@@ -26895,10 +26895,10 @@
       "table_title": "정원외 기초수급 및 차상위 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.67 : 1",
+      "competition_ratio": "0.67 : 1"
     },
     {
       "id": 70,
@@ -28195,10 +28195,10 @@
       "table_title": "정원외 전문대이상졸업자 경쟁률 현황",
       "recruit_num": "6",
       "admission_count": "6",
-      "applicant_num": "11",
-      "applicant_count": "11",
-      "competition_rate": "1.83 : 1",
-      "competition_ratio": "1.83 : 1"
+      "applicant_num": "12",
+      "applicant_count": "12",
+      "competition_rate": "2.00 : 1",
+      "competition_ratio": "2.00 : 1"
     },
     {
       "id": 70,
@@ -28295,10 +28295,10 @@
       "table_title": "정원외 전문대이상졸업자 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.67 : 1",
+      "competition_ratio": "0.67 : 1"
     },
     {
       "id": 70,
@@ -28470,10 +28470,10 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "46",
       "admission_count": "46",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.04 : 1",
-      "competition_ratio": "0.04 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.07 : 1",
+      "competition_ratio": "0.07 : 1"
     },
     {
       "id": 68,
@@ -28570,10 +28570,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "16",
       "admission_count": "16",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.19 : 1",
-      "competition_ratio": "0.19 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.25 : 1",
+      "competition_ratio": "0.25 : 1"
     },
     {
       "id": 68,
@@ -28720,10 +28720,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "20",
       "admission_count": "20",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.05 : 1",
+      "competition_ratio": "0.05 : 1"
     },
     {
       "id": 68,
@@ -28770,10 +28770,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "44",
       "admission_count": "44",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.14 : 1",
-      "competition_ratio": "0.14 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.16 : 1",
+      "competition_ratio": "0.16 : 1"
     },
     {
       "id": 68,
@@ -28820,10 +28820,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "41",
       "admission_count": "41",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.02 : 1",
-      "competition_ratio": "0.02 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.05 : 1",
+      "competition_ratio": "0.05 : 1"
     },
     {
       "id": 68,
@@ -28845,10 +28845,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "24",
       "admission_count": "24",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.04 : 1",
+      "competition_ratio": "0.04 : 1"
     },
     {
       "id": 68,
@@ -29020,10 +29020,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "17",
       "admission_count": "17",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "0.47 : 1",
-      "competition_ratio": "0.47 : 1"
+      "applicant_num": "9",
+      "applicant_count": "9",
+      "competition_rate": "0.53 : 1",
+      "competition_ratio": "0.53 : 1"
     },
     {
       "id": 68,
@@ -29045,10 +29045,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "33",
       "admission_count": "33",
-      "applicant_num": "11",
-      "applicant_count": "11",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "12",
+      "applicant_count": "12",
+      "competition_rate": "0.36 : 1",
+      "competition_ratio": "0.36 : 1"
     },
     {
       "id": 68,
@@ -29095,10 +29095,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "20",
       "admission_count": "20",
-      "applicant_num": "27",
-      "applicant_count": "27",
-      "competition_rate": "1.35 : 1",
-      "competition_ratio": "1.35 : 1"
+      "applicant_num": "30",
+      "applicant_count": "30",
+      "competition_rate": "1.50 : 1",
+      "competition_ratio": "1.50 : 1"
     },
     {
       "id": 68,
@@ -29145,10 +29145,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.20 : 1",
-      "competition_ratio": "0.20 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.27 : 1",
+      "competition_ratio": "0.27 : 1"
     },
     {
       "id": 68,
@@ -29170,10 +29170,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "21",
       "admission_count": "21",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.14 : 1",
-      "competition_ratio": "0.14 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.19 : 1",
+      "competition_ratio": "0.19 : 1"
     },
     {
       "id": 68,
@@ -29270,10 +29270,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "16",
       "admission_count": "16",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.25 : 1",
-      "competition_ratio": "0.25 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.31 : 1",
+      "competition_ratio": "0.31 : 1"
     },
     {
       "id": 68,
@@ -29320,10 +29320,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "35",
       "admission_count": "35",
-      "applicant_num": "9",
-      "applicant_count": "9",
-      "competition_rate": "0.26 : 1",
-      "competition_ratio": "0.26 : 1"
+      "applicant_num": "10",
+      "applicant_count": "10",
+      "competition_rate": "0.29 : 1",
+      "competition_ratio": "0.29 : 1"
     },
     {
       "id": 68,
@@ -29345,10 +29345,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "28",
       "admission_count": "28",
-      "applicant_num": "5",
-      "applicant_count": "5",
-      "competition_rate": "0.18 : 1",
-      "competition_ratio": "0.18 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.25 : 1",
+      "competition_ratio": "0.25 : 1"
     },
     {
       "id": 68,
@@ -29370,10 +29370,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "18",
       "admission_count": "18",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.22 : 1",
-      "competition_ratio": "0.22 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.28 : 1",
+      "competition_ratio": "0.28 : 1"
     },
     {
       "id": 68,
@@ -29445,10 +29445,10 @@
       "table_title": "정원내 일반고 전형 경쟁률 현황",
       "recruit_num": "46",
       "admission_count": "46",
-      "applicant_num": "63",
-      "applicant_count": "63",
-      "competition_rate": "1.37 : 1",
-      "competition_ratio": "1.37 : 1"
+      "applicant_num": "65",
+      "applicant_count": "65",
+      "competition_rate": "1.41 : 1",
+      "competition_ratio": "1.41 : 1"
     },
     {
       "id": 68,
@@ -29545,10 +29545,10 @@
       "table_title": "정원내 특성화고 전형 경쟁률 현황",
       "recruit_num": "14",
       "admission_count": "14",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.29 : 1",
-      "competition_ratio": "0.29 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.36 : 1",
+      "competition_ratio": "0.36 : 1"
     },
     {
       "id": 68,
@@ -29745,10 +29745,10 @@
       "table_title": "정원내 특성화고 전형 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.60 : 1",
-      "competition_ratio": "0.60 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "0.80 : 1",
+      "competition_ratio": "0.80 : 1"
     },
     {
       "id": 68,
@@ -29870,10 +29870,10 @@
       "table_title": "정원내 특성화고 전형 경쟁률 현황",
       "recruit_num": "6",
       "admission_count": "6",
-      "applicant_num": "5",
-      "applicant_count": "5",
-      "competition_rate": "0.83 : 1",
-      "competition_ratio": "0.83 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "1.00 : 1",
+      "competition_ratio": "1.00 : 1"
     },
     {
       "id": 68,
@@ -29895,10 +29895,10 @@
       "table_title": "정원내 특성화고 전형 경쟁률 현황",
       "recruit_num": "5",
       "admission_count": "5",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.20 : 1",
-      "competition_ratio": "0.20 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.40 : 1",
+      "competition_ratio": "0.40 : 1"
     },
     {
       "id": 68,
@@ -30245,10 +30245,10 @@
       "table_title": "정원내 특성화고 전형 경쟁률 현황",
       "recruit_num": "14",
       "admission_count": "14",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.07 : 1",
-      "competition_ratio": "0.07 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.21 : 1",
+      "competition_ratio": "0.21 : 1"
     },
     {
       "id": 68,
@@ -30395,10 +30395,10 @@
       "table_title": "정원내 특성화고 전형 경쟁률 현황",
       "recruit_num": "4",
       "admission_count": "4",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "1.50 : 1",
-      "competition_ratio": "1.50 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "1.75 : 1",
+      "competition_ratio": "1.75 : 1"
     },
     {
       "id": 68,
@@ -30570,10 +30570,10 @@
       "table_title": "정원내 협약을 통한 연계교육 전형 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.33 : 1",
+      "competition_ratio": "0.33 : 1"
     },
     {
       "id": 68,
@@ -31395,10 +31395,10 @@
       "table_title": "정원외 전문대학 이상 졸업자 전형 경쟁률 현황",
       "recruit_num": "12",
       "admission_count": "12",
-      "applicant_num": "28",
-      "applicant_count": "28",
-      "competition_rate": "2.33 : 1",
-      "competition_ratio": "2.33 : 1"
+      "applicant_num": "30",
+      "applicant_count": "30",
+      "competition_rate": "2.50 : 1",
+      "competition_ratio": "2.50 : 1"
     },
     {
       "id": 68,
@@ -32395,10 +32395,10 @@
       "table_title": "정원외 기초생활수급자 및 차상위계층 전형 경쟁률 현황",
       "recruit_num": "2",
       "admission_count": "2",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.50 : 1",
-      "competition_ratio": "0.50 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "1.00 : 1",
+      "competition_ratio": "1.00 : 1"
     },
     {
       "id": 68,
@@ -34595,10 +34595,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "50",
       "admission_count": "50",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.12 : 1",
-      "competition_ratio": "0.12 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.14 : 1",
+      "competition_ratio": "0.14 : 1"
     },
     {
       "id": 55,
@@ -34670,10 +34670,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "50",
       "admission_count": "50",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.06 : 1",
-      "competition_ratio": "0.06 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.08 : 1",
+      "competition_ratio": "0.08 : 1"
     },
     {
       "id": 55,
@@ -34720,10 +34720,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "41",
       "admission_count": "41",
-      "applicant_num": "13",
-      "applicant_count": "13",
-      "competition_rate": "0.32 : 1",
-      "competition_ratio": "0.32 : 1"
+      "applicant_num": "15",
+      "applicant_count": "15",
+      "competition_rate": "0.37 : 1",
+      "competition_ratio": "0.37 : 1"
     },
     {
       "id": 55,
@@ -34745,10 +34745,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "49",
       "admission_count": "49",
-      "applicant_num": "12",
-      "applicant_count": "12",
-      "competition_rate": "0.24 : 1",
-      "competition_ratio": "0.24 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "0.27 : 1",
+      "competition_ratio": "0.27 : 1"
     },
     {
       "id": 55,
@@ -34795,10 +34795,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "51",
       "admission_count": "51",
-      "applicant_num": "8",
-      "applicant_count": "8",
-      "competition_rate": "0.16 : 1",
-      "competition_ratio": "0.16 : 1"
+      "applicant_num": "9",
+      "applicant_count": "9",
+      "competition_rate": "0.18 : 1",
+      "competition_ratio": "0.18 : 1"
     },
     {
       "id": 55,
@@ -34920,10 +34920,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "46",
       "admission_count": "46",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.09 : 1",
-      "competition_ratio": "0.09 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "0.13 : 1",
+      "competition_ratio": "0.13 : 1"
     },
     {
       "id": 55,
@@ -35045,10 +35045,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "40",
       "admission_count": "40",
-      "applicant_num": "5",
-      "applicant_count": "5",
-      "competition_rate": "0.13 : 1",
-      "competition_ratio": "0.13 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "0.15 : 1",
+      "competition_ratio": "0.15 : 1"
     },
     {
       "id": 55,
@@ -35070,10 +35070,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "42",
       "admission_count": "42",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.10 : 1",
-      "competition_ratio": "0.10 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.12 : 1",
+      "competition_ratio": "0.12 : 1"
     },
     {
       "id": 55,
@@ -35095,10 +35095,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "92",
       "admission_count": "92",
-      "applicant_num": "295",
-      "applicant_count": "295",
-      "competition_rate": "3.21 : 1",
-      "competition_ratio": "3.21 : 1"
+      "applicant_num": "308",
+      "applicant_count": "308",
+      "competition_rate": "3.35 : 1",
+      "competition_ratio": "3.35 : 1"
     },
     {
       "id": 55,
@@ -35370,10 +35370,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "13",
       "admission_count": "13",
-      "applicant_num": "12",
-      "applicant_count": "12",
-      "competition_rate": "0.92 : 1",
-      "competition_ratio": "0.92 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "1.00 : 1",
+      "competition_ratio": "1.00 : 1"
     },
     {
       "id": 55,
@@ -35445,10 +35445,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "22",
       "admission_count": "22",
-      "applicant_num": "7",
-      "applicant_count": "7",
-      "competition_rate": "0.32 : 1",
-      "competition_ratio": "0.32 : 1"
+      "applicant_num": "8",
+      "applicant_count": "8",
+      "competition_rate": "0.36 : 1",
+      "competition_ratio": "0.36 : 1"
     },
     {
       "id": 55,
@@ -35495,10 +35495,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.27 : 1",
-      "competition_ratio": "0.27 : 1"
+      "applicant_num": "5",
+      "applicant_count": "5",
+      "competition_rate": "0.33 : 1",
+      "competition_ratio": "0.33 : 1"
     },
     {
       "id": 55,
@@ -35745,10 +35745,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "16",
       "admission_count": "16",
-      "applicant_num": "10",
-      "applicant_count": "10",
-      "competition_rate": "0.63 : 1",
-      "competition_ratio": "0.63 : 1"
+      "applicant_num": "11",
+      "applicant_count": "11",
+      "competition_rate": "0.69 : 1",
+      "competition_ratio": "0.69 : 1"
     },
     {
       "id": 55,
@@ -35795,10 +35795,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "11",
       "admission_count": "11",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.27 : 1",
-      "competition_ratio": "0.27 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.36 : 1",
+      "competition_ratio": "0.36 : 1"
     },
     {
       "id": 55,
@@ -35820,10 +35820,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "8",
       "admission_count": "8",
-      "applicant_num": "28",
-      "applicant_count": "28",
-      "competition_rate": "3.50 : 1",
-      "competition_ratio": "3.50 : 1"
+      "applicant_num": "29",
+      "applicant_count": "29",
+      "competition_rate": "3.63 : 1",
+      "competition_ratio": "3.63 : 1"
     },
     {
       "id": 55,
@@ -35870,10 +35870,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "12",
       "admission_count": "12",
-      "applicant_num": "11",
-      "applicant_count": "11",
-      "competition_rate": "0.92 : 1",
-      "competition_ratio": "0.92 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "1.08 : 1",
+      "competition_ratio": "1.08 : 1"
     },
     {
       "id": 55,
@@ -35895,10 +35895,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "10",
       "admission_count": "10",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.10 : 1",
-      "competition_ratio": "0.10 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.20 : 1",
+      "competition_ratio": "0.20 : 1"
     },
     {
       "id": 55,
@@ -36020,10 +36020,10 @@
       "table_title": "특기자(어학) 경쟁률 현황",
       "recruit_num": "12",
       "admission_count": "12",
-      "applicant_num": "23",
-      "applicant_count": "23",
-      "competition_rate": "1.92 : 1",
-      "competition_ratio": "1.92 : 1"
+      "applicant_num": "25",
+      "applicant_count": "25",
+      "competition_rate": "2.08 : 1",
+      "competition_ratio": "2.08 : 1"
     },
     {
       "id": 55,
@@ -36295,10 +36295,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "19",
       "admission_count": "19",
-      "applicant_num": "0",
-      "applicant_count": "0",
-      "competition_rate": "0.00 : 1",
-      "competition_ratio": "0.00 : 1"
+      "applicant_num": "1",
+      "applicant_count": "1",
+      "competition_rate": "0.05 : 1",
+      "competition_ratio": "0.05 : 1"
     },
     {
       "id": 69,
@@ -36320,10 +36320,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "21",
       "admission_count": "21",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.05 : 1",
-      "competition_ratio": "0.05 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.10 : 1",
+      "competition_ratio": "0.10 : 1"
     },
     {
       "id": 69,
@@ -36345,10 +36345,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "15",
       "admission_count": "15",
-      "applicant_num": "2",
-      "applicant_count": "2",
-      "competition_rate": "0.13 : 1",
-      "competition_ratio": "0.13 : 1"
+      "applicant_num": "3",
+      "applicant_count": "3",
+      "competition_rate": "0.20 : 1",
+      "competition_ratio": "0.20 : 1"
     },
     {
       "id": 69,
@@ -36595,10 +36595,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "19",
       "admission_count": "19",
-      "applicant_num": "4",
-      "applicant_count": "4",
-      "competition_rate": "0.21 : 1",
-      "competition_ratio": "0.21 : 1"
+      "applicant_num": "6",
+      "applicant_count": "6",
+      "competition_rate": "0.32 : 1",
+      "competition_ratio": "0.32 : 1"
     },
     {
       "id": 69,
@@ -36645,10 +36645,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "16",
       "admission_count": "16",
-      "applicant_num": "6",
-      "applicant_count": "6",
-      "competition_rate": "0.38 : 1",
-      "competition_ratio": "0.38 : 1"
+      "applicant_num": "7",
+      "applicant_count": "7",
+      "competition_rate": "0.44 : 1",
+      "competition_ratio": "0.44 : 1"
     },
     {
       "id": 69,
@@ -36670,10 +36670,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "28",
       "admission_count": "28",
-      "applicant_num": "14",
-      "applicant_count": "14",
-      "competition_rate": "0.50 : 1",
-      "competition_ratio": "0.50 : 1"
+      "applicant_num": "15",
+      "applicant_count": "15",
+      "competition_rate": "0.54 : 1",
+      "competition_ratio": "0.54 : 1"
     },
     {
       "id": 69,
@@ -36695,10 +36695,10 @@
       "table_title": "일반고전형 경쟁률 현황",
       "recruit_num": "22",
       "admission_count": "22",
-      "applicant_num": "3",
-      "applicant_count": "3",
-      "competition_rate": "0.14 : 1",
-      "competition_ratio": "0.14 : 1"
+      "applicant_num": "4",
+      "applicant_count": "4",
+      "competition_rate": "0.18 : 1",
+      "competition_ratio": "0.18 : 1"
     },
     {
       "id": 69,
@@ -37445,10 +37445,10 @@
       "table_title": "특기자전형 경쟁률 현황",
       "recruit_num": "3",
       "admission_count": "3",
-      "applicant_num": "1",
-      "applicant_count": "1",
-      "competition_rate": "0.33 : 1",
-      "competition_ratio": "0.33 : 1"
+      "applicant_num": "2",
+      "applicant_count": "2",
+      "competition_rate": "0.67 : 1",
+      "competition_ratio": "0.67 : 1"
     },
     {
       "id": 69,
@@ -37695,8 +37695,8 @@
       "table_title": "전문대졸이상졸업자전형 경쟁률 현황",
       "recruit_num": "",
       "admission_count": "",
-      "applicant_num": "6",
-      "applicant_count": "6",
+      "applicant_num": "9",
+      "applicant_count": "9",
       "competition_rate": "",
       "competition_ratio": ""
     },
@@ -204677,5 +204677,5 @@
     }
   ],
   "total": 8187,
-  "exported_at": "2026-09-07T15:08:39"
+  "exported_at": "2026-09-07T15:26:12"
 }
