@@ -679,6 +679,31 @@ function getUnivPeriodSummary(univName, year, adm = 'ALL') {
         }
       }
     }
+
+    // 전형별 요약 테이블이 누락/불완전하여 학과별 합계보다 현저히 적은 경우(예: 인하공전 과거년도 특기자만 요약된 경우) 대비 검증
+    let deptInAc = 0, deptInAp = 0, deptOutAc = 0, deptOutAp = 0;
+    for (const r of recs) {
+      if (String(r.table_title || '').includes('전형별')) continue;
+      const deptName = String(r.dept || '').trim();
+      if (['총계', '합계', '전체'].some(w => deptName.includes(w))) continue;
+      const isOut = isOutsideRow(r);
+      const ac = parseNum(r.recruit_num || r.admission_count);
+      const ap = parseNum(r.applicant_num || r.applicant_count);
+      if (isOut) {
+        deptOutAc += ac;
+        deptOutAp += ap;
+      } else {
+        deptInAc += ac;
+        deptInAp += ap;
+      }
+    }
+
+    if (deptInAp > 0 && inAp < deptInAp * 0.7) {
+      inAc = deptInAc;
+      inAp = deptInAp;
+      outAc = deptOutAc;
+      outAp = deptOutAp;
+    }
   } else {
     // 학과별 원시 레코드 기준 집계
     for (const r of recs) {
@@ -1600,6 +1625,7 @@ function renderInhaBoardContainer(tabHeaderHtml) {
             </tr>
           </thead>
           <tbody id="inhaBoardTbody"></tbody>
+          <tfoot id="inhaBoardTfoot" style="position:sticky;bottom:0;background:#f8fafc;font-weight:bold;z-index:2;border-top:2px solid #cbd5e1;"></tfoot>
         </table>
       </div>
     </div>
@@ -1624,7 +1650,7 @@ function handleInhaYearChange() {
 }
 
 function updateInhaTableTitles() {
-  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2026';
+  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2027';
   const adm = document.getElementById('inhaAdm') ? document.getElementById('inhaAdm').value : '수시1차';
   const ttSelect = document.getElementById('inhaTableTitle');
   if (!ttSelect) return;
@@ -1643,8 +1669,8 @@ function updateInhaTableTitles() {
 }
 
 function updateInhaBoard(initial = false) {
-  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2026';
-  const prevY = document.getElementById('inhaPrevYear') ? document.getElementById('inhaPrevYear').value : '2025';
+  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2027';
+  const prevY = document.getElementById('inhaPrevYear') ? document.getElementById('inhaPrevYear').value : '2026';
   const adm = document.getElementById('inhaAdm') ? document.getElementById('inhaAdm').value : '수시1차';
   const ttFilter = document.getElementById('inhaTableTitle') ? document.getElementById('inhaTableTitle').value : 'ALL';
 
@@ -1657,70 +1683,7 @@ function updateInhaBoard(initial = false) {
     prevUnivs = prevUnivs.filter(u => (u.admission_type || u.adm_type) === adm);
   }
 
-  // 1. KPI 총계 계산: 전형별 요약 테이블이 있으면 요약 테이블 기준, 없으면 학과 행 합산
-  function calcSummaryTotals(univList) {
-    const sumRows = univList.filter(u => String(u.table_title || '').includes('전형별'));
-    const target = sumRows.length ? sumRows : univList.filter(u => !String(u.table_title || '').includes('전형별'));
-    let ac = 0, ap = 0;
-    target.forEach(u => {
-      ac += parseInt(String(u.admission_count || u.recruit_num || '0').replace(/,/g, '')) || 0;
-      ap += parseInt(String(u.applicant_count || u.applicant_num || '0').replace(/,/g, '')) || 0;
-    });
-    return { ac, ap, rt: ac > 0 ? (ap / ac) : 0 };
-  }
-
-  const curTot = calcSummaryTotals(curUnivs);
-  const prevTot = calcSummaryTotals(prevUnivs);
-
-  // KPI UI 업데이트
-  const diffAp = curTot.ap - prevTot.ap;
-  const diffAc = curTot.ac - prevTot.ac;
-  const diffRt = curTot.rt - prevTot.rt;
-  const fillRateVal = prevTot.ap > 0 ? ((curTot.ap / prevTot.ap) * 100) : (curTot.ap > 0 ? 100 : 0);
-  const fillRateStr = prevTot.ap > 0 ? fillRateVal.toFixed(1) + '%' : (curTot.ap > 0 ? '신규 (100+%)' : '0.0%');
-
-  if (document.getElementById('kpiFillRate')) {
-    document.getElementById('kpiFillRate').textContent = fillRateStr;
-    document.getElementById('kpiFillRateSub').textContent = `당해 ${curTot.ap.toLocaleString()}명 / 전년 ${prevTot.ap.toLocaleString()}명`;
-    const barWidth = Math.min(Math.max(fillRateVal, 0), 100);
-    document.getElementById('kpiProgressBar').style.width = barWidth + '%';
-  }
-
-  if (document.getElementById('kpiCurApplicant')) {
-    document.getElementById('kpiCurApplicant').textContent = `${curTot.ap.toLocaleString()}명`;
-    const diffApEl = document.getElementById('kpiDiffApplicant');
-    if (diffAp > 0) {
-      diffApEl.innerHTML = `<span style="color:#059669;">▲ +${diffAp.toLocaleString()}명 (${prevTot.ap > 0 ? '+' + ((diffAp/prevTot.ap)*100).toFixed(1) + '%' : ''})</span>`;
-    } else if (diffAp < 0) {
-      diffApEl.innerHTML = `<span style="color:#dc2626;">▼ ${diffAp.toLocaleString()}명 (${prevTot.ap > 0 ? ((diffAp/prevTot.ap)*100).toFixed(1) + '%' : ''})</span>`;
-    } else {
-      diffApEl.innerHTML = `<span style="color:var(--text-secondary);">- 전년 동일</span>`;
-    }
-  }
-
-  if (document.getElementById('kpiCurRecruit')) {
-    document.getElementById('kpiCurRecruit').textContent = `${curTot.ac.toLocaleString()}명`;
-    const diffAcEl = document.getElementById('kpiDiffRecruit');
-    if (diffAc !== 0) {
-      diffAcEl.textContent = `전년 ${prevTot.ac.toLocaleString()}명 (${diffAc > 0 ? '+' + diffAc : diffAc}명)`;
-    } else {
-      diffAcEl.textContent = `전년 ${prevTot.ac.toLocaleString()}명 (동일)`;
-    }
-  }
-
-  if (document.getElementById('kpiCurRatio')) {
-    document.getElementById('kpiCurRatio').textContent = `${curTot.rt.toFixed(2)} : 1`;
-    const diffRtEl = document.getElementById('kpiDiffRatio');
-    if (diffRt > 0) {
-      diffRtEl.innerHTML = `<span style="color:#059669;">▲ +${diffRt.toFixed(2)}p (전년 ${prevTot.rt.toFixed(2)}:1)</span>`;
-    } else if (diffRt < 0) {
-      diffRtEl.innerHTML = `<span style="color:#dc2626;">▼ ${diffRt.toFixed(2)}p (전년 ${prevTot.rt.toFixed(2)}:1)</span>`;
-    } else {
-      diffRtEl.innerHTML = `<span style="color:var(--text-secondary);">- 전년 ${prevTot.rt.toFixed(2)}:1 (동일)</span>`;
-    }
-  }
-
-  // 2. 학과별 상세 행 데이터 구축 (2026 -> 2027 학과명 변경 매핑 적용)
+  // 1. 학과별 상세 행 데이터 구축 (2026 -> 2027 학과명 변경 매핑 적용)
   let curDepts = curUnivs.filter(u => !String(u.table_title || '').includes('전형별'));
   let prevDepts = prevUnivs.filter(u => !String(u.table_title || '').includes('전형별'));
 
@@ -1780,6 +1743,69 @@ function updateInhaBoard(initial = false) {
   });
 
   INHA_BOARD_CACHE = Array.from(deptMap.values());
+
+  // 2. KPI 총계 계산: 현재 선택된 전형 구분 필터 내 학과별 실제 모집인원 및 지원자수 합산
+  let curAcTotal = 0, curApTotal = 0;
+  let prevAcTotal = 0, prevApTotal = 0;
+
+  INHA_BOARD_CACHE.forEach(item => {
+    curAcTotal += item.curAc;
+    curApTotal += item.curAp;
+    prevAcTotal += item.prevAc;
+    prevApTotal += item.prevAp;
+  });
+
+  const curTot = { ac: curAcTotal, ap: curApTotal, rt: curAcTotal > 0 ? (curApTotal / curAcTotal) : 0 };
+  const prevTot = { ac: prevAcTotal, ap: prevApTotal, rt: prevAcTotal > 0 ? (prevApTotal / prevAcTotal) : 0 };
+
+  // KPI UI 업데이트
+  const diffAp = curTot.ap - prevTot.ap;
+  const diffAc = curTot.ac - prevTot.ac;
+  const diffRt = curTot.rt - prevTot.rt;
+  const fillRateVal = prevTot.ap > 0 ? ((curTot.ap / prevTot.ap) * 100) : (curTot.ap > 0 ? 100 : 0);
+  const fillRateStr = prevTot.ap > 0 ? fillRateVal.toFixed(1) + '%' : (curTot.ap > 0 ? '신규 (100+%)' : '0.0%');
+
+  if (document.getElementById('kpiFillRate')) {
+    document.getElementById('kpiFillRate').textContent = fillRateStr;
+    document.getElementById('kpiFillRateSub').textContent = `당해 ${curTot.ap.toLocaleString()}명 / 전년 ${prevTot.ap.toLocaleString()}명`;
+    const barWidth = Math.min(Math.max(fillRateVal, 0), 100);
+    document.getElementById('kpiProgressBar').style.width = barWidth + '%';
+  }
+
+  if (document.getElementById('kpiCurApplicant')) {
+    document.getElementById('kpiCurApplicant').textContent = `${curTot.ap.toLocaleString()}명`;
+    const diffApEl = document.getElementById('kpiDiffApplicant');
+    if (diffAp > 0) {
+      diffApEl.innerHTML = `<span style="color:#059669;">▲ +${diffAp.toLocaleString()}명 (${prevTot.ap > 0 ? '+' + ((diffAp/prevTot.ap)*100).toFixed(1) + '%' : ''})</span>`;
+    } else if (diffAp < 0) {
+      diffApEl.innerHTML = `<span style="color:#dc2626;">▼ ${diffAp.toLocaleString()}명 (${prevTot.ap > 0 ? ((diffAp/prevTot.ap)*100).toFixed(1) + '%' : ''})</span>`;
+    } else {
+      diffApEl.innerHTML = `<span style="color:var(--text-secondary);">- 전년 동일</span>`;
+    }
+  }
+
+  if (document.getElementById('kpiCurRecruit')) {
+    document.getElementById('kpiCurRecruit').textContent = `${curTot.ac.toLocaleString()}명`;
+    const diffAcEl = document.getElementById('kpiDiffRecruit');
+    if (diffAc !== 0) {
+      diffAcEl.textContent = `전년 ${prevTot.ac.toLocaleString()}명 (${diffAc > 0 ? '+' + diffAc : diffAc}명)`;
+    } else {
+      diffAcEl.textContent = `전년 ${prevTot.ac.toLocaleString()}명 (동일)`;
+    }
+  }
+
+  if (document.getElementById('kpiCurRatio')) {
+    document.getElementById('kpiCurRatio').textContent = `${curTot.rt.toFixed(2)} : 1`;
+    const diffRtEl = document.getElementById('kpiDiffRatio');
+    if (diffRt > 0) {
+      diffRtEl.innerHTML = `<span style="color:#059669;">▲ +${diffRt.toFixed(2)}p (전년 ${prevTot.rt.toFixed(2)}:1)</span>`;
+    } else if (diffRt < 0) {
+      diffRtEl.innerHTML = `<span style="color:#dc2626;">▼ ${diffRt.toFixed(2)}p (전년 ${prevTot.rt.toFixed(2)}:1)</span>`;
+    } else {
+      diffRtEl.innerHTML = `<span style="color:var(--text-secondary);">- 전년 ${prevTot.rt.toFixed(2)}:1 (동일)</span>`;
+    }
+  }
+
   renderInhaBoardTable();
 }
 
@@ -1787,6 +1813,7 @@ function renderInhaBoardTable() {
   const keyword = (document.getElementById('inhaDeptSearch') ? document.getElementById('inhaDeptSearch').value : '').trim().toLowerCase();
   const viewDeptOnly = document.getElementById('inhaViewDeptOnly') ? document.getElementById('inhaViewDeptOnly').checked : true;
   const tbody = document.getElementById('inhaBoardTbody');
+  const tfoot = document.getElementById('inhaBoardTfoot');
   if (!tbody) return;
 
   let displayRows = [];
@@ -1844,6 +1871,7 @@ function renderInhaBoardTable() {
 
   if (!displayRows.length) {
     tbody.innerHTML = `<tr><td colspan="12" style="text-align:center;padding:2rem;color:var(--text-secondary);">일치하는 학과 데이터가 없습니다.</td></tr>`;
+    if (tfoot) tfoot.innerHTML = '';
     return;
   }
 
@@ -1908,6 +1936,71 @@ function renderInhaBoardTable() {
   });
 
   tbody.innerHTML = html;
+
+  // 하단 고정 합계행(tfoot) 렌더링
+  if (tfoot) {
+    let totCurAc = 0, totCurAp = 0, totPrevAc = 0, totPrevAp = 0;
+    displayRows.forEach(r => {
+      totCurAc += r.curAc;
+      totCurAp += r.curAp;
+      totPrevAc += r.prevAc;
+      totPrevAp += r.prevAp;
+    });
+
+    const totCurRt = totCurAc > 0 ? (totCurAp / totCurAc) : 0;
+    const totPrevRt = totPrevAc > 0 ? (totPrevAp / totPrevAc) : 0;
+    const totDiffAp = totCurAp - totPrevAp;
+    const totDiffRt = totCurRt - totPrevRt;
+    const totFillRate = totPrevAp > 0 ? ((totCurAp / totPrevAp) * 100) : (totCurAp > 0 ? 9999 : null);
+
+    let totDiffApHtml = '-';
+    if (totDiffAp > 0) {
+      totDiffApHtml = `<span style="color:#059669;font-weight:800;">+${totDiffAp.toLocaleString()}명</span>`;
+    } else if (totDiffAp < 0) {
+      totDiffApHtml = `<span style="color:#dc2626;font-weight:800;">${totDiffAp.toLocaleString()}명</span>`;
+    } else {
+      totDiffApHtml = `<span style="color:var(--text-secondary);">0명</span>`;
+    }
+
+    let totDiffRtHtml = '-';
+    if (totDiffRt > 0) {
+      totDiffRtHtml = `<span style="color:#059669;font-weight:800;">+${totDiffRt.toFixed(2)}p</span>`;
+    } else if (totDiffRt < 0) {
+      totDiffRtHtml = `<span style="color:#dc2626;font-weight:800;">${totDiffRt.toFixed(2)}p</span>`;
+    } else {
+      totDiffRtHtml = `<span style="color:var(--text-secondary);">0.00p</span>`;
+    }
+
+    let totFillRateHtml = '-';
+    if (totFillRate !== null) {
+      if (totFillRate === 9999) {
+        totFillRateHtml = `<span style="background:#ecfdf5;color:#065f46;padding:0.18rem 0.5rem;border-radius:0.35rem;font-weight:800;font-size:0.85rem;">신규 (100%+)</span>`;
+      } else {
+        const isOver = totFillRate >= 100;
+        const color = isOver ? '#059669' : '#6b21a8';
+        const bg = isOver ? '#ecfdf5' : '#f3e8ff';
+        const border = isOver ? '#a7f3d0' : '#d8b4fe';
+        totFillRateHtml = `<span style="background:${bg};color:${color};border:1px solid ${border};padding:0.18rem 0.5rem;border-radius:0.35rem;font-weight:900;font-size:0.85rem;">${totFillRate.toFixed(1)}%</span>`;
+      }
+    }
+
+    tfoot.innerHTML = `
+      <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;box-shadow:0 -2px 6px rgba(0,0,0,0.04);">
+        <td style="text-align:center;color:#475569;">총계</td>
+        <td style="color:#1e1b4b;font-weight:800;">전체 합계 (${displayRows.length}개 ${viewDeptOnly ? '학과' : '항목'})</td>
+        ${!viewDeptOnly ? `<td style="color:#64748b;">-</td>` : ''}
+        <td style="text-align:right;font-weight:800;color:#0f172a;">${totCurAc ? totCurAc.toLocaleString() : '-'}</td>
+        <td style="text-align:right;font-weight:900;color:#1d4ed8;">${totCurAp.toLocaleString()}</td>
+        <td style="text-align:right;font-weight:900;color:#7c3aed;">${totCurAc > 0 ? totCurRt.toFixed(2) + ' : 1' : '-'}</td>
+        <td style="text-align:right;color:#475569;background:#e2e8f0;font-weight:700;">${totPrevAc ? totPrevAc.toLocaleString() : '-'}</td>
+        <td style="text-align:right;color:#475569;background:#e2e8f0;font-weight:800;">${totPrevAp ? totPrevAp.toLocaleString() : '-'}</td>
+        <td style="text-align:right;color:#475569;background:#e2e8f0;font-weight:700;">${totPrevAc > 0 ? totPrevRt.toFixed(2) + ' : 1' : '-'}</td>
+        <td style="text-align:right;">${totDiffApHtml}</td>
+        <td style="text-align:right;">${totDiffRtHtml}</td>
+        <td style="text-align:right;background:#faf5ff;">${totFillRateHtml}</td>
+      </tr>
+    `;
+  }
 }
 
 function exportInhaBoardExcel() {
@@ -1915,8 +2008,8 @@ function exportInhaBoardExcel() {
     alert('내보낼 인하공업전문대학 데이터가 없습니다.');
     return;
   }
-  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2026';
-  const prevY = document.getElementById('inhaPrevYear') ? document.getElementById('inhaPrevYear').value : '2025';
+  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2027';
+  const prevY = document.getElementById('inhaPrevYear') ? document.getElementById('inhaPrevYear').value : '2026';
   const adm = document.getElementById('inhaAdm') ? document.getElementById('inhaAdm').value : '수시1차';
   const viewDeptOnly = document.getElementById('inhaViewDeptOnly') ? document.getElementById('inhaViewDeptOnly').checked : true;
 
