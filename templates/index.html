@@ -274,7 +274,7 @@
         <button id="btnStopPeriodicScrape" class="btn btn-secondary" style="display:none;flex:1.4;min-width:140px;padding:0.75rem;justify-content:center;background:#dc2626;color:#fff;border:none;font-weight:700;font-size:0.92rem;box-shadow:0 3px 8px rgba(220,38,38,0.35);cursor:pointer;" onclick="stopPeriodicScraping('manual')">
           ⏹️ 스크래핑 멈춤
         </button>
-        <button id="btnOnceScrape" class="btn btn-secondary" style="flex:1.2;min-width:150px;padding:0.75rem;justify-content:center;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;" onclick="startBatchScrapingEngine(true)">
+        <button id="btnOnceScrape" class="btn btn-secondary" style="flex:1.2;min-width:150px;padding:0.75rem;justify-content:center;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;" onclick="refreshLatestDataWithFeedback(this)">
           ⚡ 1회 즉시 스크래핑
         </button>
       </div>
@@ -5473,25 +5473,47 @@ function showToast(message, type = 'info', duration = 3500) {
 }
 
 async function refreshLatestDataWithFeedback(btn = null) {
-  const targetBtn = btn || document.getElementById('hnav_refresh') || document.getElementById('qnav_refresh_side');
-  let originalHtml = '';
-  if (targetBtn) {
-    originalHtml = targetBtn.innerHTML;
-    targetBtn.disabled = true;
-    targetBtn.innerHTML = '<span class="spin-animation">🔄</span> 실시간 스크래핑 중...';
-  }
+  const refreshBtns = [
+    btn,
+    document.getElementById('hnav_refresh'),
+    document.getElementById('qnav_refresh_side'),
+    document.getElementById('btnOnceScrape')
+  ].filter(Boolean);
+
+  const origTexts = new Map();
+  refreshBtns.forEach(b => {
+    origTexts.set(b, b.innerHTML);
+    b.disabled = true;
+    b.innerHTML = '<span class="spin-animation">🔄</span> 실시간 스크래핑 중...';
+  });
+
   showLoading(true);
-  showToast('⚡ [실시간 1회 즉시 스크래핑] 대학별 최신 경쟁률을 수집하여 DB에 갱신 중입니다...', 'info', 4000);
+  showToast('⚡ [실시간 1회 즉시 스크래핑] 등록 대학들의 최신 경쟁률 페이지를 실시간 수집하여 DB에 영구 반영 중입니다...', 'info', 6000);
+
+  if (typeof appendEngineLog === 'function') {
+    appendEngineLog('🚀 [실시간 1회 즉시 스크래핑] 최신 경쟁률 수집 및 DB 동기화를 시작합니다...', 'info');
+  }
 
   try {
-    // 1. 현재 화면에서 보고 있는 학년도/모집시기 감지 (기본값: 최신 2027학년도)
+    // 1. 현재 화면에서 보고 있는 학년도/모집시기 감지 (기본값: 최신 2027학년도 / 전체)
     let activeYear = '2027';
+    let activeAdm = 'ALL';
+
     if (typeof CURRENT_VIEW_YEAR !== 'undefined' && CURRENT_VIEW_YEAR) {
       activeYear = CURRENT_VIEW_YEAR;
     } else {
       const ySelect = document.getElementById('engineBatchYear') || document.getElementById('filterYear');
       if (ySelect && ySelect.value && ySelect.value !== 'ALL') {
         activeYear = ySelect.value;
+      }
+    }
+
+    if (typeof CURRENT_VIEW_ADM !== 'undefined' && CURRENT_VIEW_ADM) {
+      activeAdm = CURRENT_VIEW_ADM;
+    } else {
+      const aSelect = document.getElementById('engineBatchAdm') || document.getElementById('filterAdmission');
+      if (aSelect && aSelect.value && aSelect.value !== 'ALL') {
+        activeAdm = aSelect.value;
       }
     }
 
@@ -5503,26 +5525,37 @@ async function refreshLatestDataWithFeedback(btn = null) {
       const apiRes = await fetch(getApiEndpoint('/api/instant_scrape'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ year: activeYear, admission_type: 'ALL' })
+        body: JSON.stringify({
+          year: activeYear,
+          admission_type: activeAdm,
+          force: true
+        })
       });
+
       if (apiRes.ok) {
         const data = await apiRes.json();
         if (data.success) {
           scrapeSuccess = true;
           updatedCount = data.success_count || 0;
+          if (typeof appendEngineLog === 'function') {
+            appendEngineLog(`✔ [서버 스크래핑 완료] ${data.message || updatedCount + '개 대학 최신 수집 완료'}`, 'success');
+          }
         }
       }
     } catch (apiErr) {
       console.warn('[서버 즉시 스크래핑 API 호출 실패, 브라우저 스크래핑 엔진으로 대체]', apiErr);
     }
 
-    // 3. 서버 API 미지원/오류 시 브라우저 내장 스크래핑 엔진으로 1회 즉시 스크래핑 실행
+    // 3. 서버 API 실패 시 브라우저 내장 스크래핑 엔진으로 1회 즉시 스크래핑 실행 (Fallback)
     if (!scrapeSuccess) {
       const targetUnivs = ALL_UNIVS.filter(u => {
         const hasUrl = u.url && String(u.url).trim().startsWith('http');
         if (!hasUrl) return false;
         const uYear = String(u.year || '').trim();
-        return activeYear === 'ALL' || uYear === activeYear;
+        const uAdm = String(u.admission_type || u.adm_type || '').trim();
+        const matchYear = activeYear === 'ALL' || uYear === activeYear;
+        const matchAdm = activeAdm === 'ALL' || uAdm === activeAdm;
+        return matchYear && matchAdm;
       });
 
       if (targetUnivs.length > 0) {
@@ -5541,17 +5574,13 @@ async function refreshLatestDataWithFeedback(btn = null) {
                 adm_type: targetAdm,
                 capacity_type: targetCap,
                 cap_type: targetCap,
-                scraped_data: {
-                  title: parsed.title || '',
-                  parsed_departments: parsed.parsed_departments
-                },
+                scraped_data: parsed,
                 departments: parsed.parsed_departments
               };
-              // DB 실시간 반영
               await saveSingleUnivToDb(updatedRecord);
               clientSuccess++;
 
-              const remaining = updatedAll.filter(item => !(item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === targetAdm)));
+              const remaining = updatedAll.filter(item => !(item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === targetAdm && (item.capacity_type || item.cap_type) === targetCap)));
               remaining.unshift(updatedRecord);
               updatedAll.length = 0;
               updatedAll.push(...remaining);
@@ -5567,16 +5596,27 @@ async function refreshLatestDataWithFeedback(btn = null) {
 
     // 4. 최신 데이터 다시 로드 및 대시보드 화면 전체 재렌더링
     await reloadLatestData();
-    showToast(`✨ 실시간 1회 즉시 스크래핑 완료! (${updatedCount > 0 ? updatedCount + '개 대학' : '전체'} 최신 경쟁률이 DB에 업데이트되었습니다)`, 'success', 5000);
+    if (typeof loadAllUnivsFromDb === 'function') {
+      try { await loadAllUnivsFromDb(false); } catch (e) {}
+    }
+
+    const successMsg = updatedCount > 0
+      ? `✨ 실시간 1회 즉시 스크래핑 완료! (${updatedCount}개 대학 최신 경쟁률이 DB에 영구 반영되었습니다)`
+      : `✨ 실시간 1회 즉시 스크래핑 완료! (최신 경쟁률 데이터가 화면에 반영되었습니다)`;
+
+    showToast(successMsg, 'success', 5000);
+    if (typeof appendEngineLog === 'function') {
+      appendEngineLog(`🎉 [완료] 대시보드 데이터가 최신 상태로 갱신되었습니다.`, 'success');
+    }
   } catch (err) {
     console.error('[실시간 새로고침 스크래핑 오류]', err);
-    alert('실시간 스크래핑 중 오류가 발생했습니다: ' + err.message);
+    showToast('❌ 스크래핑 중 오류가 발생했습니다: ' + err.message, 'error', 5000);
   } finally {
     showLoading(false);
-    if (targetBtn) {
-      targetBtn.disabled = false;
-      targetBtn.innerHTML = originalHtml;
-    }
+    refreshBtns.forEach(b => {
+      b.disabled = false;
+      b.innerHTML = origTexts.get(b) || '🔄 새로고침';
+    });
   }
 }
 

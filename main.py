@@ -1732,6 +1732,7 @@ class InstantScrapeRequest(BaseModel):
     year: Optional[str] = "2027"
     admission_type: Optional[str] = "ALL"
     univ_name: Optional[str] = None
+    force: Optional[bool] = False
 
 _last_instant_scrape_time = 0
 
@@ -1744,8 +1745,10 @@ async def api_instant_scrape(request: Request, body: Optional[InstantScrapeReque
     global _last_instant_scrape_time
     import time
     now = time.time()
-    # 최소 3초 간격 방어 (단시간 연타 방지)
-    if now - _last_instant_scrape_time < 3:
+    force_run = body.force if body and body.force else False
+
+    # 1.5초 이내 단순 연타 방어 (단, force_run=True 시 무조건 실행)
+    if not force_run and (now - _last_instant_scrape_time < 1.5):
         return {
             "success": True,
             "message": "방금 전 최신 데이터가 스크래핑되었습니다.",
@@ -1787,13 +1790,9 @@ async def api_instant_scrape(request: Request, body: Optional[InstantScrapeReque
             clean_url = normalize_ratio_url(u.url)
             if clean_url != u.url:
                 u.url = clean_url
-            scraped = scrape_university_data(clean_url)
-            if scraped and scraped.get("parsed_departments"):
-                clean_scraped = {
-                    "title": scraped.get("title", ""),
-                    "parsed_departments": scraped.get("parsed_departments", [])
-                }
-                u.scraped_data = json.dumps(clean_scraped)
+            scraped = await asyncio.to_thread(scrape_university_data, clean_url)
+            if scraped and (scraped.get("tables_html") or scraped.get("parsed_departments")):
+                u.scraped_data = json.dumps(scraped)
                 db.commit()
                 save_departments(db, u.id, scraped.get("parsed_departments", []))
                 success_cnt += 1
@@ -1816,7 +1815,7 @@ async def api_instant_scrape(request: Request, body: Optional[InstantScrapeReque
         "success_count": success_cnt,
         "fail_count": fail_cnt,
         "results": results,
-        "message": f"실시간 1회 즉시 스크래핑 완료: {success_cnt}개 대학 DB 업데이트 성공"
+        "message": f"실시간 1회 즉시 스크래핑 완료: {success_cnt}개 대학 최신 경쟁률 DB 및 파일 갱신 성공"
     }
 
 @app.post("/api/deploy_github")
