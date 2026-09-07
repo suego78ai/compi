@@ -118,6 +118,7 @@
     .url-link-item{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.8rem;background:#f8fafc;border:1px solid var(--border-color);border-radius:0.5rem;margin-bottom:0.4rem;font-size:0.88rem;}
     @keyframes pulse-dot{0%{transform:scale(0.95);opacity:0.8;}50%{transform:scale(1.2);opacity:1;}100%{transform:scale(0.95);opacity:0.8;}}
     .pulse-dot{animation:pulse-dot 1.5s infinite ease-in-out;}
+    .spin-animation{display:inline-block;animation:spin 0.8s linear infinite;}
   </style>
 </head>
 <body>
@@ -481,6 +482,7 @@
         <input type="text" id="searchInput" placeholder="학과명 / 대학명 검색..." oninput="handleSearch(this.value, true)">
         <button class="btn btn-secondary" onclick="clearSearch()" title="검색어 지우기">✕</button>
       </div>
+      <button class="btn btn-secondary header-nav-btn" id="hnav_refresh" onclick="refreshLatestDataWithFeedback(this)" title="최신 실시간 경쟁률 데이터 새로고침" style="color:var(--primary-color);font-weight:700;">🔄 새로고침</button>
       <button class="btn btn-secondary header-nav-btn" id="hnav_query" onclick="showQueryBuilder(true)">🔎 상세 쿼리</button>
       <!-- <button class="btn btn-secondary header-nav-btn" id="hnav_report" onclick="showReportBuilder(false, true)">📊 비교 리포트</button> -->
       <button class="btn btn-secondary header-nav-btn" id="hnav_realtime" onclick="showRealtimeReportBuilder(true)">📊 입시결과</button>
@@ -496,7 +498,10 @@
   <div class="dashboard-grid">
     <aside class="left-col">
       <div class="glass-card">
-        <div class="card-header"><h2>📂 등록 대학 대시보드</h2></div>
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+          <h2>📂 등록 대학 대시보드</h2>
+          <button onclick="refreshLatestDataWithFeedback(this)" class="btn btn-secondary" style="font-size:0.75rem;padding:0.25rem 0.55rem;font-weight:700;" title="최신 데이터 다시 불러오기">🔄 새로고침</button>
+        </div>
         <div class="tree-container" id="treeContainer">
           <p style="color:var(--text-secondary);text-align:center;padding:1.5rem 0;">데이터 로딩 중...</p>
         </div>
@@ -505,6 +510,7 @@
         <div class="card-header"><h2>⚡ 빠른 탐색 메뉴</h2></div>
         <div style="display:flex;flex-direction:column;gap:0.6rem;">
           <button class="btn btn-secondary quick-nav-btn" id="qnav_home" style="width:100%;justify-content:flex-start;" onclick="showHome(true, null, null, 'insights')">🏠 메인 대시보드</button>
+          <button class="btn btn-secondary quick-nav-btn" id="qnav_refresh_side" style="width:100%;justify-content:flex-start;color:var(--primary-color);font-weight:700;" onclick="refreshLatestDataWithFeedback(this)">🔄 실시간 데이터 새로고침</button>
           <button class="btn btn-secondary quick-nav-btn" id="qnav_inha" style="width:100%;justify-content:flex-start;color:#6b21a8;font-weight:700;background:#faf5ff;" onclick="switchHomeTab('inha')">⭐ 인하공전 현황판</button>
           <button class="btn btn-secondary quick-nav-btn" id="qnav_realtime" style="width:100%;justify-content:flex-start;" onclick="showRealtimeReportBuilder(true)">📊 입시결과 (전형별/전체)</button>
           <button class="btn btn-secondary admin-only-btn" style="display:none;width:100%;justify-content:flex-start;color:#7c3aed;font-weight:700;" onclick="openScraperEngineModal()">⚡ 스크래핑 엔진 실행 센터</button>
@@ -893,18 +899,26 @@ async function ensureXLSXLoaded() {
   return !!getXLSX();
 }
 
+function isServerEnvironment() {
+  return ['localhost', '127.0.0.1', 'compi.mojuk.kr', 'ipsi.mojuk.kr'].includes(location.hostname)
+         || location.hostname.endsWith('.mojuk.kr')
+         || (location.port && location.port !== '');
+}
+
 // ── Boot ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   ensureXLSXLoaded();
   renderAdminUI();
   showLoading(true);
   try {
-    // 로컬 FastAPI 서버 vs GitHub Pages 자동 감지
-    const isLocalServer = ['localhost', '127.0.0.1'].includes(location.hostname)
-                          || location.port !== '';
-    const dataUrl = isLocalServer ? '/api/data' : 'data/data.json';
+    // FastAPI 서버(compi.mojuk.kr, 로컬 등) vs GitHub Pages 자동 감지
+    const isServer = isServerEnvironment();
+    const dataUrl = isServer ? `/api/data?t=${Date.now()}` : `data/data.json?t=${Date.now()}`;
 
-    const res = await fetch(dataUrl);
+    let res = await fetch(dataUrl);
+    if (!res.ok && isServer) {
+      res = await fetch(`data/data.json?t=${Date.now()}`);
+    }
     if (!res.ok) throw new Error('HTTP ' + res.status + ' (' + dataUrl + ')');
     const payload = await res.json();
     
@@ -3157,6 +3171,8 @@ function handleAdminLoginSubmit(e) {
 
   if (matched) {
     localStorage.setItem(ADMIN_STORAGE_KEY, 'true');
+    localStorage.setItem('ipsi_admin_token', 'ipsi4774!');
+    document.cookie = 'ipsi_admin_token=ipsi4774!; path=/; max-age=86400';
     closeAdminLoginModal();
     renderAdminUI();
     alert('🛡️ 관리자로 로그인되었습니다.');
@@ -3666,20 +3682,29 @@ async function executeAdminExcelUpload() {
 
   // If Direct Parsed Data exists
   if (DIRECT_ADMIN_PARSED_DATA) {
-    const maxId = ALL_UNIVS.reduce((max, u) => Math.max(max, u.id || 0), 0);
-    const newRec = {
-      id: maxId + 1,
-      ...DIRECT_ADMIN_PARSED_DATA
-    };
-
-    const updatedAll = [...ALL_UNIVS];
-    const idx = updatedAll.findIndex(u => u.name === newRec.name && u.year === newRec.year && u.admission_type === newRec.admission_type);
-    if (idx !== -1) updatedAll[idx] = newRec;
-    else updatedAll.unshift(newRec);
-
-    saveUniversitiesAndRefresh(updatedAll);
-    alert(`🎉 엑셀 데이터가 대시보드에 즉시 등록되었습니다!\n\n대학명: ${newRec.name}\n학년도: ${newRec.year} ${newRec.admission_type}\n추출된 학과수: ${newRec.departments.length}개`);
-    showUnivDetail(newRec.id, true);
+    showLoading(true);
+    try {
+      const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+      const res = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': token
+        },
+        body: JSON.stringify({ universities: [DIRECT_ADMIN_PARSED_DATA] })
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail || '서버 DB 저장에 실패했습니다.');
+      }
+      alert(`🎉 엑셀 데이터가 DB에 성공적으로 등록되었습니다!\n\n대학명: ${DIRECT_ADMIN_PARSED_DATA.name}\n학년도: ${DIRECT_ADMIN_PARSED_DATA.year} ${DIRECT_ADMIN_PARSED_DATA.admission_type}\n등록된 학과수: ${DIRECT_ADMIN_PARSED_DATA.departments.length}개`);
+      await reloadLatestData();
+      return;
+    } catch (err) {
+      alert('DB 저장 오류: ' + err.message);
+    } finally {
+      showLoading(false);
+    }
     return;
   }
 
@@ -4037,7 +4062,7 @@ function parseUniversityHtml(htmlText, domainHint = '') {
   return result;
 }
 
-async function saveUniversitiesAndRefresh(updatedList) {
+async function saveUniversitiesAndRefresh(updatedList, toSyncList = null) {
   ALL_UNIVS = Array.isArray(updatedList) ? updatedList : [];
   try {
     localStorage.setItem('ipsi_custom_universities', JSON.stringify(ALL_UNIVS));
@@ -4045,20 +4070,28 @@ async function saveUniversitiesAndRefresh(updatedList) {
   buildTree();
   renderDataSummary();
   
-  // Try to sync with server if online
-  try {
-    const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
-    if (token) {
-      fetch(getApiEndpoint('/api/save_scraped_batch'), {
+  // 서버 DB(compi.mojuk.kr 및 로컬 DB)에 저장 동기화
+  const targetSync = (toSyncList && toSyncList.length) ? toSyncList : null;
+  if (targetSync) {
+    try {
+      const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+      const res = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-admin-token': token
         },
-        body: JSON.stringify({ universities: ALL_UNIVS })
-      }).catch(() => {});
+        body: JSON.stringify({ universities: targetSync })
+      });
+      if (res.ok) {
+        console.log(`[서버 DB 저장 성공] ${targetSync.length}개 대학 데이터가 DB에 영구 반영되었습니다.`);
+      } else {
+        console.warn('[서버 DB 저장 응답 오류]', res.status);
+      }
+    } catch (e) {
+      console.warn('[서버 DB 저장 실패]', e);
     }
-  } catch (e) {}
+  }
 
   const yearSelect = document.getElementById('resetFilterYear');
   if (yearSelect) {
@@ -4297,6 +4330,7 @@ async function executePeriodicScrapeCycle() {
   updateEngineProgress(0, true);
 
   let cycleSuccess = 0, cycleFailed = 0;
+  const cycleScraped = [];
   const updatedAll = [...ALL_UNIVS];
 
   for (let i = 0; i < targets.length; i++) {
@@ -4326,6 +4360,7 @@ async function executePeriodicScrapeCycle() {
       if (idx !== -1) updatedAll[idx] = updatedRecord;
       else updatedAll.push(updatedRecord);
 
+      cycleScraped.push(updatedRecord);
       cycleSuccess++;
       PERIODIC_SCRAPER.successTotal++;
       appendEngineLog(`✔ ${u.name} 성공 (${parsed.parsed_departments.length}개 학과 갱신)`, 'success');
@@ -4342,7 +4377,7 @@ async function executePeriodicScrapeCycle() {
   updateEngineProgress(100);
   setEngineStatus(PERIODIC_SCRAPER.isRunning ? '주기 대기 중' : '완료', '#10b981');
 
-  await saveUniversitiesAndRefresh(updatedAll);
+  await saveUniversitiesAndRefresh(updatedAll, cycleScraped);
 
   appendEngineLog(`✅ [${cycleNum}회차 완료] 성공: ${cycleSuccess}건, 실패: ${cycleFailed}건 (대시보드 데이터 최신 갱신됨)`, 'success');
 
@@ -4465,6 +4500,7 @@ async function startBatchScrapingEngine(isOnce = false) {
   updateEngineProgress(0, true);
 
   let success = 0, failed = 0;
+  const batchScraped = [];
   const updatedAll = [...ALL_UNIVS];
 
   for (let i = 0; i < targetUnivs.length; i++) {
@@ -4489,6 +4525,7 @@ async function startBatchScrapingEngine(isOnce = false) {
       if (idx !== -1) updatedAll[idx] = updatedRecord;
       else updatedAll.push(updatedRecord);
 
+      batchScraped.push(updatedRecord);
       success++;
       appendEngineLog(`✔ ${u.name} 성공 (${parsed.parsed_departments.length}개 학과 추출)`, 'success');
     } catch (err) {
@@ -4499,7 +4536,7 @@ async function startBatchScrapingEngine(isOnce = false) {
 
   updateEngineProgress(100);
   setEngineStatus('완료', '#10b981');
-  await saveUniversitiesAndRefresh(updatedAll);
+  await saveUniversitiesAndRefresh(updatedAll, batchScraped);
   appendEngineLog(`🎉 즉시 스크래핑 완료! (성공: ${success}개, 실패/건너뜀: ${failed}개)`, 'success');
   alert(`스크래핑 완료!\n\n성공: ${success}개 대학\n실패: ${failed}개 대학\n대시보드 데이터가 최신으로 갱신되었습니다.`);
 }
@@ -4541,7 +4578,7 @@ async function handleEngineDirectScrape(e) {
     if (idx !== -1) updatedAll[idx] = newRecord;
     else updatedAll.unshift(newRecord);
 
-    saveUniversitiesAndRefresh(updatedAll);
+    await saveUniversitiesAndRefresh(updatedAll, [newRecord]);
     updateEngineProgress(100);
     setEngineStatus('완료', '#10b981');
     appendEngineLog(`🎉 ${name} 등록 완료! (${parsed.parsed_departments.length}개 학과 추출됨)`, 'success');
@@ -4650,46 +4687,78 @@ async function startEngineExcelScrape() {
 
   // Handle Direct Excel Data
   if (DIRECT_ENGINE_PARSED_DATA) {
-    const maxId = ALL_UNIVS.reduce((max, u) => Math.max(max, u.id || 0), 0);
-    const newRec = {
-      id: maxId + 1,
-      ...DIRECT_ENGINE_PARSED_DATA
-    };
-
-    const updatedAll = [...ALL_UNIVS];
-    const idx = updatedAll.findIndex(u => u.name === newRec.name && u.year === newRec.year && u.admission_type === newRec.admission_type);
-    if (idx !== -1) updatedAll[idx] = newRec;
-    else updatedAll.unshift(newRec);
-
-    saveUniversitiesAndRefresh(updatedAll);
-    appendEngineLog(`🎉 [직접 등록] ${newRec.name} (${newRec.year} ${newRec.admission_type}) ${newRec.departments.length}개 학과 등록 완료`, 'success');
-    alert(`🎉 엑셀 데이터가 대시보드에 즉시 등록되었습니다!\n\n대학명: ${newRec.name}\n학년도: ${newRec.year} ${newRec.admission_type}\n등록된 학과수: ${newRec.departments.length}개`);
-    showUnivDetail(newRec.id, true);
-    closeScraperEngineModal();
-    return;
-  }
-
-  // If server is reachable, execute batch API first
-  try {
-    const formData = new FormData();
-    formData.append('file', ENGINE_EXCEL_FILE);
-    const localRes = await fetch(getApiEndpoint('/api/upload_excel'), {
-      method: 'POST',
-      headers: { 'x-admin-token': 'ipsi4774!' },
-      body: formData,
-      signal: AbortSignal.timeout(3000)
-    });
-    if (localRes.ok) {
-      const result = await localRes.json();
-      appendEngineLog(`🚀 [로컬 고속 엔진] ${result.message}`, 'success');
-      alert(result.message || '엑셀 스크래핑이 완료되었습니다.');
+    showLoading(true);
+    try {
+      const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+      const res = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': token
+        },
+        body: JSON.stringify({ universities: [DIRECT_ENGINE_PARSED_DATA] })
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.detail || '서버 DB 저장에 실패했습니다.');
+      }
+      appendEngineLog(`🎉 [직접 등록] ${DIRECT_ENGINE_PARSED_DATA.name} (${DIRECT_ENGINE_PARSED_DATA.year} ${DIRECT_ENGINE_PARSED_DATA.admission_type}) ${DIRECT_ENGINE_PARSED_DATA.departments.length}개 학과 DB 저장 완료`, 'success');
+      alert(`🎉 엑셀 데이터가 DB에 성공적으로 등록되었습니다!\n\n대학명: ${DIRECT_ENGINE_PARSED_DATA.name}\n학년도: ${DIRECT_ENGINE_PARSED_DATA.year} ${DIRECT_ENGINE_PARSED_DATA.admission_type}\n등록된 학과수: ${DIRECT_ENGINE_PARSED_DATA.departments.length}개`);
       await reloadLatestData();
       closeScraperEngineModal();
       return;
+    } catch (err) {
+      appendEngineLog(`❌ DB 저장 오류: ${err.message}`, 'error');
+      alert('DB 저장 오류: ' + err.message);
+    } finally {
+      showLoading(false);
     }
-  } catch (e) {}
+    return;
+  }
 
-  // Fallback to client browser engine parsing
+  // 1. Try server engine first (Fast Python scraper with openpyxl multi-sheet & hyperlink support)
+  setEngineStatus('서버 스크래핑 중...', '#38bdf8');
+  updateEngineProgress(10, true);
+  appendEngineLog(`🚀 [로컬 고속 엔진] 서버에서 엑셀 파일 파싱 및 스크래핑/DB 저장을 시작합니다... (잠시만 기다려 주세요)`, 'info');
+
+  let serverSuccess = false;
+  try {
+    const formData = new FormData();
+    formData.append('file', ENGINE_EXCEL_FILE);
+    const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+    const localRes = await fetch(getApiEndpoint('/api/upload_excel'), {
+      method: 'POST',
+      headers: { 'x-admin-token': token },
+      body: formData,
+      signal: AbortSignal.timeout(180000) // 3분 대기
+    });
+    if (localRes.ok) {
+      const result = await localRes.json();
+      updateEngineProgress(100);
+      setEngineStatus('완료', '#10b981');
+      appendEngineLog(`🎉 [로컬 고속 엔진] ${result.message}`, 'success');
+      if (result.details && Array.isArray(result.details)) {
+        result.details.forEach(d => {
+          if (d.status === 'success') appendEngineLog(`  ✔ ${d.name} (${d.dept_count}개 학과 DB 저장)`, 'success');
+          else appendEngineLog(`  ✖ ${d.name} (${d.reason || '실패'})`, 'warn');
+        });
+      }
+      alert('🎉 ' + (result.message || '엑셀 스크래핑 및 DB 저장이 완료되었습니다.'));
+      await reloadLatestData();
+      closeScraperEngineModal();
+      serverSuccess = true;
+      return;
+    } else {
+      const errRes = await localRes.json().catch(() => ({}));
+      appendEngineLog(`⚠️ 서버 엔진 응답 오류 (${localRes.status}): ${errRes.detail || '브라우저 스크래핑 엔진으로 전환합니다.'}`, 'warn');
+    }
+  } catch (e) {
+    appendEngineLog(`⚠️ 서버 고속 엔진 대기 시간 초과 또는 오류: ${e.message} (브라우저 스크래핑 모드로 전환합니다)`, 'warn');
+  }
+
+  if (serverSuccess) return;
+
+  // 2. Fallback to client browser engine parsing
   appendEngineLog(`📊 엑셀 파일을 브라우저 스크래핑 엔진으로 실행합니다...`);
   setEngineStatus('스크래핑 중...', '#eab308');
   updateEngineProgress(0, true);
@@ -4709,12 +4778,31 @@ async function startEngineExcelScrape() {
     try {
       const data = new Uint8Array(evt.target.result);
       const workbook = xlsx.read(data, { type: 'array' });
-      const rows = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-      const validRows = extractUrlRowsFromSheet(rows);
+      
+      // 모든 시트에서 URL 추출
+      let validRows = [];
+      workbook.SheetNames.forEach(sheetName => {
+        const rows = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1 });
+        const sheetUrls = extractUrlRowsFromSheet(rows);
+        validRows.push(...sheetUrls);
+      });
+      // 중복 URL 제거
+      const seenUrls = new Set();
+      validRows = validRows.filter(r => {
+        if (!r.url || seenUrls.has(r.url)) return false;
+        seenUrls.add(r.url);
+        return true;
+      });
+
+      if (!validRows.length) {
+        appendEngineLog('❌ 엑셀에서 유효한 대학 경쟁률 URL을 찾지 못했습니다.', 'error');
+        alert('엑셀 파일에서 유효한 대학 URL을 찾지 못했습니다.');
+        setEngineStatus('실패', '#ef4444');
+        return;
+      }
 
       let success = 0, failed = 0;
-      const updatedAll = [...ALL_UNIVS];
-      let curMaxId = updatedAll.reduce((max, u) => Math.max(max, u.id || 0), 0);
+      const newlyScraped = [];
 
       for (let i = 0; i < validRows.length; i++) {
         const item = validRows[i];
@@ -4726,7 +4814,7 @@ async function startEngineExcelScrape() {
         const free = item.free_apply || '';
         const multi = item.multi_apply || '';
 
-        updateEngineProgress(Math.round((i / validRows.length) * 100));
+        updateEngineProgress(Math.round(((i + 1) / validRows.length) * 100));
         appendEngineLog(`[${i + 1}/${validRows.length}] ${n} (${y} ${a}) 수집 중...`);
 
         try {
@@ -4734,9 +4822,7 @@ async function startEngineExcelScrape() {
           const parsed = parseUniversityHtml(html, u);
           if (!parsed.tables_html.length) throw new Error("테이블 없음");
 
-          curMaxId++;
           const rec = {
-            id: curMaxId,
             name: n,
             year: y,
             admission_type: a,
@@ -4750,10 +4836,7 @@ async function startEngineExcelScrape() {
             departments: parsed.parsed_departments
           };
 
-          const idx = updatedAll.findIndex(target => target.name === n && target.year === y && target.admission_type === a && target.capacity_type === c);
-          if (idx !== -1) updatedAll[idx] = rec;
-          else updatedAll.unshift(rec);
-
+          newlyScraped.push(rec);
           success++;
           appendEngineLog(`✔ ${n} 성공 (${parsed.parsed_departments.length}개 학과)`, 'success');
         } catch (err) {
@@ -4763,11 +4846,33 @@ async function startEngineExcelScrape() {
       }
 
       updateEngineProgress(100);
-      if (success > 0) {
+      if (newlyScraped.length > 0) {
+        setEngineStatus('DB 저장 중...', '#38bdf8');
+        appendEngineLog(`💾 수집된 ${newlyScraped.length}개 대학 데이터를 로컬 DB에 저장하는 중...`, 'info');
+        try {
+          const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+          const saveRes = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-admin-token': token
+            },
+            body: JSON.stringify({ universities: newlyScraped })
+          });
+          if (saveRes.ok) {
+            appendEngineLog(`✅ [DB 저장 성공] ${newlyScraped.length}개 대학이 DB에 안전하게 저장되었습니다.`, 'success');
+          } else {
+            const saveErr = await saveRes.json().catch(() => ({}));
+            appendEngineLog(`⚠️ DB 저장 실패: ${saveErr.detail || '오류 발생'}`, 'error');
+          }
+        } catch (e) {
+          appendEngineLog(`⚠️ DB 저장 요청 중 오류: ${e.message}`, 'error');
+        }
+
         setEngineStatus('완료', '#10b981');
-        saveUniversitiesAndRefresh(updatedAll);
+        await reloadLatestData();
         appendEngineLog(`🎉 엑셀 스크래핑 완료! (성공: ${success}개, 실패: ${failed}개)`, 'success');
-        alert(`엑셀 스크래핑 완료!\n\n성공: ${success}개 대학\n실패: ${failed}개 대학\n대시보드에 반영되었습니다.`);
+        alert(`엑셀 스크래핑 완료!\n\n성공: ${success}개 대학 (DB 저장 완료)\n실패: ${failed}개 대학\n대시보드에 최신 데이터가 반영되었습니다.`);
         closeScraperEngineModal();
       } else {
         setEngineStatus('차단됨', '#ef4444');
@@ -4785,16 +4890,15 @@ async function startEngineExcelScrape() {
 async function reloadLatestData() {
   showLoading(true);
   try {
-    const isLocalServer = ['localhost', '127.0.0.1'].includes(location.hostname)
-                          || location.port !== '';
-    let dataUrl = isLocalServer ? '/api/data' : 'data/data.json';
+    const isServer = isServerEnvironment();
+    let dataUrl = isServer ? `/api/data?t=${Date.now()}` : `data/data.json?t=${Date.now()}`;
     
-    let res = await fetch(dataUrl + (dataUrl.includes('?') ? '&' : '?') + 't=' + Date.now());
-    if (!res.ok && isLocalServer) {
-      // 로컬 서버에서 fallback 시도
-      res = await fetch('data/data.json?t=' + Date.now());
-    } else if (!res.ok && !isLocalServer) {
-      res = await fetch('/api/data?t=' + Date.now());
+    let res = await fetch(dataUrl);
+    if (!res.ok && isServer) {
+      // 서버에서 fallback 시도
+      res = await fetch(`data/data.json?t=${Date.now()}`);
+    } else if (!res.ok && !isServer) {
+      res = await fetch(`/api/data?t=${Date.now()}`);
     }
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const payload = await res.json();
@@ -4831,35 +4935,82 @@ async function reloadLatestData() {
       };
     });
     
-    // Merge custom localStorage data if any
-    try {
-      const custom = JSON.parse(localStorage.getItem('ipsi_custom_universities') || '[]');
-      if (custom && custom.length) {
-        custom.forEach(cu => {
-          const idx = ALL_UNIVS.findIndex(u => u.name === cu.name && u.year === cu.year && u.admission_type === cu.admission_type && u.capacity_type === cu.capacity_type);
-          if (idx !== -1) ALL_UNIVS[idx] = cu;
-          else ALL_UNIVS.unshift(cu);
-        });
-      }
-    } catch (err) {}
+    // Merge custom localStorage data ONLY if running in static client without server
+    if (!isServer) {
+      try {
+        const custom = JSON.parse(localStorage.getItem('ipsi_custom_universities') || '[]');
+        if (custom && custom.length) {
+          custom.forEach(cu => {
+            const idx = ALL_UNIVS.findIndex(u => u.name === cu.name && u.year === cu.year && u.admission_type === cu.admission_type && u.capacity_type === cu.capacity_type);
+            if (idx !== -1) ALL_UNIVS[idx] = cu;
+            else ALL_UNIVS.unshift(cu);
+          });
+        }
+      } catch (err) {}
+    }
 
     buildTree();
     renderDataSummary();
     handleUrlParams();
-    
-    // 알림 토스트 표시
-    const toast = document.createElement('div');
-    toast.className = 'alert alert-success';
-    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;padding:12px 20px;box-shadow:0 4px 12px rgba(0,0,0,0.15);border-radius:8px;';
-    toast.innerText = '✅ 최신 데이터가 성공적으로 갱신되었습니다.';
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+    return true;
   } catch(e) {
-    alert('최신 데이터 갱신 실패: ' + e.message);
+    console.error('최신 데이터 갱신 실패:', e);
+    throw e;
   } finally {
     showLoading(false);
   }
 }
+
+function showToast(message, type = 'info', duration = 3500) {
+  let container = document.getElementById('appToastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'appToastContainer';
+    container.style.cssText = 'position:fixed;top:80px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:8px;pointer-events:none;';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  const bg = type === 'success' ? '#059669' : (type === 'error' ? '#dc2626' : '#2563eb');
+  toast.style.cssText = `background:${bg};color:#ffffff;padding:12px 20px;border-radius:10px;font-size:0.9rem;font-weight:600;box-shadow:0 10px 25px -5px rgba(0,0,0,0.25);display:flex;align-items:center;gap:10px;pointer-events:auto;opacity:0;transform:translateY(-10px);transition:all 0.25s ease;`;
+  toast.innerHTML = message;
+  container.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateY(0)';
+  });
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(-10px)';
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+async function refreshLatestDataWithFeedback(btn = null) {
+  const targetBtn = btn || document.getElementById('hnav_refresh');
+  let originalHtml = '';
+  if (targetBtn) {
+    originalHtml = targetBtn.innerHTML;
+    targetBtn.disabled = true;
+    targetBtn.innerHTML = '<span class="spin-animation">🔄</span> 갱신 중...';
+  }
+  showLoading(true);
+  try {
+    await reloadLatestData();
+    showToast(`✨ 최신 입시 경쟁률 데이터가 갱신되었습니다! (총 ${ALL_UNIVS.length}개)`, 'success');
+  } catch (err) {
+    alert('데이터 갱신 중 오류가 발생했습니다: ' + err.message);
+  } finally {
+    showLoading(false);
+    if (targetBtn) {
+      targetBtn.disabled = false;
+      targetBtn.innerHTML = originalHtml;
+    }
+  }
+}
+
+window.reloadLatestData = reloadLatestData;
+window.refreshLatestDataWithFeedback = refreshLatestDataWithFeedback;
+window.showToast = showToast;
 
 // ── Excel & JSON Export ─────────────────────────────────────
 function downloadCurrentDataJson() {
@@ -5146,7 +5297,7 @@ function toggleAllResetCheckboxes(check) {
 }
 
 function getApiEndpoint(path) {
-  const isServer = ['localhost', '127.0.0.1', 'compi.mojuk.kr'].includes(location.hostname) || (location.port && location.port !== '');
+  const isServer = ['localhost', '127.0.0.1', 'compi.mojuk.kr', 'ipsi.mojuk.kr'].includes(location.hostname) || location.hostname.endsWith('.mojuk.kr') || (location.port && location.port !== '');
   if (isServer) {
     return path.startsWith('/') ? path : '/' + path;
   }

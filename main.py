@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request, Form, Depends, HTTPException, File, UploadFile, Query
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
@@ -15,6 +15,8 @@ from export_data import export_to_json, push_to_github_pages
 
 import hmac
 import hashlib
+import re
+import openpyxl
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -510,7 +512,14 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
                 "created_at": u.created_at.isoformat() if u.created_at else ""
             })
 
-    return JSONResponse({"universities": flat, "total": len(flat)})
+    return JSONResponse(
+        {"universities": flat, "total": len(flat)},
+        headers={
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        }
+    )
 
 @app.get("/univ/{univ_id}", response_class=HTMLResponse)
 async def get_univ(request: Request, univ_id: int, db: Session = Depends(get_db)):
@@ -709,96 +718,267 @@ async def download_template():
     }
     return StreamingResponse(output, headers=headers, media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
-def parse_excel_row_data(row, columns):
-    col_map = {str(c).strip(): i for i, c in enumerate(columns)}
+def detect_and_extract_rows_from_bytes(file_bytes: bytes) -> List[Dict[str, Any]]:
+    """
+    엑셀 파일의 모든 시트를 순회하여 헤더 유무 및 열 순서에 상관없이
+    (연도, 모집시기, 대학명, 무료접수, 중복지원, URL) 목록을 자동 추출합니다.
+    하이퍼링크(hyperlink) URL도 함께 감지합니다.
+    """
+    wb = openpyxl.load_workbook(io.BytesIO(file_bytes), data_only=False)
+    extracted = []
+    seen_urls = set()
     
-    # URL 찾기
-    url = ""
-    for k in ["URL", "url", "링크", "경쟁률URL", "경쟁률 링크"]:
-        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
-            u_str = str(row.iloc[col_map[k]]).strip()
-            if u_str.startswith("http"):
-                url = u_str
-                break
-    if not url:
-        for val in row:
-            if not pd.isna(val) and str(val).strip().startswith("http"):
-                url = str(val).strip()
-                break
+    for sname in wb.sheetnames:
+        sheet = wb[sname]
+        
+        # 시트명에서 기본 모집시기 유추
+        default_adm = "수시1차"
+        if "수시2" in sname or "2차" in sname:
+            default_adm = "수시2차"
+        elif "정시" in sname:
+            default_adm = "정시"
+        elif "수시1" in sname or "1차" in sname:
+            default_adm = "수시1차"
+            
+        default_year = "2027"
+        m_sy = re.search(r"(202[0-9])", sname)
+        if m_sy:
+            default_year = m_sy.group(1)
+            
+        for r_idx, row in enumerate(sheet.iter_rows(values_only=False)):
+            if not row:
+                continue
+                
+            # 1. URL 찾기 (셀 텍스트 및 하이퍼링크)
+            url = ""
+            url_col_idx = -1
+            row_strs = []
+            
+            for i, cell in enumerate(row):
+                val = str(cell.value or "").strip()
+                row_strs.append(val)
+                if not url:
+                    if val.startswith("http://") or val.startswith("https://"):
+                        url = val
+                        url_col_idx = i
+                    elif cell.hyperlink and cell.hyperlink.target:
+                        target = str(cell.hyperlink.target).strip()
+                        if target.startswith("http://") or target.startswith("https://"):
+                            url = target
+                            url_col_idx = i
+                            
+            if not url or url in seen_urls:
+                continue
+            seen_urls.add(url)
+                
+            # 2. 연도 찾기 (4자리 숫자 202x)
+            year = default_year
+            for i, val in enumerate(row_strs):
+                if i != url_col_idx:
+                    m = re.search(r"(202[0-9])", val)
+                    if m:
+                        year = m.group(1)
+                        break
+                        
+            # 3. 모집시기 찾기 (수시1차, 수시2차, 정시 등)
+            adm_type = default_adm
+            for i, val in enumerate(row_strs):
+                if i != url_col_idx:
+                    if "수시1" in val or "1차" in val:
+                        adm_type = "수시1차"
+                        break
+                    elif "수시2" in val or "2차" in val:
+                        adm_type = "수시2차"
+                        break
+                    elif "정시" in val:
+                        adm_type = "정시"
+                        break
+                    elif "수시" in val:
+                        adm_type = "수시"
+                        break
+                        
+            # 4. 정원구분 기본값 '구분없음'
+            cap_type = "구분없음"
+                        
+            # 5. 무료접수 ("F" 또는 "무료") 찾기
+            free_apply = ""
+            for i, val in enumerate(row_strs):
+                if i != url_col_idx:
+                    if val.strip() in ["F", "f", "무료", "Y", "y", "O", "o"]:
+                        free_apply = "F"
+                        break
 
-    if not url:
+            # 6. 중복지원 ("M" 또는 "중복") 찾기
+            multi_apply = ""
+            for i, val in enumerate(row_strs):
+                if i != url_col_idx:
+                    if val.strip() in ["M", "m", "중복", "복수", "복수지원"]:
+                        multi_apply = "M"
+                        break
+
+            # 7. 대학명 찾기
+            name = ""
+            for i, val in enumerate(row_strs):
+                if i != url_col_idx and val:
+                    if val in [year, adm_type, cap_type, free_apply, multi_apply, "F", "f", "M", "m", "무료", "중복", "복수", "해당없음", "Y", "N"]:
+                        continue
+                    if any(h in val for h in ["대학", "대학교", "전문대학", "대"]):
+                        name = val
+                        break
+                    elif not name and len(val) >= 2 and not val.isdigit() and not val.startswith("202"):
+                        name = val
+                        
+            if not name:
+                for i in range(url_col_idx - 1, -1, -1):
+                    if row_strs[i] and row_strs[i] not in [year, adm_type, free_apply, multi_apply]:
+                        name = row_strs[i]
+                        break
+                        
+            name = name or "대학"
+            if not free_apply and (name.endswith("F") or name.endswith("(F)")):
+                free_apply = "F"
+            if not multi_apply and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
+                multi_apply = "M"
+
+            extracted.append({
+                "year": year,
+                "admission_type": adm_type,
+                "name": name,
+                "is_free_apply": free_apply,
+                "is_multi_apply": multi_apply,
+                "url": url,
+                "capacity_type": cap_type
+            })
+            
+    return extracted
+
+def parse_direct_excel_to_univ_data(file_bytes: bytes, filename: str) -> Optional[Dict[str, Any]]:
+    """경쟁률 표가 직접 작성된 엑셀 파일인 경우 학과 및 표 데이터를 파싱하여 University 반환 구조 생성"""
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(file_bytes), data_only=True)
+    except Exception:
         return None
-
-    # 연도
-    year = "2027"
-    for k in ["학년도", "연도", "년도", "year"]:
-        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
-            year = str(row.iloc[col_map[k]]).strip()
-            break
-    if not year and len(row) > 0 and not pd.isna(row.iloc[0]):
-        year = str(row.iloc[0]).strip()
-
-    # 모집시기
+        
+    base_name = re.sub(r"\.xlsx?$", "", filename, flags=re.IGNORECASE).strip()
+    ym = re.search(r"202[0-9]", base_name)
+    year = ym.group(0) if ym else "2026"
+    
     adm = "수시1차"
-    for k in ["모집시기", "전형", "시기", "admission_type"]:
-        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
-            adm = str(row.iloc[col_map[k]]).strip()
-            break
-    if not adm and len(row) > 1 and not pd.isna(row.iloc[1]):
-        adm = str(row.iloc[1]).strip()
+    if "수시2" in base_name or "2차" in base_name:
+        adm = "수시2차"
+    elif "정시" in base_name:
+        adm = "정시"
+    elif "수시1" in base_name or "1차" in base_name:
+        adm = "수시1차"
+        
+    um = re.search(r"([가-힣]+(?:대학|대학교|전문대학|대))", base_name)
+    univ_name = um.group(1) if um else re.sub(r"202[0-9]|수시[12]?차?|정시|경쟁률|지원현황|서식|\(|\)", "", base_name).strip() or "등록대학"
 
-    # 대학명
-    name = ""
-    for k in ["대학명", "대학", "대학교", "학교명", "name"]:
-        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
-            name = str(row.iloc[col_map[k]]).strip()
-            break
-    if not name and len(row) > 2 and not pd.isna(row.iloc[2]):
-        name = str(row.iloc[2]).strip()
-
-    # 무료접수 ("F" 또는 "무료")
-    free_apply = ""
-    for k in ["무료접수", "무료원서접수", "무료원서", "무료", "무료여부", "F여부", "F"]:
-        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
-            val = str(row.iloc[col_map[k]]).strip()
-            if val in ["F", "f", "무료", "Y", "y", "O", "o", "true", "True"]:
-                free_apply = "F"
-            break
-    if not free_apply:
-        for val in row:
-            if not pd.isna(val) and str(val).strip() in ["F", "f", "무료"]:
-                free_apply = "F"
+    sheets_data = []
+    
+    for sname in wb.sheetnames:
+        sheet = wb[sname]
+        raw_rows = []
+        for r in sheet.iter_rows(values_only=True):
+            if r and any(c is not None and str(c).strip() for c in r):
+                raw_rows.append([str(c).strip() if c is not None else "" for c in r])
+                
+        if len(raw_rows) < 2:
+            continue
+            
+        header_row_idx = -1
+        col_dept, col_adm, col_app, col_ratio = -1, -1, -1, -1
+        
+        for r_idx in range(min(10, len(raw_rows))):
+            row = raw_rows[r_idx]
+            c_dept, c_adm, c_app, c_ratio = -1, -1, -1, -1
+            for c_idx, cell in enumerate(row):
+                txt = cell.replace(" ", "")
+                if any(k in txt for k in ["경쟁률", "지원경쟁률"]) and c_ratio == -1:
+                    c_ratio = c_idx
+                elif any(k in txt for k in ["지원인원", "지원자수", "지원인원수"]) or txt in ["지원자", "지원"]:
+                    if not any(k in txt for k in ["자격", "구분", "유형", "분야"]) and c_app == -1:
+                        c_app = c_idx
+                elif any(k in txt for k in ["모집인원", "총모집인원", "모집정원"]) or txt == "모집":
+                    if not any(k in txt for k in ["단위", "학부", "학과", "전공"]) and c_adm == -1:
+                        c_adm = c_idx
+                elif any(k in txt for k in ["모집단위", "학과명", "학과", "전공", "모집학부"]) and c_dept == -1:
+                    c_dept = c_idx
+                    
+            if c_dept == -1:
+                for c_idx, cell in enumerate(row):
+                    txt = cell.replace(" ", "")
+                    if any(k in txt for k in ["전형명", "구분"]) and c_idx not in [c_adm, c_app, c_ratio]:
+                        c_dept = c_idx
+                        break
+                        
+            if c_dept != -1 and (c_adm != -1 or c_app != -1 or c_ratio != -1):
+                header_row_idx = r_idx
+                col_dept, col_adm, col_app, col_ratio = c_dept, c_adm, c_app, c_ratio
                 break
-    if not free_apply and name and (name.endswith("F") or name.endswith("(F)")):
-        free_apply = "F"
-
-    # 중복지원 ("M" 또는 "중복")
-    multi_apply = ""
-    for k in ["중복지원", "중복원서접수", "중복접수", "복수지원", "중복", "중복여부", "M여부", "M"]:
-        if k in col_map and not pd.isna(row.iloc[col_map[k]]):
-            val = str(row.iloc[col_map[k]]).strip()
-            if val in ["M", "m", "중복", "복수", "Y", "y", "O", "o", "true", "True"]:
-                multi_apply = "M"
-            break
-    if not multi_apply:
-        for val in row:
-            if not pd.isna(val) and str(val).strip() in ["M", "m", "중복", "복수"]:
-                multi_apply = "M"
-                break
-    if not multi_apply and name and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
-        multi_apply = "M"
-
-    # 정원구분 (엑셀 업로드 데이터에서 제외되어 기본값 '구분없음'으로 처리)
-    cap = "구분없음"
-
+                
+        if header_row_idx == -1:
+            continue
+            
+        depts = []
+        table_rows = []
+        header_cells = "".join(f"<th>{c}</th>" for c in raw_rows[header_row_idx])
+        table_rows.append(f"<tr>{header_cells}</tr>")
+        
+        for r_idx in range(header_row_idx + 1, len(raw_rows)):
+            row = raw_rows[r_idx]
+            dept_name = row[col_dept].strip() if col_dept < len(row) else ""
+            if not dept_name or re.search(r"소계|총계|합계|모집단위|전형명|학과|전공|구분", dept_name):
+                row_cells = "".join(f"<td>{c}</td>" for c in row)
+                table_rows.append(f"<tr>{row_cells}</tr>")
+                continue
+                
+            adm_cnt = row[col_adm].strip() if col_adm != -1 and col_adm < len(row) else ""
+            app_cnt = row[col_app].strip() if col_app != -1 and col_app < len(row) else ""
+            ratio_val = row[col_ratio].strip() if col_ratio != -1 and col_ratio < len(row) else ""
+            
+            if not ratio_val and adm_cnt and app_cnt:
+                try:
+                    a_num = float(adm_cnt.replace(",", ""))
+                    p_num = float(app_cnt.replace(",", ""))
+                    if a_num > 0:
+                        ratio_val = f"{(p_num / a_num):.2f} : 1"
+                except Exception:
+                    pass
+                    
+            depts.append({
+                "table_title": sname,
+                "department_name": dept_name,
+                "admission_count": adm_cnt,
+                "applicant_count": app_cnt,
+                "competition_ratio": ratio_val
+            })
+            row_cells = "".join(f"<td>{c}</td>" for c in row)
+            table_rows.append(f"<tr>{row_cells}</tr>")
+            
+        if depts:
+            sheets_data.append({
+                "title": sname,
+                "table_html": f"<table>{''.join(table_rows)}</table>",
+                "departments": depts
+            })
+            
+    if not sheets_data:
+        return None
+        
+    all_depts = [d for s in sheets_data for d in s["departments"]]
     return {
+        "name": univ_name,
         "year": year,
         "admission_type": adm,
-        "name": name,
-        "is_free_apply": free_apply,
-        "is_multi_apply": multi_apply,
-        "url": url,
-        "capacity_type": cap
+        "capacity_type": "구분없음",
+        "url": "",
+        "scraped_data": {
+            "titles": [s["title"] for s in sheets_data],
+            "tables_html": [s["table_html"] for s in sheets_data],
+            "parsed_departments": all_depts
+        },
+        "departments": all_depts
     }
 
 @app.post("/upload_excel")
@@ -808,25 +988,68 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
         
     try:
         contents = await file.read()
-        df = pd.read_excel(io.BytesIO(contents))
+        rows = detect_and_extract_rows_from_bytes(contents)
+        success_count = 0
         
-        for _, row in df.iterrows():
-            item = parse_excel_row_data(row, df.columns)
-            if not item or not item["url"]:
-                continue
+        if rows:
+            for item in rows:
+                url = item.get("url", "")
+                if not url: continue
+                name = item["name"]
+                year = item["year"]
+                adm = item["admission_type"]
+                cap = item.get("capacity_type", "구분없음")
+                free = item.get("is_free_apply", "")
+                multi = item.get("is_multi_apply", "")
                 
-            name = item["name"]
-            year = item["year"]
-            adm = item["admission_type"]
-            cap = item["capacity_type"]
-            url = item["url"]
-            free = item["is_free_apply"]
-            multi = item.get("is_multi_apply", "")
-            
-            try:
-                scraped_data = scrape_university_data(url)
-                if not scraped_data["tables_html"]:
+                try:
+                    scraped_data = scrape_university_data(url)
+                    if not scraped_data or not scraped_data.get("tables_html"):
+                        continue
+                        
+                    existing_univ = db.query(University).filter(
+                        University.name == name,
+                        University.year == year,
+                        University.admission_type == adm,
+                        University.capacity_type == cap
+                    ).first()
+                    
+                    if existing_univ:
+                        existing_univ.url = url
+                        existing_univ.is_free_apply = free
+                        existing_univ.is_multi_apply = multi
+                        existing_univ.scraped_data = json.dumps(scraped_data)
+                        db.commit()
+                        save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
+                    else:
+                        new_univ = University(
+                            name=name,
+                            year=year,
+                            admission_type=adm,
+                            capacity_type=cap,
+                            is_free_apply=free,
+                            is_multi_apply=multi,
+                            url=url,
+                            scraped_data=json.dumps(scraped_data)
+                        )
+                        db.add(new_univ)
+                        db.commit()
+                        db.refresh(new_univ)
+                        save_departments(db, new_univ.id, scraped_data.get("parsed_departments", []))
+                    success_count += 1
+                except Exception as ex:
+                    print(f"Error scraping {name} ({url}): {ex}")
                     continue
+        else:
+            # Fallback: Check if direct table excel
+            direct_data = parse_direct_excel_to_univ_data(contents, file.filename or "경쟁률.xlsx")
+            if direct_data:
+                name = direct_data["name"]
+                year = direct_data["year"]
+                adm = direct_data["admission_type"]
+                cap = direct_data["capacity_type"]
+                scraped_data = direct_data["scraped_data"]
+                departments = direct_data["departments"]
                 
                 existing_univ = db.query(University).filter(
                     University.name == name,
@@ -836,38 +1059,30 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
                 ).first()
                 
                 if existing_univ:
-                    existing_univ.url = url
-                    existing_univ.is_free_apply = free
-                    existing_univ.is_multi_apply = multi
                     existing_univ.scraped_data = json.dumps(scraped_data)
                     db.commit()
-                    save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
+                    save_departments(db, existing_univ.id, departments)
                 else:
                     new_univ = University(
                         name=name,
                         year=year,
                         admission_type=adm,
                         capacity_type=cap,
-                        is_free_apply=free,
-                        is_multi_apply=multi,
-                        url=url,
+                        url="",
                         scraped_data=json.dumps(scraped_data)
                     )
                     db.add(new_univ)
                     db.commit()
                     db.refresh(new_univ)
-                    save_departments(db, new_univ.id, scraped_data.get("parsed_departments", []))
-            except Exception as ex:
-                print(f"Error scraping {url}: {ex}")
-                continue
-                
-        # 정적 사이트(JSON)도 자동 동기화
+                    save_departments(db, new_univ.id, departments)
+                success_count += 1
+
         try:
             export_to_json(db)
         except Exception as ex:
             print(f"[경고] JSON 자동 갱신 실패: {ex}")
 
-        return RedirectResponse(url="/?msg=excel_uploaded", status_code=303)
+        return RedirectResponse(url=f"/?msg=excel_uploaded&count={success_count}", status_code=303)
     except Exception as e:
         return templates.TemplateResponse("error.html", {
             "request": request,
@@ -885,25 +1100,80 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
         
     try:
         contents = await file.read()
-        df = pd.read_excel(io.BytesIO(contents))
+        rows = detect_and_extract_rows_from_bytes(contents)
         success_count = 0
+        failed_count = 0
+        details = []
         
-        for _, row in df.iterrows():
-            item = parse_excel_row_data(row, df.columns)
-            if not item or not item["url"]:
-                continue
+        if rows:
+            for item in rows:
+                url = item.get("url", "")
+                name = item["name"]
+                year = item["year"]
+                adm = item["admission_type"]
+                cap = item.get("capacity_type", "구분없음")
+                free = item.get("is_free_apply", "")
+                multi = item.get("is_multi_apply", "")
                 
-            name = item["name"]
-            year = item["year"]
-            adm = item["admission_type"]
-            cap = item["capacity_type"]
-            url = item["url"]
-            free = item["is_free_apply"]
-            multi = item.get("is_multi_apply", "")
-            
-            try:
-                scraped_data = scrape_university_data(url)
-                if not scraped_data["tables_html"]: continue
+                if not url:
+                    failed_count += 1
+                    continue
+                
+                try:
+                    scraped_data = scrape_university_data(url)
+                    if not scraped_data or not scraped_data.get("tables_html"):
+                        failed_count += 1
+                        details.append({"name": name, "status": "fail", "reason": "테이블 없음"})
+                        continue
+                    
+                    existing_univ = db.query(University).filter(
+                        University.name == name,
+                        University.year == year,
+                        University.admission_type == adm,
+                        University.capacity_type == cap
+                    ).first()
+                    
+                    if existing_univ:
+                        existing_univ.url = url
+                        existing_univ.is_free_apply = free
+                        existing_univ.is_multi_apply = multi
+                        existing_univ.scraped_data = json.dumps(scraped_data)
+                        db.commit()
+                        save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
+                    else:
+                        new_univ = University(
+                            name=name,
+                            year=year,
+                            admission_type=adm,
+                            capacity_type=cap,
+                            is_free_apply=free,
+                            is_multi_apply=multi,
+                            url=url,
+                            scraped_data=json.dumps(scraped_data)
+                        )
+                        db.add(new_univ)
+                        db.commit()
+                        db.refresh(new_univ)
+                        save_departments(db, new_univ.id, scraped_data.get("parsed_departments", []))
+                        
+                    success_count += 1
+                    dept_count = len(scraped_data.get("parsed_departments", []))
+                    details.append({"name": name, "status": "success", "dept_count": dept_count})
+                except Exception as ex:
+                    print(f"Error scraping {name} ({url}): {ex}")
+                    failed_count += 1
+                    details.append({"name": name, "status": "fail", "reason": str(ex)})
+                    continue
+        else:
+            # Fallback: Direct table excel
+            direct_data = parse_direct_excel_to_univ_data(contents, file.filename or "경쟁률.xlsx")
+            if direct_data:
+                name = direct_data["name"]
+                year = direct_data["year"]
+                adm = direct_data["admission_type"]
+                cap = direct_data["capacity_type"]
+                scraped_data = direct_data["scraped_data"]
+                departments = direct_data["departments"]
                 
                 existing_univ = db.query(University).filter(
                     University.name == name,
@@ -913,39 +1183,42 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
                 ).first()
                 
                 if existing_univ:
-                    existing_univ.url = url
-                    existing_univ.is_free_apply = free
-                    existing_univ.is_multi_apply = multi
                     existing_univ.scraped_data = json.dumps(scraped_data)
                     db.commit()
-                    save_departments(db, existing_univ.id, scraped_data.get("parsed_departments", []))
+                    save_departments(db, existing_univ.id, departments)
                 else:
                     new_univ = University(
                         name=name,
                         year=year,
                         admission_type=adm,
                         capacity_type=cap,
-                        is_free_apply=free,
-                        is_multi_apply=multi,
-                        url=url,
+                        url="",
                         scraped_data=json.dumps(scraped_data)
                     )
                     db.add(new_univ)
                     db.commit()
                     db.refresh(new_univ)
-                    save_departments(db, new_univ.id, scraped_data.get("parsed_departments", []))
+                    save_departments(db, new_univ.id, departments)
+                    
                 success_count += 1
-            except Exception as ex:
-                print(f"Error scraping {name} ({url}): {ex}")
-                continue
-
+                details.append({"name": name, "status": "success", "dept_count": len(departments)})
                 
         try:
             export_to_json(db)
         except Exception as ex:
             print(f"[경고] JSON 자동 갱신 실패: {ex}")
             
-        return {"success": True, "count": success_count, "message": f"{success_count}개 대학 데이터가 성공적으로 스크래핑 및 등록되었습니다."}
+        msg = f"총 {success_count}개 대학 데이터가 성공적으로 DB에 저장 및 동기화되었습니다."
+        if failed_count > 0:
+            msg += f" (실패: {failed_count}개)"
+            
+        return {
+            "success": True,
+            "count": success_count,
+            "failed_count": failed_count,
+            "details": details,
+            "message": msg
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
