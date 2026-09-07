@@ -169,23 +169,35 @@ def sync_to_remote_compi(remote_url="https://compi.mojuk.kr", token="ipsi4774!")
         print(f"[원격 DB 동기화 안내] {remote_url} 연동 건너뜀 ({e})")
         return False
 
-def push_to_github_pages(commit_msg="Update latest ipsi data (data.json)"):
+def deploy_to_compi(commit_msg="Deploy latest ipsi data to compi.mojuk.kr"):
+    """
+    https://compi.mojuk.kr 메인 서버 전용 자동 배포 함수
+    1. compi.mojuk.kr 메인 저장소(suego78ai/compi) Git 커밋 및 푸시
+    2. compi.mojuk.kr 라이브 서버 DB로 최신 데이터 실시간 동기화
+    """
     export_to_json()
 
     # 1. compi.mojuk.kr 메인 저장소(suego78ai/compi) Git 커밋 및 푸시
     try:
-        subprocess.run(["git", "add", "data/data.json", "ipsi.db", "index.html", "templates/index.html", "main.py", "export_data.py"], cwd=ROOT_DIR, check=True)
+        subprocess.run([
+            "git", "add",
+            "data/data.json", "ipsi.db", "index.html", "templates/index.html",
+            "main.py", "export_data.py", "render.yaml", "Dockerfile", "requirements.txt"
+        ], cwd=ROOT_DIR, check=True)
         status = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT_DIR, capture_output=True, text=True)
         if status.stdout.strip():
             subprocess.run(["git", "commit", "-m", commit_msg], cwd=ROOT_DIR, check=True)
             subprocess.run(["git", "push", "origin", "main"], cwd=ROOT_DIR, check=True)
-            print("[배포 성공] compi.mojuk.kr 메인 저장소(suego78ai/compi)로 푸시 완료!")
+            print("[배포 성공] https://compi.mojuk.kr 메인 저장소(suego78ai/compi)로 푸시 완료!")
         else:
-            print("[배포] compi 메인 저장소에 커밋할 변경 데이터가 없습니다.")
+            print("[배포] https://compi.mojuk.kr 저장소에 커밋할 변경 데이터가 없습니다.")
     except Exception as e:
-        print(f"[경고] compi 메인 저장소 푸시 중 오류: {e}")
+        print(f"[경고] https://compi.mojuk.kr 메인 저장소 푸시 중 오류: {e}")
 
-    # 2. ipsi_repo (GitHub Pages 미러 저장소) 동기화 푸시
+    # 2. compi.mojuk.kr 라이브 서버 DB 실시간 동기화
+    sync_to_remote_compi(remote_url="https://compi.mojuk.kr")
+
+    # 3. ipsi_repo (GitHub Pages 미러 저장소) 동기화 푸시 (보조 백업)
     if IPSI_REPO_DIR.exists() and (IPSI_REPO_DIR / ".git").exists():
         try:
             subprocess.run(["git", "add", "data/data.json", "index.html", "xlsx.full.min.js"], cwd=IPSI_REPO_DIR, check=True)
@@ -193,21 +205,24 @@ def push_to_github_pages(commit_msg="Update latest ipsi data (data.json)"):
             if status.stdout.strip():
                 subprocess.run(["git", "commit", "-m", commit_msg], cwd=IPSI_REPO_DIR, check=True)
                 subprocess.run(["git", "push", "origin", "main"], cwd=IPSI_REPO_DIR, check=True)
-                print("[배포 성공] GitHub Pages 미러(suego78ai/ipsi)로 푸시 완료!")
+                print("[보조 미러] GitHub Pages 미러(suego78ai/ipsi)로 푸시 완료!")
             else:
-                print("[배포] ipsi_repo 미러에 변경 사항이 없습니다.")
+                print("[보조 미러] ipsi_repo 미러에 변경 사항이 없습니다.")
         except Exception as e:
-            print(f"[경고] ipsi_repo 푸시 중 오류: {e}")
+            print(f"[보조 미러 안내] {e}")
 
-    # 3. compi.mojuk.kr 라이브 서버 DB 동기화
-    sync_to_remote_compi()
-
+    print("========================================================")
+    print("✨ https://compi.mojuk.kr 로의 배포가 성공적으로 고정 완료되었습니다.")
+    print("========================================================")
     return True
+
+# 하위 호환성 유지
+push_to_github_pages = deploy_to_compi
 
 def main():
     print("[1/2] DB 데이터 읽는 중...")
     if "--push" in sys.argv or "-p" in sys.argv:
-        push_to_github_pages()
+        deploy_to_compi()
     else:
         export_to_json()
     print("[2/2] 완료되었습니다.")

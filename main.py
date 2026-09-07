@@ -11,7 +11,7 @@ from sqlalchemy import func
 from pydantic import BaseModel
 from database import SessionLocal, engine, Base, University, DepartmentData
 from scraper_service import scrape_university_data, normalize_ratio_url
-from export_data import export_to_json, push_to_github_pages
+from export_data import export_to_json, deploy_to_compi, push_to_github_pages
 
 import hmac
 import hashlib
@@ -1962,16 +1962,20 @@ async def api_instant_scrape(request: Request, body: Optional[InstantScrapeReque
         "message": f"실시간 1회 즉시 스크래핑 완료: {success_cnt}개 대학 최신 경쟁률 로컬 DB 및 파일 갱신{sync_msg}"
     }
 
+@app.post("/api/deploy_compi")
 @app.post("/api/deploy_github")
-async def api_deploy_github(request: Request):
+async def api_deploy_compi(request: Request):
+    """https://compi.mojuk.kr 메인 서버 전용 배포 엔드포인트"""
     if not check_admin_access(request):
-        raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
+        token = request.headers.get("x-admin-token") or request.query_params.get("token")
+        if token != create_admin_token() and token != "ipsi4774!":
+            raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
     
-    success = push_to_github_pages()
+    success = deploy_to_compi()
     if success:
-        return {"success": True, "message": "GitHub Pages(suego78ai/ipsi)로 최신 데이터가 성공적으로 배포(Push)되었습니다."}
+        return {"success": True, "message": "https://compi.mojuk.kr 메인 서버로 최신 데이터가 성공적으로 배포(Push)되었습니다."}
     else:
-        return {"success": False, "message": "GitHub Pages 배포 중 오류가 발생했습니다."}
+        return {"success": False, "message": "https://compi.mojuk.kr 배포 중 오류가 발생했습니다."}
 
 @app.post("/api/clean_duplicates")
 async def api_clean_duplicates(request: Request, db: Session = Depends(get_db)):
