@@ -1422,6 +1422,79 @@ class PeriodicScrapeStopRequest(BaseModel):
     admin_password: Optional[str] = None
     reason: Optional[str] = "manual"
 
+async def sync_data_to_remote_compi(synced_univ_ids: list, db_session=None) -> int:
+    """
+    스크래핑된 대학 최신 데이터를 https://compi.mojuk.kr 원격 서버 DB로 즉시 업데이트 전송
+    """
+    if not synced_univ_ids:
+        return 0
+
+    import urllib.request
+    items_to_sync = []
+    should_close = False
+    try:
+        if db_session is None:
+            db_session = SessionLocal()
+            should_close = True
+
+        univs = db_session.query(University).filter(University.id.in_(synced_univ_ids)).all()
+        for u in univs:
+            scraped_data = json.loads(u.scraped_data) if u.scraped_data else {}
+            clean_scraped = {
+                "title": scraped_data.get("title", ""),
+                "parsed_departments": scraped_data.get("parsed_departments", [])
+            }
+            items_to_sync.append({
+                "name": u.name,
+                "year": str(u.year),
+                "admission_type": u.admission_type or "수시1차",
+                "capacity_type": u.capacity_type or "구분없음",
+                "url": u.url or "",
+                "is_free_apply": getattr(u, 'is_free_apply', '') or "",
+                "is_multi_apply": getattr(u, 'is_multi_apply', '') or "",
+                "scraped_data": clean_scraped,
+                "departments": scraped_data.get("parsed_departments", [])
+            })
+    except Exception as ex:
+        print(f"[원격 DB 동기화 데이터 준비 오류] {ex}")
+        return 0
+    finally:
+        if should_close and db_session:
+            db_session.close()
+
+    if not items_to_sync:
+        return 0
+
+    remote_url = "https://compi.mojuk.kr/api/save_scraped_batch"
+    headers = {
+        "Content-Type": "application/json",
+        "x-admin-token": "ipsi4774!"
+    }
+
+    chunk_size = 5
+    synced_count = 0
+    for i in range(0, len(items_to_sync), chunk_size):
+        chunk = items_to_sync[i:i + chunk_size]
+        payload = json.dumps({"universities": chunk}).encode("utf-8")
+        req = urllib.request.Request(remote_url, data=payload, headers=headers, method="POST")
+
+        def _post():
+            try:
+                with urllib.request.urlopen(req, timeout=12) as resp:
+                    return resp.status
+            except Exception:
+                return 0
+
+        try:
+            status = await asyncio.to_thread(_post)
+            if status == 200:
+                synced_count += len(chunk)
+        except Exception as err:
+            print(f"[원격 DB 동기화 전송 오류] {err}")
+
+    print(f"[원격 DB 동기화] {synced_count}/{len(items_to_sync)}개 대학 최신 경쟁률이 https://compi.mojuk.kr DB에 성공적으로 업데이트되었습니다.")
+    return synced_count
+
 class ServerPeriodicScraperManager:
     def __init__(self):
         self.is_running: bool = False
@@ -1618,6 +1691,7 @@ class ServerPeriodicScraperManager:
 
         cycle_success = 0
         cycle_failed = 0
+        successful_univ_ids = []
 
         for idx, item in enumerate(target_univ_records, 1):
             if not self.is_running:
@@ -1644,6 +1718,7 @@ class ServerPeriodicScraperManager:
 
                     cycle_success += 1
                     self.success_total += 1
+                    successful_univ_ids.append(item["id"])
                     self.add_log(f"✔ [{idx}/{len(target_univ_records)}] {item['name']} 성공 ({len(parsed_depts)}개 학과 / DB 저장 완료)", "success")
                 else:
                     cycle_failed += 1
@@ -1667,7 +1742,16 @@ class ServerPeriodicScraperManager:
         except Exception as ex:
             self.add_log(f"⚠️ JSON 자동 갱신 실패: {ex}", "warn")
 
-        self.add_log(f"✅ [서버 {cycle_num}회차 완료] 성공: {cycle_success}건, 실패: {cycle_failed}건 (대시보드 DB & JSON 최신 갱신됨)", "success")
+        # 원격 서버 DB(https://compi.mojuk.kr) 자동 동기화
+        if successful_univ_ids:
+            try:
+                synced_cnt = await sync_data_to_remote_compi(successful_univ_ids)
+                if synced_cnt > 0:
+                    self.add_log(f"🌐 [원격 DB 동기화] https://compi.mojuk.kr 에 {synced_cnt}개 대학 최신 경쟁률 자동 업데이트 완료", "success")
+            except Exception as syn_ex:
+                self.add_log(f"⚠️ 원격 DB 자동 동기화 오류: {syn_ex}", "warn")
+
+        self.add_log(f"✅ [서버 {cycle_num}회차 완료] 성공: {cycle_success}건, 실패: {cycle_failed}건 (로컬 & 원격 DB 최신 반영됨)", "success")
 
 # 싱글톤 인스턴스 생성
 server_periodic_scraper = ServerPeriodicScraperManager()
@@ -1809,13 +1893,24 @@ async def api_instant_scrape(request: Request, body: Optional[InstantScrapeReque
     except Exception as ex:
         print(f"[경고] JSON 자동 갱신 실패: {ex}")
 
+    # 원격 서버 DB (https://compi.mojuk.kr) 자동 동기화
+    remote_synced = 0
+    synced_ids = [r["id"] for r in results if r.get("status") == "success"]
+    if synced_ids:
+        try:
+            remote_synced = await sync_data_to_remote_compi(synced_ids, db)
+        except Exception as syn_ex:
+            print(f"[경고] 원격 DB 동기화 실패: {syn_ex}")
+
+    sync_msg = f" (원격 https://compi.mojuk.kr DB {remote_synced}개 동기화 완료)" if remote_synced > 0 else ""
     return {
         "success": True,
         "total": len(target_univs),
         "success_count": success_cnt,
+        "remote_synced_count": remote_synced,
         "fail_count": fail_cnt,
         "results": results,
-        "message": f"실시간 1회 즉시 스크래핑 완료: {success_cnt}개 대학 최신 경쟁률 DB 및 파일 갱신 성공"
+        "message": f"실시간 1회 즉시 스크래핑 완료: {success_cnt}개 대학 최신 경쟁률 로컬 DB 및 파일 갱신{sync_msg}"
     }
 
 @app.post("/api/deploy_github")

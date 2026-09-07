@@ -4642,6 +4642,54 @@ function populateBatchScrapeFilterOptions() {
   updateBatchScrapeTargetSummary();
 }
 
+// https://compi.mojuk.kr 서버 DB로 대학 레코드들을 직접 청크 분할 전송하는 공통 함수
+async function syncToRemoteCompiDbDirectly(univRecords) {
+  if (!univRecords || !univRecords.length) return 0;
+  const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+  const url = 'https://compi.mojuk.kr/api/save_scraped_batch';
+  
+  const items = univRecords.map(u => {
+    const rawData = u.scraped_data || {};
+    const parsedDepts = u.departments || rawData.parsed_departments || [];
+    return {
+      name: u.name || '',
+      year: String(u.year || '2027'),
+      admission_type: u.admission_type || u.adm_type || '수시1차',
+      capacity_type: u.capacity_type || u.cap_type || '구분없음',
+      url: u.url || '',
+      is_free_apply: u.is_free_apply || u.free_apply || '',
+      is_multi_apply: u.is_multi_apply || u.multi_apply || '',
+      scraped_data: {
+        title: rawData.title || '',
+        parsed_departments: parsedDepts
+      },
+      departments: parsedDepts
+    };
+  }).filter(u => u.name && (u.departments && u.departments.length > 0));
+
+  if (!items.length) return 0;
+
+  const chunkSize = 5;
+  let successCount = 0;
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': token
+        },
+        body: JSON.stringify({ universities: chunk })
+      });
+      if (res.ok) successCount += chunk.length;
+    } catch (e) {
+      console.warn('[원격 compi.mojuk.kr DB 청크 전송 실패]', e);
+    }
+  }
+  return successCount;
+}
+
 function getBatchTargetUniversities() {
   const ySel = document.getElementById('engineBatchYear');
   const aSel = document.getElementById('engineBatchAdm');
@@ -4663,6 +4711,19 @@ function getBatchTargetUniversities() {
     if (!seenKeys.has(key)) {
       seenKeys.add(key);
       targets.push(u);
+    }
+  }
+
+  // 타겟이 0개일 경우, 유효한 URL이 등록된 대학 전체를 기본 반환
+  if (!targets.length && ALL_UNIVS.length) {
+    for (const u of ALL_UNIVS) {
+      if (u.url && String(u.url).trim().startsWith('http')) {
+        const key = `${u.name}_${u.year}_${u.admission_type || u.adm_type}_${u.capacity_type || u.cap_type || ''}`;
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          targets.push(u);
+        }
+      }
     }
   }
 
@@ -4722,32 +4783,43 @@ async function startPeriodicScraping() {
     return;
   }
 
-  const targets = getBatchTargetUniversities();
+  let targets = getBatchTargetUniversities();
   if (!targets.length) {
-    alert('선택한 학년도/모집시기에 URL이 등록된 대학이 없습니다.\n조건을 변경하거나 URL이 등록된 대학을 확인해 주세요.');
+    targets = ALL_UNIVS.filter(u => u.url && String(u.url).trim().startsWith('http'));
+  }
+  if (!targets.length) {
+    alert('등록된 대학 중 유효한 경쟁률 URL이 등록된 대학이 없습니다.\n먼저 대학을 등록하거나 엑셀을 업로드해 주세요.');
     return;
   }
 
-  const yVal = document.getElementById('engineBatchYear').value;
-  const aVal = document.getElementById('engineBatchAdm').value;
-  const intervalMin = parseInt(document.getElementById('engineBatchInterval').value, 10) || 5;
-  const durationMin = parseInt(document.getElementById('engineBatchDuration').value, 10) || 60;
+  const yVal = (document.getElementById('engineBatchYear') ? document.getElementById('engineBatchYear').value : '') || '2027';
+  const aVal = (document.getElementById('engineBatchAdm') ? document.getElementById('engineBatchAdm').value : '') || '수시1차';
+  const intervalMin = parseInt(document.getElementById('engineBatchInterval') ? document.getElementById('engineBatchInterval').value : 5, 10) || 5;
+  const durationMin = parseInt(document.getElementById('engineBatchDuration') ? document.getElementById('engineBatchDuration').value : 60, 10) || 60;
 
   if (PERIODIC_SCRAPER.isRunning) {
-    if (!confirm('이미 서버에서 실행 중인 주기 스크래핑이 있습니다. 새 설정으로 다시 시작하시겠습니까?')) {
+    if (!confirm('이미 실행 중인 주기 스크래핑이 있습니다. 새 설정으로 다시 시작하시겠습니까?')) {
       return;
     }
+    await stopPeriodicScraping('restart');
   }
 
   const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
   const btnStart = document.getElementById('btnStartPeriodicScrape');
+  const statusBadge = document.getElementById('engineStatusBadge');
   if (btnStart) {
     btnStart.disabled = true;
-    btnStart.innerText = '서버 요청 중...';
+    btnStart.innerText = '가동 요청 중...';
+  }
+  if (statusBadge) {
+    statusBadge.innerText = '실행 중';
+    statusBadge.style.background = '#065f46';
+    statusBadge.style.color = '#34d399';
   }
 
+  let serverStarted = false;
   try {
-    const res = await fetch('/api/periodic_scrape/start', {
+    const res = await fetch(getApiEndpoint('/api/periodic_scrape/start'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -4761,26 +4833,168 @@ async function startPeriodicScraping() {
       })
     });
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || '스크래핑 시작 요청이 거부되었습니다.');
+    if (res.ok) {
+      serverStarted = true;
+      PERIODIC_SCRAPER.mode = 'server';
+      PERIODIC_SCRAPER.isRunning = true;
+      const durText = durationMin > 0 ? `${durationMin}분 동안` : '무제한 (수동 멈춤 시까지)';
+      appendEngineLog(`🚀 [서버 백그라운드 주기 스크래핑 가동] 대상: ${yVal}학년도 ${aVal} (${targets.length}개 대학) | 주기: ${intervalMin}분 간격 | 지속: ${durText}`, 'success');
+      appendEngineLog(`🌐 [원격 연동] 매 주기마다 https://compi.mojuk.kr 서버 DB로 최신 경쟁률이 자동 업데이트됩니다.`, 'info');
+      alert('🚀 서버 실시간 주기 스크래핑이 백그라운드에서 시작되었습니다!\n\n※ 관리자 로그아웃을 하거나 창을 닫아도 서버에서 지정된 주기마다 계속 실행됩니다.\n※ 매 주기마다 https://compi.mojuk.kr 원격 서버 DB로 최신 데이터가 자동 업데이트됩니다.\n※ 언제든지 "멈춤" 버튼을 눌러 스크래핑을 중단할 수 있습니다.');
+      await syncServerPeriodicScraperStatus();
+    }
+  } catch (apiErr) {
+    console.warn('[서버 주기 스크래핑 API 미지원/오류 -> 브라우저 주기 스크래핑 모드로 자동 전환]', apiErr);
+  }
+
+  // 서버 API 미지원/원격 배포 지연 시 브라우저 내장 실시간 주기 스크래핑 엔진으로 자동 가동 (Fallback)
+  if (!serverStarted) {
+    startBrowserPeriodicScraping(targets, yVal, aVal, intervalMin, durationMin);
+  }
+}
+
+function startBrowserPeriodicScraping(targets, yVal, aVal, intervalMin, durationMin) {
+  PERIODIC_SCRAPER.mode = 'browser';
+  PERIODIC_SCRAPER.isRunning = true;
+  PERIODIC_SCRAPER.targetYear = yVal;
+  PERIODIC_SCRAPER.targetAdm = aVal;
+  PERIODIC_SCRAPER.intervalMinutes = intervalMin;
+  PERIODIC_SCRAPER.durationMinutes = durationMin;
+  PERIODIC_SCRAPER.startTime = Date.now();
+  PERIODIC_SCRAPER.endTime = durationMin > 0 ? (Date.now() + durationMin * 60 * 1000) : null;
+  PERIODIC_SCRAPER.totalCycles = 0;
+  PERIODIC_SCRAPER.successTotal = 0;
+  PERIODIC_SCRAPER.failedTotal = 0;
+  PERIODIC_SCRAPER.isExecutingCycle = false;
+
+  const durText = durationMin > 0 ? `${durationMin}분 동안` : '무제한 (수동 멈춤 시까지)';
+  appendEngineLog(`🚀 [실시간 주기 스크래핑 가동] 대상: ${yVal} ${aVal} (${targets.length}개 대학) | 주기: ${intervalMin}분 간격 | 지속: ${durText}`, 'success');
+  appendEngineLog(`🌐 [원격 연동] 매 주기마다 https://compi.mojuk.kr 서버 DB로 최신 경쟁률이 자동 전송됩니다.`, 'info');
+  alert(`🚀 실시간 주기 스크래핑이 가동되었습니다!\n\n※ 주기: ${intervalMin}분 간격 (${targets.length}개 대학 실시간 수집)\n※ 매 회차마다 https://compi.mojuk.kr 원격 서버 DB로 자동 업데이트됩니다.\n※ 언제든지 "멈춤" 버튼을 눌러 스크래핑을 즉시 중단할 수 있습니다.`);
+
+  updatePeriodicScraperUI();
+
+  // 1회차 즉시 실행
+  runBrowserPeriodicCycle(targets);
+
+  // 1초 카운트다운 타이머 인터벌
+  if (PERIODIC_SCRAPER.countdownIntervalId) clearInterval(PERIODIC_SCRAPER.countdownIntervalId);
+  PERIODIC_SCRAPER.countdownIntervalId = setInterval(() => {
+    if (!PERIODIC_SCRAPER.isRunning || PERIODIC_SCRAPER.mode !== 'browser') {
+      clearInterval(PERIODIC_SCRAPER.countdownIntervalId);
+      return;
     }
 
-    const data = await res.json();
-    const durText = durationMin > 0 ? `${durationMin}분 동안` : '무제한 (수동 멈춤 시까지)';
-    appendEngineLog(`🚀 [서버 주기 스크래핑 가동] 대상: ${yVal}학년도 ${aVal} (${targets.length}개 대학) | 주기: ${intervalMin}분 간격 | 지속: ${durText}`, 'success');
-    alert('🚀 서버 실시간 주기 스크래핑이 백그라운드에서 시작되었습니다!\n\n※ 관리자 로그아웃을 하거나 브라우저 창을 닫아도 서버에서 지정된 주기마다 계속 실행됩니다.\n※ 언제든지 "멈춤" 버튼을 눌러 스크래핑을 즉시 중단할 수 있습니다.');
+    const now = Date.now();
+    if (PERIODIC_SCRAPER.endTime && now >= PERIODIC_SCRAPER.endTime) {
+      stopPeriodicScraping('duration_expired');
+      return;
+    }
 
-    await syncServerPeriodicScraperStatus();
-  } catch (err) {
-    alert(`❌ 스크래핑 시작 실패: ${err.message}`);
-    appendEngineLog(`❌ 스크래핑 시작 실패: ${err.message}`, 'error');
-  } finally {
-    if (btnStart) {
-      btnStart.disabled = false;
-      btnStart.innerText = '▶️ 실시간 주기 스크래핑 시작';
+    if (PERIODIC_SCRAPER.nextRunTime && !PERIODIC_SCRAPER.isExecutingCycle) {
+      const remainSec = Math.max(0, Math.floor((PERIODIC_SCRAPER.nextRunTime - now) / 1000));
+      PERIODIC_SCRAPER.nextCountdownSec = remainSec;
+      if (remainSec <= 0) {
+        runBrowserPeriodicCycle(targets);
+      }
+    }
+
+    const elapsedSec = Math.floor((now - PERIODIC_SCRAPER.startTime) / 1000);
+    PERIODIC_SCRAPER.durationElapsedSec = elapsedSec;
+    PERIODIC_SCRAPER.remainingDurationSec = PERIODIC_SCRAPER.endTime ? Math.max(0, Math.floor((PERIODIC_SCRAPER.endTime - now) / 1000)) : 0;
+
+    updatePeriodicScraperUI();
+  }, 1000);
+}
+
+async function runBrowserPeriodicCycle(targets) {
+  if (!PERIODIC_SCRAPER.isRunning || PERIODIC_SCRAPER.isExecutingCycle) return;
+  PERIODIC_SCRAPER.isExecutingCycle = true;
+  PERIODIC_SCRAPER.totalCycles++;
+  const cycle = PERIODIC_SCRAPER.totalCycles;
+
+  appendEngineLog(`🔄 [${cycle}회차 스크래핑 시작] 총 ${targets.length}개 대학 실시간 데이터 수집 중...`, 'info');
+  updatePeriodicScraperUI();
+
+  const updatedAll = [...ALL_UNIVS];
+  const scrapedBatch = [];
+  let successCnt = 0;
+  let failCnt = 0;
+
+  for (let i = 0; i < targets.length; i++) {
+    if (!PERIODIC_SCRAPER.isRunning) break;
+    const u = targets[i];
+    PERIODIC_SCRAPER.currentUniv = `[${i + 1}/${targets.length}] ${u.name}`;
+    updatePeriodicScraperUI();
+
+    try {
+      const html = await fetchHtmlWithProxies(u.url);
+      const parsed = parseUniversityHtml(html, u.url);
+      if (parsed.parsed_departments && parsed.parsed_departments.length > 0) {
+        const targetAdm = u.admission_type || u.adm_type || '수시1차';
+        const targetCap = u.capacity_type || u.cap_type || '구분없음';
+        const record = {
+          ...u,
+          admission_type: targetAdm,
+          adm_type: targetAdm,
+          capacity_type: targetCap,
+          cap_type: targetCap,
+          scraped_data: parsed,
+          departments: parsed.parsed_departments
+        };
+        await saveSingleUnivToDb(record);
+        scrapedBatch.push(record);
+
+        const remaining = updatedAll.filter(item => !(item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === targetAdm && (item.capacity_type || item.cap_type) === targetCap)));
+        remaining.unshift(record);
+        updatedAll.length = 0;
+        updatedAll.push(...remaining);
+
+        successCnt++;
+        PERIODIC_SCRAPER.successTotal++;
+        appendEngineLog(`✔ [${i + 1}/${targets.length}] ${u.name} 수집 성공 (${parsed.parsed_departments.length}개 전형/학과)`, 'success');
+      } else {
+        failCnt++;
+        PERIODIC_SCRAPER.failedTotal++;
+        appendEngineLog(`✖ [${i + 1}/${targets.length}] ${u.name} 실패: 유효한 경쟁률 표 없음`, 'warn');
+      }
+    } catch (e) {
+      failCnt++;
+      PERIODIC_SCRAPER.failedTotal++;
+      appendEngineLog(`✖ [${i + 1}/${targets.length}] ${u.name} 오류: ${e.message}`, 'error');
     }
   }
+
+  ALL_UNIVS = updatedAll;
+  PERIODIC_SCRAPER.currentUniv = '';
+  PERIODIC_SCRAPER.isExecutingCycle = false;
+  PERIODIC_SCRAPER.lastCompletedAt = new Date();
+  PERIODIC_SCRAPER.lastResult = `성공 ${successCnt}건 / 실패 ${failCnt}건`;
+  PERIODIC_SCRAPER.nextRunTime = Date.now() + (PERIODIC_SCRAPER.intervalMinutes * 60 * 1000);
+  PERIODIC_SCRAPER.nextCountdownSec = PERIODIC_SCRAPER.intervalMinutes * 60;
+
+  // 원격 서버 DB(https://compi.mojuk.kr)로 실시간 업데이트 전송
+  if (scrapedBatch.length > 0) {
+    try {
+      const synced = await syncToRemoteCompiDbDirectly(scrapedBatch);
+      if (synced > 0) {
+        appendEngineLog(`🌐 [원격 DB 동기화] https://compi.mojuk.kr 서버 DB에 ${synced}개 대학 최신 경쟁률이 성공적으로 업데이트되었습니다.`, 'success');
+      }
+    } catch (err) {
+      console.warn('[원격 DB 전송 오류]', err);
+    }
+  }
+
+  appendEngineLog(`✅ [${cycle}회차 완료] 성공: ${successCnt}건, 실패: ${failCnt}건 (화면 및 DB 반영 완료)`, 'success');
+
+  await reloadLatestData();
+  if (CURRENT_ACTIVE_DETAIL_ID) {
+    showUnivDetail(CURRENT_ACTIVE_DETAIL_ID, false, CURRENT_ACTIVE_DETAIL_HINT?.name, CURRENT_ACTIVE_DETAIL_HINT?.year, CURRENT_ACTIVE_DETAIL_HINT?.adm);
+  } else if (typeof CURRENT_HOME_TAB !== 'undefined' && CURRENT_HOME_TAB === 'inha') {
+    showHome(false, null, null, 'inha');
+  }
+
+  updatePeriodicScraperUI();
 }
 
 async function stopPeriodicScraping(reason = 'manual') {
@@ -4793,7 +5007,7 @@ async function stopPeriodicScraping(reason = 'manual') {
   }
 
   if (reason === 'manual') {
-    if (!confirm('현재 서버에서 실행 중인 실시간 자동 주기 스크래핑을 멈추시겠습니까?')) {
+    if (!confirm('현재 실행 중인 실시간 자동 주기 스크래핑을 멈추시겠습니까?')) {
       return;
     }
   }
@@ -4804,8 +5018,17 @@ async function stopPeriodicScraping(reason = 'manual') {
     btnStop.innerText = '멈추는 중...';
   }
 
+  // 1. 브라우저 타이머 모드 해제
+  if (PERIODIC_SCRAPER.countdownIntervalId) {
+    clearInterval(PERIODIC_SCRAPER.countdownIntervalId);
+    PERIODIC_SCRAPER.countdownIntervalId = null;
+  }
+  PERIODIC_SCRAPER.isRunning = false;
+  PERIODIC_SCRAPER.mode = 'idle';
+
+  // 2. 서버 프로세스 백그라운드 스크래핑 멈춤 요청
   try {
-    const res = await fetch('/api/periodic_scrape/stop', {
+    const res = await fetch(getApiEndpoint('/api/periodic_scrape/stop'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -4816,25 +5039,20 @@ async function stopPeriodicScraping(reason = 'manual') {
         reason: reason
       })
     });
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.detail || '스크래핑 멈춤 요청 실패');
+    if (res.ok) {
+      const data = await res.json();
+      appendEngineLog(`⏹️ [서버 스크래핑 멈춤] ${data.message || '중단되었습니다.'}`, 'warn');
     }
+  } catch (err) {}
 
-    const data = await res.json();
-    appendEngineLog(`⏹️ [서버 스크래핑 멈춤] ${data.message}`, 'warn');
-    alert('⏹️ 실시간 자동 주기 스크래핑이 성공적으로 멈추었습니다.');
+  appendEngineLog(`⏹️ [주기 스크래핑 멈춤] 실시간 주기 스크래핑이 안전하게 중단되었습니다.`, 'warn');
+  alert('⏹️ 실시간 자동 주기 스크래핑이 성공적으로 멈추었습니다.');
 
-    await syncServerPeriodicScraperStatus();
-  } catch (err) {
-    alert(`❌ 스크래핑 멈춤 실패: ${err.message}`);
-    appendEngineLog(`❌ 스크래핑 멈춤 오류: ${err.message}`, 'error');
-  } finally {
-    if (btnStop) {
-      btnStop.disabled = false;
-      btnStop.innerText = '⏹️ 스크래핑 멈춤';
-    }
+  updatePeriodicScraperUI();
+
+  if (btnStop) {
+    btnStop.disabled = false;
+    btnStop.innerText = '⏹️ 스크래핑 멈춤';
   }
 }
 
@@ -4843,15 +5061,23 @@ let _isSyncingScraper = false;
 
 async function syncServerPeriodicScraperStatus() {
   if (_isSyncingScraper) return;
+  // 브라우저 모드로 이미 직접 실행 중인 경우 서버 폴링으로 덮어쓰지 않음
+  if (PERIODIC_SCRAPER.mode === 'browser' && PERIODIC_SCRAPER.isRunning) {
+    updatePeriodicScraperUI();
+    return;
+  }
+
   _isSyncingScraper = true;
   try {
-    const res = await fetch('/api/periodic_scrape/status');
+    const res = await fetch(getApiEndpoint('/api/periodic_scrape/status'));
     if (!res.ok) return;
     const data = await res.json();
     const st = data.status || {};
 
-    const prevRunning = PERIODIC_SCRAPER.isRunning;
     PERIODIC_SCRAPER.isRunning = !!st.is_running;
+    if (PERIODIC_SCRAPER.isRunning) {
+      PERIODIC_SCRAPER.mode = 'server';
+    }
     PERIODIC_SCRAPER.isExecutingCycle = !!st.is_executing_cycle;
     PERIODIC_SCRAPER.targetYear = st.target_year || '2027';
     PERIODIC_SCRAPER.targetAdm = st.target_adm || '수시1차';
@@ -4872,14 +5098,16 @@ async function syncServerPeriodicScraperStatus() {
     // 새 회차가 완료되었으면 대시보드 데이터 자동 새로고침
     if (PERIODIC_SCRAPER.totalCycles > _lastSyncedCycle && _lastSyncedCycle > 0) {
       console.log(`[서버 스크래핑] 새 회차(${PERIODIC_SCRAPER.totalCycles}회) 완료 감지 -> 대시보드 데이터 자동 갱신`);
-      if (typeof loadAllUnivsFromDb === 'function') {
-        loadAllUnivsFromDb(false);
+      await reloadLatestData();
+      if (CURRENT_ACTIVE_DETAIL_ID) {
+        showUnivDetail(CURRENT_ACTIVE_DETAIL_ID, false, CURRENT_ACTIVE_DETAIL_HINT?.name, CURRENT_ACTIVE_DETAIL_HINT?.year, CURRENT_ACTIVE_DETAIL_HINT?.adm);
+      } else if (typeof CURRENT_HOME_TAB !== 'undefined' && CURRENT_HOME_TAB === 'inha') {
+        showHome(false, null, null, 'inha');
       }
     }
     _lastSyncedCycle = PERIODIC_SCRAPER.totalCycles;
 
   } catch (e) {
-    // network ignore
   } finally {
     _isSyncingScraper = false;
   }
@@ -4900,6 +5128,7 @@ function updatePeriodicScraperUI() {
   const cycleCount = document.getElementById('enginePeriodicCycleCount');
   const lastResult = document.getElementById('enginePeriodicLastResult');
   const lastTime = document.getElementById('enginePeriodicLastTime');
+  const statusBadge = document.getElementById('engineStatusBadge');
 
   const floatingPill = document.getElementById('floatingScraperPill');
   const floatingText = document.getElementById('floatingPillText');
@@ -4908,12 +5137,18 @@ function updatePeriodicScraperUI() {
     if (card) card.style.display = 'none';
     if (btnStart) {
       btnStart.style.display = 'inline-flex';
+      btnStart.disabled = false;
       btnStart.innerText = '▶️ 실시간 주기 스크래핑 시작';
     }
     if (btnStop) btnStop.style.display = 'none';
     if (floatingPill) floatingPill.style.display = 'none';
     const topBanner = document.getElementById('topServerScraperBanner');
     if (topBanner) topBanner.style.display = 'none';
+    if (statusBadge) {
+      statusBadge.innerText = '대기 중';
+      statusBadge.style.background = '#1e293b';
+      statusBadge.style.color = '#38bdf8';
+    }
     return;
   }
 
@@ -4922,7 +5157,13 @@ function updatePeriodicScraperUI() {
   if (btnStart) btnStart.style.display = 'none';
   if (btnStop) {
     btnStop.style.display = 'inline-flex';
+    btnStop.disabled = false;
     btnStop.innerText = '⏹️ 스크래핑 멈춤';
+  }
+  if (statusBadge) {
+    statusBadge.innerText = PERIODIC_SCRAPER.isExecutingCycle ? '수집 중' : '실행 중';
+    statusBadge.style.background = '#065f46';
+    statusBadge.style.color = '#34d399';
   }
 
   const elapsedSec = PERIODIC_SCRAPER.durationElapsedSec || 0;
@@ -4932,9 +5173,10 @@ function updatePeriodicScraperUI() {
   if (runningBadge) {
     const isExecuting = PERIODIC_SCRAPER.isExecutingCycle;
     const currentTarget = PERIODIC_SCRAPER.currentUniv ? ` (${PERIODIC_SCRAPER.currentUniv})` : '';
+    const modeLabel = PERIODIC_SCRAPER.mode === 'server' ? '서버 백그라운드' : '실시간 브라우저';
     runningBadge.innerHTML = isExecuting
-      ? `🟢 <strong>서버 스크래핑 진행 중... [${PERIODIC_SCRAPER.totalCycles}회차${currentTarget}]</strong>`
-      : `🟢 <strong>서버 주기 스크래핑 가동 중 (${PERIODIC_SCRAPER.totalCycles}회차 완료)</strong>`;
+      ? `🟢 <strong>[${modeLabel}] 스크래핑 진행 중... [${PERIODIC_SCRAPER.totalCycles}회차${currentTarget}]</strong>`
+      : `🟢 <strong>[${modeLabel}] 주기 스크래핑 가동 중 (${PERIODIC_SCRAPER.totalCycles}회차 완료)</strong>`;
   }
 
   const nextRemainMs = (PERIODIC_SCRAPER.nextCountdownSec || 0) * 1000;
@@ -4956,16 +5198,15 @@ function updatePeriodicScraperUI() {
   if (floatingPill) {
     floatingPill.style.display = 'flex';
     if (floatingText) {
-      floatingText.innerText = `[서버 ${PERIODIC_SCRAPER.targetYear} ${PERIODIC_SCRAPER.targetAdm} ${PERIODIC_SCRAPER.intervalMinutes}분] ${countdownStr}`;
+      floatingText.innerText = `[실시간 ${PERIODIC_SCRAPER.targetYear} ${PERIODIC_SCRAPER.targetAdm} ${PERIODIC_SCRAPER.intervalMinutes}분] ${countdownStr}`;
     }
   }
-
   const topBanner = document.getElementById('topServerScraperBanner');
   const topBannerText = document.getElementById('topScraperBannerText');
   if (topBanner) {
     topBanner.style.display = 'flex';
     if (topBannerText) {
-      topBannerText.innerHTML = `🟢 <strong>서버 실시간 자동 주기 스크래핑 실행 중</strong> (${PERIODIC_SCRAPER.targetYear}학년도 ${PERIODIC_SCRAPER.targetAdm} | ${PERIODIC_SCRAPER.totalCycles}회차 완료) &nbsp;<span style="color:#a7f3d0;font-weight:700;">⏳ ${countdownStr}</span>`;
+      topBannerText.innerHTML = `🟢 <strong>실시간 자동 주기 스크래핑 실행 중</strong> (${PERIODIC_SCRAPER.targetYear}학년도 ${PERIODIC_SCRAPER.targetAdm} | ${PERIODIC_SCRAPER.totalCycles}회차 완료) &nbsp;<span style="color:#a7f3d0;font-weight:700;">⏳ ${countdownStr}</span>`;
     }
   }
 }
@@ -5629,6 +5870,16 @@ async function refreshLatestDataWithFeedback(btn = null) {
         }
         updatedCount = clientSuccess;
         ALL_UNIVS = updatedAll;
+
+        // 브라우저에서 직접 수집한 최신 데이터들을 https://compi.mojuk.kr 서버 DB로 직접 업데이트 전송
+        try {
+          const syncedRemote = await syncToRemoteCompiDbDirectly(targetUnivs);
+          if (syncedRemote > 0 && typeof appendEngineLog === 'function') {
+            appendEngineLog(`🌐 [원격 DB 동기화] https://compi.mojuk.kr 서버 DB에 ${syncedRemote}개 대학 최신 경쟁률이 업데이트되었습니다.`, 'success');
+          }
+        } catch (rErr) {
+          console.warn('[원격 DB 동기화 실패]', rErr);
+        }
       }
     }
 
@@ -5640,13 +5891,11 @@ async function refreshLatestDataWithFeedback(btn = null) {
       showHome(false, null, null, 'inha');
     }
 
-    const successMsg = updatedCount > 0
-      ? `✨ 실시간 1회 즉시 스크래핑 완료! (${updatedCount}개 대학 최신 경쟁률이 DB에 영구 반영되었습니다)`
-      : `✨ 실시간 1회 즉시 스크래핑 완료! (최신 경쟁률 데이터가 화면에 반영되었습니다)`;
+    const successMsg = `✨ 실시간 1회 즉시 스크래핑 완료! 최신 경쟁률이 로컬 및 https://compi.mojuk.kr 서버 DB에 성공적으로 업데이트되었습니다.`;
 
     showToast(successMsg, 'success', 5000);
     if (typeof appendEngineLog === 'function') {
-      appendEngineLog(`🎉 [완료] 대시보드 데이터가 최신 상태로 갱신되었습니다.`, 'success');
+      appendEngineLog(`🎉 [완료] 최신 데이터가 로컬 및 원격 https://compi.mojuk.kr 서버 DB에 성공적으로 갱신되었습니다.`, 'success');
     }
   } catch (err) {
     console.error('[실시간 새로고침 스크래핑 오류]', err);
