@@ -1729,8 +1729,27 @@ function updateInhaBoard(initial = false) {
     prevDepts = prevDepts.filter(u => String(u.table_title || '').includes(ttFilter));
   }
 
-  const deptMap = new Map();
+  // 중복 학과 데이터 사전 제거 (동일 전형구분 및 학과명 기준 최신 데이터 유지)
+  const cleanCurMap = new Map();
   curDepts.forEach(u => {
+    const rawDept = (u.department_name || u.dept || '').trim();
+    const tt = (u.table_title || '').trim();
+    if (!rawDept) return;
+    cleanCurMap.set(`${rawDept}|${tt}`, u);
+  });
+  const cleanCurDepts = Array.from(cleanCurMap.values());
+
+  const cleanPrevMap = new Map();
+  prevDepts.forEach(u => {
+    const rawDept = (u.department_name || u.dept || '').trim();
+    const tt = (u.table_title || '').trim();
+    if (!rawDept) return;
+    cleanPrevMap.set(`${rawDept}|${tt}`, u);
+  });
+  const cleanPrevDepts = Array.from(cleanPrevMap.values());
+
+  const deptMap = new Map();
+  cleanCurDepts.forEach(u => {
     const rawDept = (u.department_name || u.dept || '').trim();
     const deptName = normalizeInhaDeptName(rawDept); // 2027학년도 표준 학과명으로 변환
     const tt = (u.table_title || '').trim();
@@ -1745,7 +1764,7 @@ function updateInhaBoard(initial = false) {
     deptMap.get(key).curAp += parseInt(String(u.applicant_count || u.applicant_num || '0').replace(/,/g, '')) || 0;
   });
 
-  prevDepts.forEach(u => {
+  cleanPrevDepts.forEach(u => {
     const rawDept = (u.department_name || u.dept || '').trim();
     const deptName = normalizeInhaDeptName(rawDept); // 2027학년도 표준 학과명으로 변환
     const tt = (u.table_title || '').trim();
@@ -1983,37 +2002,7 @@ function exportInhaBoardExcel() {
   XLSX.writeFile(wb, `인하공업전문대학_경쟁률현황판_${curY}vs${prevY}_${adm}.xlsx`);
 }
 
-function handleInhaYearChange() {
-  const curY = document.getElementById('inhaCurYear').value;
-  const inhaUnivs = ALL_UNIVS.filter(u => u.name && u.name.includes('인하공업전문대학'));
-  const inhaYears = [...new Set(inhaUnivs.map(u => u.year))].filter(Boolean).sort((a,b) => b.localeCompare(a));
-  const curIdx = inhaYears.indexOf(curY);
-  const prevYSelect = document.getElementById('inhaPrevYear');
-  if (prevYSelect && curIdx !== -1 && curIdx + 1 < inhaYears.length) {
-    prevYSelect.value = inhaYears[curIdx + 1];
-  }
-  updateInhaTableTitles();
-  updateInhaBoard(false);
-}
 
-function updateInhaTableTitles() {
-  const curY = document.getElementById('inhaCurYear') ? document.getElementById('inhaCurYear').value : '2026';
-  const adm = document.getElementById('inhaAdm') ? document.getElementById('inhaAdm').value : '수시1차';
-  const ttSelect = document.getElementById('inhaTableTitle');
-  if (!ttSelect) return;
-
-  const inhaUnivs = ALL_UNIVS.filter(u => u.name && u.name.includes('인하공업전문대학') && (curY === 'ALL' || u.year === curY));
-  const filtered = (adm === 'ALL') ? inhaUnivs : inhaUnivs.filter(u => (u.admission_type || u.adm_type) === adm);
-  
-  const rawTitles = [...new Set(filtered.map(u => u.table_title).filter(Boolean))].filter(t => !t.includes('전형별'));
-  const currentVal = ttSelect.value;
-  
-  let optionsHtml = '<option value="ALL">전체 전형 (합산/전체)</option>';
-  rawTitles.forEach(t => {
-    optionsHtml += `<option value="${e(t)}" ${t === currentVal ? 'selected' : ''}>${e(t)}</option>`;
-  });
-  ttSelect.innerHTML = optionsHtml;
-}
 
 
 
@@ -2232,7 +2221,15 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
 
   let tabs = '', contents = '';
   tableTitles.forEach((t, i) => {
-    const tRows = tableMap[t];
+    const rawTRows = tableMap[t] || [];
+    // 동일 전형 내 동일 학과명 중복 제거 (최신/유효 데이터 우선)
+    const uniqueDeptMap = new Map();
+    rawTRows.forEach(d => {
+      const dn = (d.department_name || d.dept || '').trim();
+      if (!dn) return;
+      uniqueDeptMap.set(dn, d);
+    });
+    const tRows = Array.from(uniqueDeptMap.values());
     const tableId = `univDetailTable_${i}`;
     tabs += `<button class="tab-btn${i === 0 ? ' active' : ''}" onclick="openTab('t${i}',this)">${e(t)} (${tRows.length}개)</button>`;
     
@@ -4349,15 +4346,22 @@ async function executePeriodicScrapeCycle() {
 
       if (!parsed.tables_html.length) throw new Error("유효한 경쟁률 표를 찾지 못함");
 
-      const idx = updatedAll.findIndex(item => item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === (u.admission_type || u.adm_type) && (item.capacity_type || item.cap_type) === (u.capacity_type || u.cap_type)));
+      const targetAdm = u.admission_type || u.adm_type || '수시1차';
+      const targetCap = u.capacity_type || u.cap_type || '구분없음';
       const updatedRecord = {
         ...u,
+        admission_type: targetAdm,
+        adm_type: targetAdm,
+        capacity_type: targetCap,
+        cap_type: targetCap,
         scraped_data: parsed,
         departments: parsed.parsed_departments
       };
 
-      if (idx !== -1) updatedAll[idx] = updatedRecord;
-      else updatedAll.push(updatedRecord);
+      const remaining = updatedAll.filter(item => !(item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === targetAdm && (item.capacity_type || item.cap_type) === targetCap)));
+      remaining.unshift(updatedRecord);
+      updatedAll.length = 0;
+      updatedAll.push(...remaining);
 
       cycleScraped.push(updatedRecord);
       cycleSuccess++;
@@ -4514,15 +4518,22 @@ async function startBatchScrapingEngine(isOnce = false) {
 
       if (!parsed.tables_html.length) throw new Error("유효한 경쟁률 표를 찾지 못함");
 
-      const idx = updatedAll.findIndex(item => item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === (u.admission_type || u.adm_type) && (item.capacity_type || item.cap_type) === (u.capacity_type || u.cap_type)));
+      const targetAdm = u.admission_type || u.adm_type || '수시1차';
+      const targetCap = u.capacity_type || u.cap_type || '구분없음';
       const updatedRecord = {
         ...u,
+        admission_type: targetAdm,
+        adm_type: targetAdm,
+        capacity_type: targetCap,
+        cap_type: targetCap,
         scraped_data: parsed,
         departments: parsed.parsed_departments
       };
 
-      if (idx !== -1) updatedAll[idx] = updatedRecord;
-      else updatedAll.push(updatedRecord);
+      const remaining = updatedAll.filter(item => !(item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === targetAdm && (item.capacity_type || item.cap_type) === targetCap)));
+      remaining.unshift(updatedRecord);
+      updatedAll.length = 0;
+      updatedAll.push(...remaining);
 
       batchScraped.push(updatedRecord);
       success++;
@@ -4572,10 +4583,9 @@ async function handleEngineDirectScrape(e) {
       departments: parsed.parsed_departments
     };
 
-    const updatedAll = [...ALL_UNIVS];
-    const idx = updatedAll.findIndex(u => u.name === name && u.year === year && u.admission_type === adm && u.capacity_type === cap);
-    if (idx !== -1) updatedAll[idx] = newRecord;
-    else updatedAll.unshift(newRecord);
+    const remaining = ALL_UNIVS.filter(u => !(u.name === name && u.year === year && (u.admission_type || u.adm_type) === adm && (u.capacity_type || u.cap_type) === cap));
+    remaining.unshift(newRecord);
+    const updatedAll = remaining;
 
     await saveUniversitiesAndRefresh(updatedAll, [newRecord]);
     updateEngineProgress(100);

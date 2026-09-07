@@ -34,7 +34,9 @@ app.add_middleware(
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 import os
+import shutil
 from pathlib import Path
+DB_PATH = Path(__file__).parent / "ipsi.db"
 if Path("data").exists():
     app.mount("/data", StaticFiles(directory="data"), name="data")
 
@@ -82,14 +84,24 @@ def get_db():
 
 def save_departments(db, univ_id, parsed_departments):
     db.query(DepartmentData).filter(DepartmentData.university_id == univ_id).delete()
+    # (table_title, department_name) 기준으로 중복 제거 (최신/유효 데이터 유지)
+    seen = {}
     for dept in parsed_departments:
+        table_t = (dept.get("table_title") or "").strip()
+        dept_n = (dept.get("department_name") or dept.get("dept") or "").strip()
+        if not dept_n:
+            continue
+        key = (table_t, dept_n)
+        seen[key] = dept
+
+    for (table_t, dept_n), dept in seen.items():
         db.add(DepartmentData(
             university_id=univ_id,
-            table_title=dept.get("table_title", ""),
-            department_name=dept.get("department_name", ""),
-            admission_count=dept.get("admission_count", ""),
-            applicant_count=dept.get("applicant_count", ""),
-            competition_ratio=dept.get("competition_ratio", "")
+            table_title=table_t,
+            department_name=dept_n,
+            admission_count=str(dept.get("admission_count") or dept.get("recruit_num") or ""),
+            applicant_count=str(dept.get("applicant_count") or dept.get("applicant_num") or ""),
+            competition_ratio=str(dept.get("competition_ratio") or dept.get("competition_rate") or "")
         ))
     db.commit()
 
@@ -489,15 +501,17 @@ async def api_data(db: Session = Depends(get_db), detail: bool = False):
             })
             continue
 
-        # 모든 전형 구분(일반고, 특성화고, 특기자(어학) 등) 테이블 및 학과 행을 온전히 반환
-        seen = set()
+        # 모든 전형 구분(일반고, 특성화고, 특기자(어학) 등) 테이블 및 학과 행을 온전히 반환하되, 동일 전형/동일 학과는 최신 데이터로 중복 제거
+        seen = {}
         for d in depts:
             table_t = (d.table_title or '').strip()
             dept_n = (d.department_name or '').strip()
-            key = (table_t, dept_n, str(d.admission_count or '').strip(), str(d.applicant_count or '').strip(), str(d.competition_ratio or '').strip())
-            if key in seen:
+            if not dept_n:
                 continue
-            seen.add(key)
+            key = (table_t, dept_n)
+            seen[key] = d
+
+        for (table_t, dept_n), d in seen.items():
             flat.append({
                 "id": u.id, "name": u.name, "year": str(u.year or ""),
                 "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
@@ -1365,6 +1379,83 @@ async def api_deploy_github(request: Request):
         return {"success": True, "message": "GitHub Pages(suego78ai/ipsi)로 최신 데이터가 성공적으로 배포(Push)되었습니다."}
     else:
         return {"success": False, "message": "GitHub Pages 배포 중 오류가 발생했습니다."}
+
+@app.post("/api/clean_duplicates")
+async def api_clean_duplicates(request: Request, db: Session = Depends(get_db)):
+    """대학별 학과 중복 데이터 정리 (동일 대학/동일 전형/동일 학과명 중복 제거)"""
+    if not check_admin_access(request):
+        token = request.headers.get("x-admin-token") or request.query_params.get("token")
+        if token != create_admin_token() and token != "ipsi4774!":
+            raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
+
+    try:
+        # 중복된 (university_id, table_title, department_name) 찾기
+        subq = (
+            db.query(
+                DepartmentData.university_id,
+                DepartmentData.table_title,
+                DepartmentData.department_name,
+                func.max(DepartmentData.id).label("keep_id"),
+                func.count(DepartmentData.id).label("cnt")
+            )
+            .group_by(DepartmentData.university_id, DepartmentData.table_title, DepartmentData.department_name)
+            .having(func.count(DepartmentData.id) > 1)
+            .all()
+        )
+
+        deleted_count = 0
+        for row in subq:
+            del_q = db.query(DepartmentData).filter(
+                DepartmentData.university_id == row.university_id,
+                DepartmentData.table_title == row.table_title,
+                DepartmentData.department_name == row.department_name,
+                DepartmentData.id != row.keep_id
+            ).delete(synchronize_session=False)
+            deleted_count += del_q
+
+        db.commit()
+        try:
+            export_to_json(db)
+        except Exception as ex:
+            print(f"[경고] JSON 자동 갱신 실패: {ex}")
+
+        return {
+            "success": True,
+            "duplicate_groups": len(subq),
+            "deleted_rows": deleted_count,
+            "message": f"{len(subq)}개 중복 그룹에서 총 {deleted_count}건의 중복 학과 데이터가 정리되었습니다."
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/restore_db")
+async def api_restore_db(request: Request, file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """DB 파일 완전 복원/교체 (손상된 DB 복구용)"""
+    if not check_admin_access(request):
+        token = request.headers.get("x-admin-token") or request.query_params.get("token")
+        if token != create_admin_token() and token != "ipsi4774!":
+            raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
+    try:
+        content = await file.read()
+        if not content.startswith(b"SQLite format 3\x00"):
+            raise HTTPException(status_code=400, detail="유효한 SQLite 데이터베이스 파일 형식이 아닙니다.")
+        
+        db.close()
+        temp_path = DB_PATH.with_suffix(".tmp")
+        with open(temp_path, "wb") as f:
+            f.write(content)
+        
+        if DB_PATH.exists():
+            backup_path = DB_PATH.with_suffix(".bak")
+            shutil.copyfile(DB_PATH, backup_path)
+            
+        shutil.move(str(temp_path), str(DB_PATH))
+        export_to_json()
+
+        return {"success": True, "message": "ipsi.db 데이터베이스가 최신 데이터로 복원되었습니다."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"DB 복원 실패: {str(e)}")
 
 class DeleteUniversitiesRequest(BaseModel):
     univ_ids: Optional[List[int]] = None

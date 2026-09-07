@@ -65,14 +65,16 @@ def export_to_json(db=None):
                 })
                 continue
 
-            seen = set()
+            seen = {}
             for d in depts:
                 table_t = (d.table_title or '').strip()
                 dept_n = (d.department_name or '').strip()
-                key = (table_t, dept_n, str(d.admission_count or '').strip(), str(d.applicant_count or '').strip(), str(d.competition_ratio or '').strip())
-                if key in seen:
+                if not dept_n:
                     continue
-                seen.add(key)
+                key = (table_t, dept_n)
+                seen[key] = d
+
+            for (table_t, dept_n), d in seen.items():
                 records.append({
                     "id": u.id, "name": u.name or "", "year": str(u.year or ""),
                     "adm_type": u.admission_type or "수시1차", "admission_type": u.admission_type or "수시1차",
