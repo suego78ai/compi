@@ -211,10 +211,10 @@
         <div>
           <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:0.3rem;color:#334155;">⏳ 스크래핑 주기 (간격)</label>
           <select id="engineBatchInterval" class="form-control">
-            <option value="1">1분 간격 (테스트용)</option>
+            <option value="1" selected>1분 간격 (실시간 자동 권장)</option>
             <option value="2">2분 간격</option>
             <option value="3">3분 간격</option>
-            <option value="5" selected>5분 간격 (권장)</option>
+            <option value="5">5분 간격</option>
             <option value="10">10분 간격</option>
             <option value="15">15분 간격</option>
             <option value="30">30분 간격</option>
@@ -224,14 +224,14 @@
         <div>
           <label style="font-size:0.82rem;font-weight:700;display:block;margin-bottom:0.3rem;color:#334155;">⌛ 실행 지속 기간</label>
           <select id="engineBatchDuration" class="form-control">
+            <option value="0" selected>무제한 (상시 자동 업데이트)</option>
             <option value="30">30분 동안</option>
-            <option value="60" selected>1시간 동안</option>
+            <option value="60">1시간 동안</option>
             <option value="120">2시간 동안</option>
             <option value="180">3시간 동안</option>
             <option value="360">6시간 동안</option>
             <option value="720">12시간 동안</option>
             <option value="1440">24시간 (하루 종일)</option>
-            <option value="0">무제한 (수동 멈춤 시까지)</option>
           </select>
         </div>
       </div>
@@ -5778,28 +5778,20 @@ async function refreshLatestDataWithFeedback(btn = null) {
   }
 
   try {
-    // 1. 현재 화면에서 보고 있는 학년도/모집시기 감지 (기본값: 최신 2027학년도 / 전체)
+    // 1. 타겟: 2027학년도 수시1차 (URL 컬럼 데이터 기준)
     let activeYear = '2027';
-    let activeAdm = 'ALL';
+    let activeAdm = '수시1차';
 
-    if (CURRENT_ACTIVE_DETAIL_HINT) {
-      activeYear = CURRENT_ACTIVE_DETAIL_HINT.year || '2027';
-      activeAdm = CURRENT_ACTIVE_DETAIL_HINT.adm || 'ALL';
-    } else {
-      const ySelect = document.getElementById('inhaCurYear') || document.getElementById('qYear') || document.getElementById('homeInsightYearSelect') || document.getElementById('engineBatchYear');
-      if (ySelect && ySelect.value && ySelect.value !== 'ALL') {
-        activeYear = ySelect.value;
-      }
-      const aSelect = document.getElementById('inhaAdm') || document.getElementById('qAdm') || document.getElementById('homeInsightAdmSelect') || document.getElementById('engineBatchAdm');
-      if (aSelect && aSelect.value && aSelect.value !== 'ALL') {
-        activeAdm = aSelect.value;
-      }
+    if (CURRENT_ACTIVE_DETAIL_HINT && CURRENT_ACTIVE_DETAIL_HINT.year) {
+      activeYear = CURRENT_ACTIVE_DETAIL_HINT.year;
+      activeAdm = CURRENT_ACTIVE_DETAIL_HINT.adm || '수시1차';
     }
 
     let scrapeSuccess = false;
     let updatedCount = 0;
 
     // 2. 서버의 1회 즉시 스크래핑 API 호출 (/api/instant_scrape)
+    // -> 서버가 2027학년도 수시1차 대학들을 실시간 스크래핑 후 https://compi.mojuk.kr DB에 즉시 자동 업데이트
     try {
       const apiRes = await fetch(getApiEndpoint('/api/instant_scrape'), {
         method: 'POST',
@@ -5817,7 +5809,7 @@ async function refreshLatestDataWithFeedback(btn = null) {
           scrapeSuccess = true;
           updatedCount = data.success_count || 0;
           if (typeof appendEngineLog === 'function') {
-            appendEngineLog(`✔ [서버 스크래핑 완료] ${data.message || updatedCount + '개 대학 최신 수집 완료'}`, 'success');
+            appendEngineLog(`✔ [서버 1회 즉시 스크래핑 완료] ${data.message || updatedCount + '개 대학 최신 수집 완료'}`, 'success');
           }
         }
       }
@@ -5827,15 +5819,17 @@ async function refreshLatestDataWithFeedback(btn = null) {
 
     // 3. 서버 API 실패 시 브라우저 내장 스크래핑 엔진으로 1회 즉시 스크래핑 실행 (Fallback)
     if (!scrapeSuccess) {
-      const targetUnivs = ALL_UNIVS.filter(u => {
+      let targetUnivs = ALL_UNIVS.filter(u => {
         const hasUrl = u.url && String(u.url).trim().startsWith('http');
         if (!hasUrl) return false;
         const uYear = String(u.year || '').trim();
         const uAdm = String(u.admission_type || u.adm_type || '').trim();
-        const matchYear = activeYear === 'ALL' || uYear === activeYear;
-        const matchAdm = activeAdm === 'ALL' || uAdm === activeAdm;
-        return matchYear && matchAdm;
+        return uYear === activeYear && uAdm === activeAdm;
       });
+
+      if (!targetUnivs.length) {
+        targetUnivs = ALL_UNIVS.filter(u => u.url && String(u.url).trim().startsWith('http') && String(u.year || '') === activeYear);
+      }
 
       if (targetUnivs.length > 0) {
         let clientSuccess = 0;

@@ -1501,8 +1501,8 @@ class ServerPeriodicScraperManager:
         self.is_executing_cycle: bool = False
         self.target_year: str = "2027"
         self.target_adm: str = "수시1차"
-        self.interval_minutes: int = 5
-        self.duration_minutes: int = 60
+        self.interval_minutes: int = 1
+        self.duration_minutes: int = 0
         self.start_time: float = 0
         self.end_time: Optional[float] = None
         self.next_run_time: Optional[float] = None
@@ -1564,10 +1564,10 @@ class ServerPeriodicScraperManager:
 
         self.is_running = True
         self.is_executing_cycle = False
-        self.target_year = year or "ALL"
-        self.target_adm = admission_type or "ALL"
-        self.interval_minutes = max(1, interval_minutes or 5)
-        self.duration_minutes = duration_minutes if duration_minutes is not None else 60
+        self.target_year = year or "2027"
+        self.target_adm = admission_type or "수시1차"
+        self.interval_minutes = max(1, interval_minutes if interval_minutes is not None else 1)
+        self.duration_minutes = duration_minutes if duration_minutes is not None else 0
         self.start_time = time.time()
         self.end_time = (self.start_time + self.duration_minutes * 60) if self.duration_minutes > 0 else None
         self.total_cycles = 0
@@ -1669,14 +1669,24 @@ class ServerPeriodicScraperManager:
                     query = query.filter(University.admission_type == self.target_adm)
 
                 univs = query.all()
+                seen_keys = set()
                 for u in univs:
-                    target_univ_records.append({
-                        "id": u.id,
-                        "name": u.name,
-                        "url": u.url,
-                        "year": u.year,
-                        "adm": u.admission_type
-                    })
+                    clean_u = normalize_ratio_url(u.url)
+                    if not clean_u.startswith('http'):
+                        continue
+                    key = (u.name, clean_u)
+                    if key not in seen_keys:
+                        seen_keys.add(key)
+                        target_univ_records.append({
+                            "id": u.id,
+                            "name": u.name,
+                            "url": clean_u,
+                            "year": u.year,
+                            "adm": u.admission_type
+                        })
+
+                # 인하공업전문대학 최우선 정렬
+                target_univ_records.sort(key=lambda x: (0 if "인하공업전문대학" in x["name"] else 1, x["name"]))
         except Exception as e:
             self.add_log(f"❌ DB 조회 실패: {e}", "error")
             self.is_executing_cycle = False
@@ -1812,9 +1822,30 @@ async def api_periodic_scrape_status():
         "status": server_periodic_scraper.get_status()
     }
 
+@app.on_event("startup")
+async def startup_auto_periodic_scraper():
+    """
+    서버 부팅 시 '2027학년도', '수시1차', 등록 대학들의 URL 컬럼 데이터를
+    1분에 한 번씩 자동으로 스크래핑하여 로컬 DB 및 https://compi.mojuk.kr DB에 상시 업데이트합니다.
+    """
+    async def _auto_start():
+        await asyncio.sleep(1.5)
+        try:
+            print("🚀 [서버 시작] 2027학년도 수시1차 1분 자동 주기 스크래퍼를 상시 가동합니다...")
+            await server_periodic_scraper.start(
+                year="2027",
+                admission_type="수시1차",
+                interval_minutes=1,
+                duration_minutes=0
+            )
+        except Exception as e:
+            print(f"[자동 스크래퍼 시작 오류] {e}")
+
+    asyncio.create_task(_auto_start())
+
 class InstantScrapeRequest(BaseModel):
     year: Optional[str] = "2027"
-    admission_type: Optional[str] = "ALL"
+    admission_type: Optional[str] = "수시1차"
     univ_name: Optional[str] = None
     force: Optional[bool] = False
 
@@ -1841,8 +1872,8 @@ async def api_instant_scrape(request: Request, body: Optional[InstantScrapeReque
         }
     _last_instant_scrape_time = now
 
-    req_year = body.year if body and body.year else "2027"
-    req_adm = body.admission_type if body and body.admission_type else "ALL"
+    req_year = (body.year if body and body.year else None) or "2027"
+    req_adm = (body.admission_type if body and body.admission_type else None) or "수시1차"
     req_name = body.univ_name if body and body.univ_name else None
 
     query = db.query(University).filter(
@@ -1857,13 +1888,28 @@ async def api_instant_scrape(request: Request, body: Optional[InstantScrapeReque
     if req_name:
         query = query.filter(University.name == req_name)
 
-    target_univs = query.all()
-    if not target_univs:
-        target_univs = db.query(University).filter(
+    raw_target_univs = query.all()
+    if not raw_target_univs:
+        raw_target_univs = db.query(University).filter(
             University.year == "2027",
+            University.admission_type == "수시1차",
             University.url.isnot(None),
             University.url != ""
         ).all()
+
+    target_univs = []
+    seen_urls = set()
+    for u in raw_target_univs:
+        clean_u = normalize_ratio_url(u.url)
+        if not clean_u.startswith('http'):
+            continue
+        key = (u.name, clean_u)
+        if key not in seen_urls:
+            seen_urls.add(key)
+            target_univs.append(u)
+
+    # 인하공업전문대학 최우선 정렬
+    target_univs.sort(key=lambda x: (0 if "인하공업전문대학" in x.name else 1, x.name))
 
     success_cnt = 0
     fail_cnt = 0
