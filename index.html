@@ -911,15 +911,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   renderAdminUI();
   showLoading(true);
   try {
-    // FastAPI 서버(compi.mojuk.kr, 로컬 등) vs GitHub Pages 자동 감지
+    // FastAPI 서버(compi.mojuk.kr, 로컬 등) vs 외부 정적 호스팅
     const isServer = isServerEnvironment();
-    const dataUrl = isServer ? `/api/data?t=${Date.now()}` : `data/data.json?t=${Date.now()}`;
+    const dataUrl = isServer ? `/api/data?t=${Date.now()}` : `https://compi.mojuk.kr/api/data?t=${Date.now()}`;
 
-    let res = await fetch(dataUrl);
-    if (!res.ok && isServer) {
+    let res = await fetch(dataUrl).catch(() => null);
+    if (!res || !res.ok) {
       res = await fetch(`data/data.json?t=${Date.now()}`);
     }
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' (' + dataUrl + ')');
+    if (!res || !res.ok) throw new Error('데이터 서버 응답 없음');
     const payload = await res.json();
     
     // 데이터 정규화: 구버전/신버전 필드명 동시 지원
@@ -960,8 +960,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch(e) {
     document.getElementById('treeContainer').innerHTML =
       '<div class="alert alert-error">데이터 로딩 실패: ' + e.message + '<br>' +
-      '<small>로컬 서버: <code>http://127.0.0.1:26240/</code> 로 접속하거나, ' +
-      'GitHub Pages: <a href="https://suego78ai.github.io/ipsi/" target="_blank">suego78ai.github.io/ipsi</a></small></div>';
+      '<small>메인 서버: <a href="https://compi.mojuk.kr/" target="_blank">compi.mojuk.kr</a> 또는 로컬 서버: <code>http://127.0.0.1:26240/</code></small></div>';
   } finally { showLoading(false); }
 });
 
@@ -4891,16 +4890,13 @@ async function reloadLatestData() {
   showLoading(true);
   try {
     const isServer = isServerEnvironment();
-    let dataUrl = isServer ? `/api/data?t=${Date.now()}` : `data/data.json?t=${Date.now()}`;
+    let dataUrl = isServer ? `/api/data?t=${Date.now()}` : `https://compi.mojuk.kr/api/data?t=${Date.now()}`;
     
-    let res = await fetch(dataUrl);
-    if (!res.ok && isServer) {
-      // 서버에서 fallback 시도
+    let res = await fetch(dataUrl).catch(() => null);
+    if (!res || !res.ok) {
       res = await fetch(`data/data.json?t=${Date.now()}`);
-    } else if (!res.ok && !isServer) {
-      res = await fetch(`/api/data?t=${Date.now()}`);
     }
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    if (!res || !res.ok) throw new Error('데이터 서버 응답 없음');
     const payload = await res.json();
     
     // 데이터 정규화: 구버전/신버전 필드명 동시 지원
@@ -5297,11 +5293,10 @@ function toggleAllResetCheckboxes(check) {
 }
 
 function getApiEndpoint(path) {
-  const isServer = ['localhost', '127.0.0.1', 'compi.mojuk.kr', 'ipsi.mojuk.kr'].includes(location.hostname) || location.hostname.endsWith('.mojuk.kr') || (location.port && location.port !== '');
-  if (isServer) {
+  if (isServerEnvironment()) {
     return path.startsWith('/') ? path : '/' + path;
   }
-  return `http://127.0.0.1:26240${path.startsWith('/') ? path : '/' + path}`;
+  return `https://compi.mojuk.kr${path.startsWith('/') ? path : '/' + path}`;
 }
 
 

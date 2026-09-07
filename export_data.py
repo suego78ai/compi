@@ -116,24 +116,35 @@ def export_to_json(db=None):
 
 def push_to_github_pages(commit_msg="Update latest ipsi data (data.json)"):
     export_to_json()
-    if not (IPSI_REPO_DIR.exists() and (IPSI_REPO_DIR / ".git").exists()):
-        print(f"[경고] ipsi_repo 폴더를 찾을 수 없습니다: {IPSI_REPO_DIR}")
-        return False
 
+    # 1. compi.mojuk.kr 메인 저장소(suego78ai/compi) Git 커밋 및 푸시
     try:
-        subprocess.run(["git", "add", "data/data.json", "index.html", "xlsx.full.min.js"], cwd=IPSI_REPO_DIR, check=True)
-        # Check if there are changes to commit
-        status = subprocess.run(["git", "status", "--porcelain"], cwd=IPSI_REPO_DIR, capture_output=True, text=True)
+        subprocess.run(["git", "add", "data/data.json", "ipsi.db", "index.html", "templates/index.html"], cwd=ROOT_DIR, check=True)
+        status = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT_DIR, capture_output=True, text=True)
         if status.stdout.strip():
-            subprocess.run(["git", "commit", "-m", commit_msg], cwd=IPSI_REPO_DIR, check=True)
-            subprocess.run(["git", "push", "origin", "main"], cwd=IPSI_REPO_DIR, check=True)
-            print("[배포 성공] GitHub Pages(suego78ai/ipsi)로 푸시 완료! 약 1분 후 반영됩니다.")
+            subprocess.run(["git", "commit", "-m", commit_msg], cwd=ROOT_DIR, check=True)
+            subprocess.run(["git", "push", "origin", "main"], cwd=ROOT_DIR, check=True)
+            print("[배포 성공] compi.mojuk.kr 메인 저장소(suego78ai/compi)로 푸시 완료!")
         else:
-            print("[배포] 변경된 데이터가 없어 푸시를 건너뜁니다.")
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"[오류] Git 배포 중 에러 발생: {e}")
-        return False
+            print("[배포] compi 메인 저장소에 커밋할 변경 데이터가 없습니다.")
+    except Exception as e:
+        print(f"[경고] compi 메인 저장소 푸시 중 오류: {e}")
+
+    # 2. ipsi_repo (GitHub Pages 미러 저장소) 동기화 푸시
+    if IPSI_REPO_DIR.exists() and (IPSI_REPO_DIR / ".git").exists():
+        try:
+            subprocess.run(["git", "add", "data/data.json", "index.html", "xlsx.full.min.js"], cwd=IPSI_REPO_DIR, check=True)
+            status = subprocess.run(["git", "status", "--porcelain"], cwd=IPSI_REPO_DIR, capture_output=True, text=True)
+            if status.stdout.strip():
+                subprocess.run(["git", "commit", "-m", commit_msg], cwd=IPSI_REPO_DIR, check=True)
+                subprocess.run(["git", "push", "origin", "main"], cwd=IPSI_REPO_DIR, check=True)
+                print("[배포 성공] GitHub Pages 미러(suego78ai/ipsi)로 푸시 완료!")
+            else:
+                print("[배포] ipsi_repo 미러에 변경 사항이 없습니다.")
+        except Exception as e:
+            print(f"[경고] ipsi_repo 푸시 중 오류: {e}")
+
+    return True
 
 def main():
     print("[1/2] DB 데이터 읽는 중...")

@@ -1,0 +1,12 @@
+services:
+  compi:
+    build: .
+    container_name: compi_dashboard
+    restart: always
+    ports:
+      - "26240:26240"
+    volumes:
+      - ./ipsi.db:/app/ipsi.db
+      - ./data:/app/data
+    environment:
+      - PORT=26240
