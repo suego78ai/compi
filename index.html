@@ -6121,7 +6121,7 @@ function getApiEndpoint(path) {
   if (isServerEnvironment()) {
     return path.startsWith('/') ? path : '/' + path;
   }
-  return `https://compi.mojuk.kr${path.startsWith('/') ? path : '/' + path}`;
+  return `http://compi.mojuk.kr:26240${path.startsWith('/') ? path : '/' + path}`;
 }
 
 
