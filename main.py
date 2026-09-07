@@ -876,6 +876,9 @@ def detect_and_extract_rows_from_bytes(file_bytes: bytes) -> List[Dict[str, Any]
                 free_apply = "F"
             if not multi_apply and (name.endswith("M") or name.endswith("(M)") or name.endswith("[M]")):
                 multi_apply = "M"
+            name = re.sub(r"[\(\[\{]?[FMfm][\)\]\}]?$", "", name).strip()
+            if "수분" in name or "재능" in name or "인천재능" in name:
+                name = "재능대학교"
 
             extracted.append({
                 "year": year,
@@ -910,6 +913,8 @@ def parse_direct_excel_to_univ_data(file_bytes: bytes, filename: str) -> Optiona
         
     um = re.search(r"([가-힣]+(?:대학|대학교|전문대학|대))", base_name)
     univ_name = um.group(1) if um else re.sub(r"202[0-9]|수시[12]?차?|정시|경쟁률|지원현황|서식|\(|\)", "", base_name).strip() or "등록대학"
+    if "수분" in univ_name or "재능" in univ_name or "인천재능" in univ_name:
+        univ_name = "재능대학교"
 
     sheets_data = []
     

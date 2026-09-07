@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" class="notranslate" translate="no">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="google" content="notranslate">
   <title>입시 경쟁률 대시보드</title>
   <meta name="description" content="수도권 전문대학 입시 경쟁률 데이터 대시보드 - 연도별 추이, 학과 검색, 3개년 비교 리포트 및 당해년도 실시간 파싱 리포트">
   <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
@@ -108,6 +109,7 @@
     .dropzone:hover,.dropzone.dragover{border-color:var(--primary-color);background:rgba(79,70,229,0.06);}
     .univ-label{display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-size:0.9rem;padding:0.3rem 0.6rem;border-radius:0.4rem;border:1px solid var(--border-color);background:#f8fafc;}
     .inha-checkbox-label{background:var(--purple-light)!important;border:1.5px solid var(--purple-border)!important;color:var(--purple-text)!important;font-weight:700!important;}
+    .jaeneung-checkbox-label{background:#f0fdf4!important;border:1.5px solid #86efac!important;color:#166534!important;font-weight:700!important;}
     .compare-item-box{margin-bottom:2rem;}
     .inha-compare-card{border:2px solid var(--purple-border)!important;border-radius:0.75rem;padding:1rem;background:var(--purple-bg);margin-bottom:2rem;}
     .notice-box{background:#fefce8;border:1px solid #fde68a;border-radius:0.75rem;padding:1rem 1.25rem;font-size:0.88rem;color:#854d0e;display:flex;gap:0.6rem;align-items:flex-start;}
@@ -554,6 +556,25 @@ function inhaFirst(list) {
   return [...inha, ...others];
 }
 
+// 대학명 정규화 및 브라우저 자동번역/오타/과거명칭 교정 ('수분대학교', '수분', '인천재능대학교' -> '재능대학교')
+function cleanUnivName(n) {
+  if (!n) return '';
+  let s = String(n).trim();
+  s = s.replace(/[\(\[\{]?[FMfm][\)\]\}]?$/, '').trim();
+  if (s.includes('수분') || s.includes('재능') || s.includes('인천재능')) return '재능대학교';
+  if (s.includes('인하공')) return '인하공업전문대학';
+  if (s.includes('한양여')) return '한양여자대학교';
+  if (s.includes('경인여')) return '경인여자대학교';
+  if (s.includes('동양미래')) return '동양미래대학교';
+  if (s.includes('삼육보건')) return '삼육보건대학교';
+  if (s.includes('동서울')) return '동서울대학교';
+  if (s.includes('부천대') || (s.includes('부천') && s.includes('대학'))) return '부천대학교';
+  if (s.includes('유한대') || (s.includes('유한') && s.includes('대학'))) return '유한대학교';
+  if (s.includes('대림대') || (s.includes('대림') && s.includes('대학'))) return '대림대학교';
+  if (s.includes('연성대') || (s.includes('연성') && s.includes('대학'))) return '연성대학교';
+  return s;
+}
+
 function pr(str) {
   if (typeof str === 'number') return isNaN(str) ? 0 : str;
   if (!str) return 0;
@@ -947,19 +968,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!res || !res.ok) throw new Error('데이터 서버 응답 없음');
     const payload = await res.json();
     
-    // 데이터 정규화: 구버전/신버전 필드명 동시 지원
+    // 데이터 정규화: 구버전/신버전 필드명 동시 지원 및 대학명 표준화
     ALL_UNIVS = (payload.universities || []).map(u => {
+      const rawName = u.name || '';
+      const univName = cleanUnivName(rawName);
       const adm = u.admission_type || u.adm_type || '수시1차';
       const cap = u.capacity_type || u.cap_type || '구분없음';
       const dept = u.department_name || u.dept || '';
       const rec = (u.admission_count != null && u.admission_count !== '') ? u.admission_count : (u.recruit_num != null ? u.recruit_num : '');
       const app = (u.applicant_count != null && u.applicant_count !== '') ? u.applicant_count : (u.applicant_num != null ? u.applicant_num : '');
       const rate = u.competition_ratio || u.competition_rate || '';
-      let free = u['무료접수'] || u.free_apply || u.is_free_apply || (String(u.name || '').endsWith('F') || String(u.name || '').includes('(F)') ? 'F' : '');
+      let free = u['무료접수'] || u.free_apply || u.is_free_apply || (String(rawName).endsWith('F') || String(rawName).includes('(F)') ? 'F' : '');
       if (free === 'M') free = 'F';
-      let multi = u['중복지원'] || u.multi_apply || u.is_multi_apply || (String(u.name || '').endsWith('M') || String(u.name || '').includes('(M)') || String(u.name || '').includes('[M]') ? 'M' : '');
+      let multi = u['중복지원'] || u.multi_apply || u.is_multi_apply || (String(rawName).endsWith('M') || String(rawName).includes('(M)') || String(rawName).includes('[M]') ? 'M' : '');
       return {
         ...u,
+        name: univName,
         admission_type: adm,
         adm_type: adm,
         capacity_type: cap,
@@ -2702,64 +2726,118 @@ function showReportBuilder(isRealtime = false, pushUrl = true){
   setNavActive(isRealtime ? 'realtime' : 'report');
   if(pushUrl) updateUrl({ mode: isRealtime ? 'realtime_builder' : 'report' });
   const years = [...new Set(ALL_UNIVS.map(u => u.year))].filter(Boolean).sort((a,b)=>b.localeCompare(a));
+  
+  document.getElementById('centerCol').innerHTML = `
+    <div class="glass-card">
+      <div class="card-header">
+        <h2>📊 ${isRealtime ? '대학별 입시결과 보고서 (리포트) 생성' : '맞춤형 전형별 비교 보고서 (리포트) 생성'}</h2>
+      </div>
+      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.25rem;">
+        기준 연도와 모집 시기(<strong>전체 합산</strong> 또는 정시·수시2차·수시1차)를 선택하여 <strong>정원내 / 정원외 입시결과</strong>를 비교 분석합니다.
+      </p>
+      <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">기준 연도</label>
+          <select id="rY" class="form-control" onchange="onReportYearChange()">
+            ${years.map(y=>'<option value="'+e(y)+'">'+e(y)+'학년도</option>').join('')}
+          </select>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">모집 시기</label>
+          <select id="rA" class="form-control" onchange="updateRU()">
+            <option value="ALL" selected>전체 (모집시기 합산)</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:1.5rem;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+          <label style="font-weight:600;font-size:0.88rem;margin:0;display:flex;align-items:center;gap:0.4rem;">
+            대학 선택 (다중 선택) <span id="rUCount" style="font-size:0.82rem;font-weight:600;color:var(--primary-color);"></span>
+          </label>
+          <div style="display:flex;gap:0.4rem;">
+            <button type="button" onclick="sAll(true)" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.65rem;">☑️ 모두 선택</button>
+            <button type="button" onclick="sAll(false)" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.65rem;">☐ 모두 해제</button>
+          </div>
+        </div>
+        <div id="rUL" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem;padding:1.25rem;background:#f8fafc;border-radius:0.75rem;border:1px solid var(--border-color);min-height:120px;"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;font-size:0.95rem;padding:0.75rem;display:flex;align-items:center;justify-content:center;gap:0.5rem;" onclick="genReport(${isRealtime}, true)">
+        📊 대학별 입시결과 보고서 생성
+      </button>
+    </div>`;
+  onReportYearChange();
+}
+
+function onReportYearChange() {
+  const yEl = document.getElementById('rY');
+  if (!yEl) return;
+  const y = yEl.value;
+  const selA = document.getElementById('rA');
+  if (!selA) return;
+  const currentAdm = selA.value;
+  
+  const yearUnivs = ALL_UNIVS.filter(u => u.year === y);
   const ADM_ORDER = ['정시', '수시2차', '수시1차'];
-  const adms = [...new Set(ALL_UNIVS.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort((a,b) => {
+  const availAdms = [...new Set(yearUnivs.map(u => u.admission_type || u.adm_type))].filter(Boolean).sort((a,b) => {
     const ia = ADM_ORDER.indexOf(a), ib = ADM_ORDER.indexOf(b);
     if (ia !== -1 && ib !== -1) return ia - ib;
     if (ia !== -1) return -1;
     if (ib !== -1) return 1;
     return a.localeCompare(b, 'ko');
   });
+
+  let optHtml = `<option value="ALL">전체 (${availAdms.join(' + ') || '합산'})</option>`;
+  availAdms.forEach(a => {
+    optHtml += `<option value="${e(a)}">${e(a)}</option>`;
+  });
+  selA.innerHTML = optHtml;
   
-  document.getElementById('centerCol').innerHTML = `
-    <div class="glass-card">
-      <div class="card-header">
-        <h2>📊 ${isRealtime ? '대학별 입시결과 리포트 생성' : '맞춤형 전형별 비교 리포트 생성'}</h2>
-      </div>
-      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:1.25rem;">
-        기준 연도와 모집 시기(<strong>전체 합산</strong> 또는 정시·수시2차·수시1차)를 선택하여 <strong>정원내 / 정원외 입시결과</strong>를 비교 분석합니다.
-      </p>
-      <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
-        <div style="flex:1;min-width:200px;"><label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">기준 연도</label>
-          <select id="rY" class="form-control" onchange="updateRU()">${years.map(y=>'<option value="'+e(y)+'">'+e(y)+'학년도</option>').join('')}</select></div>
-        <div style="flex:1;min-width:200px;"><label style="font-weight:600;font-size:0.88rem;margin-bottom:0.3rem;display:block;">모집 시기</label>
-          <select id="rA" class="form-control" onchange="updateRU()">
-            <option value="ALL" selected>전체 (정시 + 수시2차 + 수시1차 합산)</option>
-            ${adms.map(a=>'<option value="'+e(a)+'">'+e(a)+'</option>').join('')}
-          </select></div>
-      </div>
-      <div style="margin-bottom:1.5rem;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
-          <label style="font-weight:600;font-size:0.88rem;margin:0;">대학 선택 (다중 선택)</label>
-          <div style="display:flex;gap:0.4rem;">
-            <button type="button" onclick="sAll(true)" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.65rem;">☑️ 모두 선택</button>
-            <button type="button" onclick="sAll(false)" class="btn btn-secondary" style="font-size:0.78rem;padding:0.25rem 0.65rem;">☐ 모두 해제</button>
-          </div>
-        </div>
-        <div id="rUL" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:0.75rem;padding:1rem;background:#f8fafc;border-radius:0.5rem;border:1px solid var(--border-color);max-height:250px;overflow-y:auto;"></div>
-      </div>
-      <button class="btn btn-primary" style="width:100%;font-size:0.95rem;padding:0.75rem;" onclick="genReport(${isRealtime}, true)">
-        📊 입시결과 리포트 생성
-      </button>
-    </div>`;
+  if (availAdms.includes(currentAdm)) {
+    selA.value = currentAdm;
+  } else {
+    selA.value = 'ALL';
+  }
   updateRU();
 }
 
 function updateRU(){
-  const y = document.getElementById('rY').value, a = document.getElementById('rA').value;
+  const yEl = document.getElementById('rY');
+  const aEl = document.getElementById('rA');
+  if (!yEl || !aEl) return;
+  const y = yEl.value, a = aEl.value;
   const filtered = (a === 'ALL')
     ? ALL_UNIVS.filter(u => u.year === y)
     : ALL_UNIVS.filter(u => u.year === y && (u.admission_type === a || u.adm_type === a));
   const nameMap = new Map();
   filtered.forEach(u => {
-    if (!nameMap.has(u.name)) nameMap.set(u.name, u);
+    const cName = cleanUnivName(u.name);
+    if (!nameMap.has(cName)) nameMap.set(cName, u);
   });
   const sortedNames = inhaFirst([...nameMap.keys()]);
-  document.getElementById('rUL').innerHTML = sortedNames.map(n => {
+  const countEl = document.getElementById('rUCount');
+  if (countEl) countEl.textContent = `(선택 가능 ${sortedNames.length}개교)`;
+
+  const rUL = document.getElementById('rUL');
+  if (!rUL) return;
+
+  if (!sortedNames.length) {
+    rUL.innerHTML = `
+      <div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--text-secondary);">
+        선택하신 조건(${e(y)}학년도 ${a === 'ALL' ? '전체' : e(a)})에 등록된 대학 데이터가 없습니다.<br>
+        <small style="color:#64748b;">(2027학년도는 현재 수시1차 데이터가 등록되어 있습니다.)</small>
+      </div>`;
+    return;
+  }
+
+  rUL.innerHTML = sortedNames.map(n => {
     const u = nameMap.get(n);
     const isInha = n.includes('인하공업전문대학');
+    const isJaeneung = n.includes('재능대학교');
     const badges = getUnivBadges(u);
-    return `<label class="univ-label${isInha ? ' inha-checkbox-label' : ''}"><input type="checkbox" class="rc" value="${e(n)}" checked> ${isInha ? '⭐ <strong>' + e(n) + '</strong>' : e(n)}${badges}</label>`;
+    return `<label class="univ-label${isInha ? ' inha-checkbox-label' : ''}${isJaeneung ? ' jaeneung-checkbox-label' : ''}">
+      <input type="checkbox" class="rc" value="${e(n)}" checked> 
+      ${isInha ? '⭐ <strong>' + e(n) + '</strong>' : (isJaeneung ? '<strong>' + e(n) + '</strong>' : e(n))}${badges}
+    </label>`;
   }).join('');
 }
 
@@ -2774,12 +2852,13 @@ function genReport(isRealtime = false, pushUrl = true){
 
 function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true) {
   setNavActive(isRealtime ? 'realtime' : 'report');
+  const sanitizedList = selectedList.map(n => cleanUnivName(n));
   if (pushUrl) {
     updateUrl({
-      mode: isRealtime ? 'realtime' : 'report',
+      mode: isRealtime ? 'realtime_builder' : 'report',
       year: y,
       adm_type: a,
-      univs: selectedList.join(','),
+      univs: sanitizedList.join(','),
       realtime: isRealtime ? 'true' : ''
     });
   }
@@ -2802,7 +2881,8 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
     return false;
   }
 
-  const names = inhaFirst(selectedList);
+  const names = inhaFirst(sanitizedList);
+
   const univUrls = {};
 
   if (a === 'ALL') {
@@ -5236,19 +5316,22 @@ async function reloadLatestData() {
     if (!res || !res.ok) throw new Error('데이터 서버 응답 없음');
     const payload = await res.json();
     
-    // 데이터 정규화: 구버전/신버전 필드명 동시 지원
+    // 데이터 정규화: 구버전/신버전 필드명 동시 지원 및 대학명 표준화
     ALL_UNIVS = (payload.universities || []).map(u => {
+      const rawName = u.name || '';
+      const univName = cleanUnivName(rawName);
       const adm = u.admission_type || u.adm_type || '수시1차';
       const cap = u.capacity_type || u.cap_type || '구분없음';
       const dept = u.department_name || u.dept || '';
       const rec = (u.admission_count != null && u.admission_count !== '') ? u.admission_count : (u.recruit_num != null ? u.recruit_num : '');
       const app = (u.applicant_count != null && u.applicant_count !== '') ? u.applicant_count : (u.applicant_num != null ? u.applicant_num : '');
       const rate = u.competition_ratio || u.competition_rate || '';
-      let free = u['무료접수'] || u.free_apply || u.is_free_apply || (String(u.name || '').endsWith('F') || String(u.name || '').includes('(F)') ? 'F' : '');
+      let free = u['무료접수'] || u.free_apply || u.is_free_apply || (String(rawName).endsWith('F') || String(rawName).includes('(F)') ? 'F' : '');
       if (free === 'M') free = 'F';
-      let multi = u['중복지원'] || u.multi_apply || u.is_multi_apply || (String(u.name || '').endsWith('M') || String(u.name || '').includes('(M)') || String(u.name || '').includes('[M]') ? 'M' : '');
+      let multi = u['중복지원'] || u.multi_apply || u.is_multi_apply || (String(rawName).endsWith('M') || String(rawName).includes('(M)') || String(rawName).includes('[M]') ? 'M' : '');
       return {
         ...u,
+        name: univName,
         admission_type: adm,
         adm_type: adm,
         capacity_type: cap,
@@ -5271,13 +5354,15 @@ async function reloadLatestData() {
     // Merge custom localStorage data ONLY if running in static client without server
     if (!isServer) {
       try {
-        const custom = JSON.parse(localStorage.getItem('ipsi_custom_universities') || '[]');
+        let custom = JSON.parse(localStorage.getItem('ipsi_custom_universities') || '[]');
         if (custom && custom.length) {
+          custom = custom.map(cu => ({ ...cu, name: cleanUnivName(cu.name) }));
           custom.forEach(cu => {
             const idx = ALL_UNIVS.findIndex(u => u.name === cu.name && u.year === cu.year && u.admission_type === cu.admission_type && u.capacity_type === cu.capacity_type);
             if (idx !== -1) ALL_UNIVS[idx] = cu;
             else ALL_UNIVS.unshift(cu);
           });
+          try { localStorage.setItem('ipsi_custom_universities', JSON.stringify(custom)); } catch(e){}
         }
       } catch (err) {}
     }
