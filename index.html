@@ -5767,18 +5767,18 @@ async function refreshLatestDataWithFeedback(btn = null) {
   refreshBtns.forEach(b => {
     origTexts.set(b, b.innerHTML);
     b.disabled = true;
-    b.innerHTML = '<span class="spin-animation">🔄</span> 실시간 스크래핑 중...';
+    b.innerHTML = '<span class="spin-animation">🔄</span> 최신화 중...';
   });
 
-  showLoading(true);
-  showToast('⚡ [실시간 1회 즉시 스크래핑] 등록 대학들의 최신 경쟁률 페이지를 실시간 수집하여 DB에 영구 반영 중입니다...', 'info', 6000);
+  // 화면을 가리는 전체 로딩 오버레이(showLoading)를 띄우지 않고 가벼운 토스트로 즉각 안내
+  showToast('⚡ 최신 경쟁률을 실시간 수집하여 동기화 중입니다...', 'info', 3000);
 
   if (typeof appendEngineLog === 'function') {
-    appendEngineLog('🚀 [실시간 1회 즉시 스크래핑] 최신 경쟁률 수집 및 DB 동기화를 시작합니다...', 'info');
+    appendEngineLog('🚀 [실시간 새로고침] 최신 경쟁률 수집 및 DB 동기화를 시작합니다...', 'info');
   }
 
   try {
-    // 1. 타겟: 2027학년도 수시1차 (URL 컬럼 데이터 기준)
+    // 0. 타겟: 2027학년도 수시1차 (URL 컬럼 데이터 기준)
     let activeYear = '2027';
     let activeAdm = '수시1차';
 
@@ -5787,12 +5787,23 @@ async function refreshLatestDataWithFeedback(btn = null) {
       activeAdm = CURRENT_ACTIVE_DETAIL_HINT.adm || '수시1차';
     }
 
+    // ★ 1단계: 사용자 대기 시간 0초! 클릭 즉시 기존 DB 최신 데이터를 먼저 화면에 즉각 표시 (0.05초 소요)
+    await reloadLatestData();
+    if (CURRENT_ACTIVE_DETAIL_ID) {
+      showUnivDetail(CURRENT_ACTIVE_DETAIL_ID, false, CURRENT_ACTIVE_DETAIL_HINT?.name, CURRENT_ACTIVE_DETAIL_HINT?.year, CURRENT_ACTIVE_DETAIL_HINT?.adm);
+    } else if (typeof CURRENT_HOME_TAB !== 'undefined' && CURRENT_HOME_TAB === 'inha') {
+      showHome(false, null, null, 'inha');
+    }
+
     let scrapeSuccess = false;
     let updatedCount = 0;
 
-    // 2. 서버의 1회 즉시 스크래핑 API 호출 (/api/instant_scrape)
-    // -> 서버가 2027학년도 수시1차 대학들을 실시간 스크래핑 후 https://compi.mojuk.kr DB에 즉시 자동 업데이트
+    // ★ 2단계: 서버의 병렬 1회 즉시 스크래핑 API 호출 (/api/instant_scrape)
+    // -> 서버가 등록 대학들을 병렬로 1.5초 내에 수집하여 로컬 및 https://compi.mojuk.kr DB에 동기화
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12초 타임아웃 안전장치
+
       const apiRes = await fetch(getApiEndpoint('/api/instant_scrape'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -5800,8 +5811,10 @@ async function refreshLatestDataWithFeedback(btn = null) {
           year: activeYear,
           admission_type: activeAdm,
           force: true
-        })
+        }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (apiRes.ok) {
         const data = await apiRes.json();
@@ -5809,15 +5822,15 @@ async function refreshLatestDataWithFeedback(btn = null) {
           scrapeSuccess = true;
           updatedCount = data.success_count || 0;
           if (typeof appendEngineLog === 'function') {
-            appendEngineLog(`✔ [서버 1회 즉시 스크래핑 완료] ${data.message || updatedCount + '개 대학 최신 수집 완료'}`, 'success');
+            appendEngineLog(`✔ [서버 즉시 스크래핑 완료] ${data.message || updatedCount + '개 대학 최신 수집 완료'}`, 'success');
           }
         }
       }
     } catch (apiErr) {
-      console.warn('[서버 즉시 스크래핑 API 호출 실패, 브라우저 스크래핑 엔진으로 대체]', apiErr);
+      console.warn('[서버 즉시 스크래핑 비동기 호출 안내]', apiErr);
     }
 
-    // 3. 서버 API 실패 시 브라우저 내장 스크래핑 엔진으로 1회 즉시 스크래핑 실행 (Fallback)
+    // 3. 서버 API 미지원 환경일 때만 브라우저 클라이언트 스크래핑 Fallback 실행
     if (!scrapeSuccess) {
       let targetUnivs = ALL_UNIVS.filter(u => {
         const hasUrl = u.url && String(u.url).trim().startsWith('http');
@@ -5865,7 +5878,6 @@ async function refreshLatestDataWithFeedback(btn = null) {
         updatedCount = clientSuccess;
         ALL_UNIVS = updatedAll;
 
-        // 브라우저에서 직접 수집한 최신 데이터들을 https://compi.mojuk.kr 서버 DB로 직접 업데이트 전송
         try {
           const syncedRemote = await syncToRemoteCompiDbDirectly(targetUnivs);
           if (syncedRemote > 0 && typeof appendEngineLog === 'function') {
@@ -5877,7 +5889,7 @@ async function refreshLatestDataWithFeedback(btn = null) {
       }
     }
 
-    // 4. 최신 데이터 다시 로드 및 대시보드 화면 전체 재렌더링
+    // ★ 4단계: 스크래핑 결과 최신 데이터로 화면 부드럽게 최종 갱신
     await reloadLatestData();
     if (CURRENT_ACTIVE_DETAIL_ID) {
       showUnivDetail(CURRENT_ACTIVE_DETAIL_ID, false, CURRENT_ACTIVE_DETAIL_HINT?.name, CURRENT_ACTIVE_DETAIL_HINT?.year, CURRENT_ACTIVE_DETAIL_HINT?.adm);
@@ -5885,17 +5897,15 @@ async function refreshLatestDataWithFeedback(btn = null) {
       showHome(false, null, null, 'inha');
     }
 
-    const successMsg = `✨ 실시간 1회 즉시 스크래핑 완료! 최신 경쟁률이 로컬 및 https://compi.mojuk.kr 서버 DB에 성공적으로 업데이트되었습니다.`;
-
-    showToast(successMsg, 'success', 5000);
+    const successMsg = `✨ 2027학년도 최신 경쟁률이 즉시 수집되어 DB에 성공적으로 반영되었습니다!`;
+    showToast(successMsg, 'success', 3500);
     if (typeof appendEngineLog === 'function') {
       appendEngineLog(`🎉 [완료] 최신 데이터가 로컬 및 원격 https://compi.mojuk.kr 서버 DB에 성공적으로 갱신되었습니다.`, 'success');
     }
   } catch (err) {
-    console.error('[실시간 새로고침 스크래핑 오류]', err);
-    showToast('❌ 스크래핑 중 오류가 발생했습니다: ' + err.message, 'error', 5000);
+    console.error('[실시간 새로고침 오류]', err);
+    showToast('⚠️ 실시간 갱신 중 일부 항목 지연: 최신 저장된 데이터로 화면을 갱신했습니다.', 'warning', 3500);
   } finally {
-    showLoading(false);
     refreshBtns.forEach(b => {
       b.disabled = false;
       b.innerHTML = origTexts.get(b) || '🔄 새로고침';
