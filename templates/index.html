@@ -2332,7 +2332,14 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
       <th class="sortable" onclick="sortTable('${tableId}', 2, 'number')" title="클릭하여 지원인원순 정렬">지원인원 <span class="sort-icon">↕</span></th>
       <th class="sortable" onclick="sortTable('${tableId}', 3, 'ratio')" title="클릭하여 경쟁률순 정렬">경쟁률 <span class="sort-icon">↕</span></th>
     </tr></thead><tbody>`;
+    let totRecruit = 0, totApplicant = 0;
+    let hasRecruit = false, hasApplicant = false;
     for (const d of tRows) {
+      const rec = parseFloat(String(d.admission_count || d.recruit_num || '').replace(/,/g, '').trim());
+      const app = parseFloat(String(d.applicant_count || d.applicant_num || '').replace(/,/g, '').trim());
+      if (!isNaN(rec)) { totRecruit += rec; hasRecruit = true; }
+      if (!isNaN(app)) { totApplicant += app; hasApplicant = true; }
+
       tableHtml += `<tr>
         <td style="font-weight:600;">${e(d.department_name || d.dept)}</td>
         <td>${e(d.admission_count || d.recruit_num || '-')}</td>
@@ -2340,7 +2347,20 @@ function showUnivDetail(id, pushUrl = true, nameHint = null, yearHint = null, ad
         <td class="fw-bold ${isInha ? 'text-purple' : 'text-pc'}">${e(d.competition_ratio || d.competition_rate || '-')}</td>
       </tr>`;
     }
-    tableHtml += `</tbody></table>`;
+    tableHtml += `</tbody>`;
+
+    const totRatioStr = (hasRecruit && totRecruit > 0 && hasApplicant)
+      ? (totApplicant / totRecruit).toFixed(2) + ' : 1'
+      : '-';
+
+    tableHtml += `<tfoot style="position:sticky;bottom:0;z-index:5;">
+      <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;box-shadow:0 -2px 6px rgba(0,0,0,0.04);">
+        <td style="font-weight:800;color:#1e1b4b;">총계 (전체 ${tRows.length}개 학과 합계)</td>
+        <td style="font-weight:800;color:#0f172a;">${hasRecruit ? totRecruit.toLocaleString() + '명' : '-'}</td>
+        <td style="font-weight:900;color:#1d4ed8;">${hasApplicant ? totApplicant.toLocaleString() + '명' : '-'}</td>
+        <td class="fw-bold ${isInha ? 'text-purple' : 'text-pc'}" style="font-weight:900;font-size:0.95rem;">${totRatioStr}</td>
+      </tr>
+    </tfoot></table>`;
     
     contents += `<div id="t${i}" class="tab-content${i === 0 ? ' active' : ''}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
@@ -2904,6 +2924,38 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
       </tr>`;
     }
 
+    // ── 전체 대학 총계(합계) 계산 ──
+    let tot_in_s1_ac = 0, tot_in_s1_ap = 0;
+    let tot_in_s2_ac = 0, tot_in_s2_ap = 0;
+    let tot_in_j_ac = 0, tot_in_j_ap = 0;
+    let tot_in_all_ac = 0, tot_in_all_ap = 0;
+
+    let tot_out_s1_ap = 0, tot_out_s2_ap = 0, tot_out_j_ap = 0, tot_out_all_ap = 0;
+
+    for (const n of names) {
+      const ind = pData[n].inside;
+      const outd = pData[n].outside;
+      tot_in_s1_ac += (ind['수시1차'].ac || 0);
+      tot_in_s1_ap += (ind['수시1차'].ap || 0);
+      tot_in_s2_ac += (ind['수시2차'].ac || 0);
+      tot_in_s2_ap += (ind['수시2차'].ap || 0);
+      tot_in_j_ac += (ind['정시'].ac || 0);
+      tot_in_j_ap += (ind['정시'].ap || 0);
+      tot_in_all_ac += (ind.total.ac || 0);
+      tot_in_all_ap += (ind.total.ap || 0);
+
+      tot_out_s1_ap += (outd['수시1차'].ap || 0);
+      tot_out_s2_ap += (outd['수시2차'].ap || 0);
+      tot_out_j_ap += (outd['정시'].ap || 0);
+      tot_out_all_ap += (outd.total.ap || 0);
+    }
+
+    const tot_in_s1_rt = tot_in_s1_ac > 0 ? (tot_in_s1_ap / tot_in_s1_ac).toFixed(2) + ' : 1' : '-';
+    const tot_in_s2_rt = tot_in_s2_ac > 0 ? (tot_in_s2_ap / tot_in_s2_ac).toFixed(2) + ' : 1' : '-';
+    const tot_in_j_rt = tot_in_j_ac > 0 ? (tot_in_j_ap / tot_in_j_ac).toFixed(2) + ' : 1' : '-';
+    const tot_in_all_rt = tot_in_all_ac > 0 ? (tot_in_all_ap / tot_in_all_ac).toFixed(2) + ' : 1' : '-';
+    const tot_grand_ap = tot_in_all_ap + tot_out_all_ap;
+
     let rawLinksHtml = '';
     const urlKeys = Object.keys(univUrls);
     if (urlKeys.length) {
@@ -2976,6 +3028,23 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
                 </tr>
               </thead>
               <tbody>${tbInside}</tbody>
+              <tfoot style="position:sticky;bottom:0;z-index:5;">
+                <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;box-shadow:0 -2px 6px rgba(0,0,0,0.04);">
+                  <td style="font-weight:800;color:#1e1b4b;">총계 (전체 ${names.length}개 대학 합계)</td>
+                  <td style="text-align:right;font-weight:800;color:#0f172a;">${tot_in_s1_ac ? tot_in_s1_ac.toLocaleString() : '-'}</td>
+                  <td style="text-align:right;font-weight:900;color:#1d4ed8;">${tot_in_s1_ap ? tot_in_s1_ap.toLocaleString() : '-'}</td>
+                  <td style="text-align:right;font-weight:900;color:#7c3aed;">${tot_in_s1_rt}</td>
+                  <td style="text-align:right;font-weight:800;color:#0f172a;">${tot_in_s2_ac ? tot_in_s2_ac.toLocaleString() : '-'}</td>
+                  <td style="text-align:right;font-weight:900;color:#1d4ed8;">${tot_in_s2_ap ? tot_in_s2_ap.toLocaleString() : '-'}</td>
+                  <td style="text-align:right;font-weight:900;color:#7c3aed;">${tot_in_s2_rt}</td>
+                  <td style="text-align:right;font-weight:800;color:#0f172a;">${tot_in_j_ac ? tot_in_j_ac.toLocaleString() : '-'}</td>
+                  <td style="text-align:right;font-weight:900;color:#1d4ed8;">${tot_in_j_ap ? tot_in_j_ap.toLocaleString() : '-'}</td>
+                  <td style="text-align:right;font-weight:900;color:#7c3aed;">${tot_in_j_rt}</td>
+                  <td style="text-align:right;background:#e0e7ff;font-weight:800;color:#1e40af;">${tot_in_all_ac ? tot_in_all_ac.toLocaleString() + '명' : '-'}</td>
+                  <td style="text-align:right;background:#e0e7ff;font-weight:900;color:#1e40af;">${tot_in_all_ap ? tot_in_all_ap.toLocaleString() + '명' : '-'}</td>
+                  <td style="text-align:right;background:#e0e7ff;font-weight:900;font-size:0.95rem;color:#1e40af;">${tot_in_all_rt}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
@@ -3011,6 +3080,23 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
                 </tr>
               </thead>
               <tbody>${tbOutside}</tbody>
+              <tfoot style="position:sticky;bottom:0;z-index:5;">
+                <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;box-shadow:0 -2px 6px rgba(0,0,0,0.04);">
+                  <td style="font-weight:800;color:#1e1b4b;">총계 (전체 ${names.length}개 대학 합계)</td>
+                  <td style="color:var(--text-secondary);">-</td>
+                  <td style="text-align:right;font-weight:900;color:#b45309;">${tot_out_s1_ap ? tot_out_s1_ap.toLocaleString() : '-'}</td>
+                  <td style="color:var(--text-secondary);">-</td>
+                  <td style="color:var(--text-secondary);">-</td>
+                  <td style="text-align:right;font-weight:900;color:#b45309;">${tot_out_s2_ap ? tot_out_s2_ap.toLocaleString() : '-'}</td>
+                  <td style="color:var(--text-secondary);">-</td>
+                  <td style="color:var(--text-secondary);">-</td>
+                  <td style="text-align:right;font-weight:900;color:#b45309;">${tot_out_j_ap ? tot_out_j_ap.toLocaleString() : '-'}</td>
+                  <td style="color:var(--text-secondary);">-</td>
+                  <td style="background:#fef3c7;color:var(--text-secondary);">-</td>
+                  <td style="text-align:right;background:#fef3c7;font-weight:900;color:#b45309;">${tot_out_all_ap ? tot_out_all_ap.toLocaleString() + '명' : '-'}</td>
+                  <td style="background:#fef3c7;color:var(--text-secondary);">-</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
@@ -3040,6 +3126,18 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
                 </tr>
               </thead>
               <tbody>${tbTotal}</tbody>
+              <tfoot style="position:sticky;bottom:0;z-index:5;">
+                <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;box-shadow:0 -2px 6px rgba(0,0,0,0.04);">
+                  <td style="font-weight:800;color:#1e1b4b;">총계 (전체 ${names.length}개 대학 합계)</td>
+                  <td style="text-align:right;font-weight:800;color:#0f172a;">${tot_in_all_ac ? tot_in_all_ac.toLocaleString() + '명' : '-'}</td>
+                  <td style="text-align:right;font-weight:900;color:#1d4ed8;">${tot_in_all_ap ? tot_in_all_ap.toLocaleString() + '명' : '-'}</td>
+                  <td style="text-align:right;font-weight:900;color:#7c3aed;">${tot_in_all_rt}</td>
+                  <td style="color:var(--text-secondary);">-</td>
+                  <td style="text-align:right;font-weight:900;color:#b45309;">${tot_out_all_ap ? tot_out_all_ap.toLocaleString() + '명' : '-'}</td>
+                  <td style="text-align:right;background:#f8fafc;font-weight:900;font-size:0.95rem;color:#0f172a;">${tot_grand_ap ? tot_grand_ap.toLocaleString() + '명' : '-'}</td>
+                  <td style="text-align:right;background:#f8fafc;font-weight:900;font-size:0.95rem;color:#7c3aed;">${tot_in_all_rt}</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
@@ -3122,6 +3220,30 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
       </tr>`;
     }
 
+    // ── 3개년 추이 리포트 총계 계산 ──
+    const tot_s_in_ac = {}, tot_s_in_ap = {}, tot_s_out_ap = {};
+    rY.forEach(ry => { tot_s_in_ac[ry] = 0; tot_s_in_ap[ry] = 0; tot_s_out_ap[ry] = 0; });
+    for (const n of names) {
+      const d = ud_in[n], od = ud_out[n];
+      rY.forEach(ry => {
+        tot_s_in_ac[ry] += (d.ac[ry] || 0);
+        tot_s_in_ap[ry] += (d.ap[ry] || 0);
+        tot_s_out_ap[ry] += (od.ap[ry] || 0);
+      });
+    }
+    let tot_s_in_da = 0, tot_s_in_dr = 0, tot_s_out_da = 0;
+    const ry2_s_in = rY.filter(ry => tot_s_in_ap[ry] > 0);
+    if (ry2_s_in.length >= 2) {
+      tot_s_in_da = tot_s_in_ap[ry2_s_in[0]] - tot_s_in_ap[ry2_s_in[1]];
+      const r0 = tot_s_in_ac[ry2_s_in[0]] > 0 ? (tot_s_in_ap[ry2_s_in[0]] / tot_s_in_ac[ry2_s_in[0]]) : 0;
+      const r1 = tot_s_in_ac[ry2_s_in[1]] > 0 ? (tot_s_in_ap[ry2_s_in[1]] / tot_s_in_ac[ry2_s_in[1]]) : 0;
+      tot_s_in_dr = r0 - r1;
+    }
+    const ry2_s_out = rY.filter(ry => tot_s_out_ap[ry] > 0);
+    if (ry2_s_out.length >= 2) {
+      tot_s_out_da = tot_s_out_ap[ry2_s_out[0]] - tot_s_out_ap[ry2_s_out[1]];
+    }
+
     let rawLinksHtml = '';
     const urlKeys = Object.keys(univUrls);
     if (urlKeys.length) {
@@ -3184,6 +3306,19 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
                 </tr>
               </thead>
               <tbody>${tbSingleIn}</tbody>
+              <tfoot style="position:sticky;bottom:0;z-index:5;">
+                <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;box-shadow:0 -2px 6px rgba(0,0,0,0.04);">
+                  <td style="font-weight:800;color:#1e1b4b;">총계 (전체 ${names.length}개 대학 합계)</td>
+                  ${rY.map(ry => `<td style="text-align:right;font-weight:800;color:#0f172a;">${tot_s_in_ac[ry] ? tot_s_in_ac[ry].toLocaleString() : '-'}</td>`).join('')}
+                  ${rY.map((ry, i) => `<td style="text-align:right;font-weight:900;color:#1d4ed8;">${tot_s_in_ap[ry] ? tot_s_in_ap[ry].toLocaleString() : '-'}</td>`).join('')}
+                  <td style="text-align:right;font-weight:900;color:${tot_s_in_da>0?'#059669':tot_s_in_da<0?'#dc2626':'#64748b'};">${tot_s_in_da>0?'+':''}${tot_s_in_da.toLocaleString()}명</td>
+                  ${rY.map((ry, i) => {
+                    const rt = tot_s_in_ac[ry] > 0 ? (tot_s_in_ap[ry] / tot_s_in_ac[ry]).toFixed(2) + ' : 1' : '-';
+                    return `<td style="text-align:right;font-weight:900;color:#7c3aed;">${rt}</td>`;
+                  }).join('')}
+                  <td style="text-align:right;font-weight:900;color:${tot_s_in_dr>0?'#059669':tot_s_in_dr<0?'#dc2626':'#64748b'};">${tot_s_in_dr>0?'+':''}${tot_s_in_dr.toFixed(2)}p</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
@@ -3207,6 +3342,14 @@ function showReportDirect(y, a, selectedList, isRealtime = false, pushUrl = true
                 </tr>
               </thead>
               <tbody>${tbSingleOut}</tbody>
+              <tfoot style="position:sticky;bottom:0;z-index:5;">
+                <tr style="background:#f1f5f9;font-weight:800;border-top:2px solid #cbd5e1;box-shadow:0 -2px 6px rgba(0,0,0,0.04);">
+                  <td style="font-weight:800;color:#1e1b4b;">총계 (전체 ${names.length}개 대학 합계)</td>
+                  ${rY.map(() => `<td style="color:var(--text-secondary);text-align:center;">-</td>`).join('')}
+                  ${rY.map((ry, i) => `<td style="text-align:right;font-weight:900;color:#b45309;">${tot_s_out_ap[ry] ? tot_s_out_ap[ry].toLocaleString() : '-'}</td>`).join('')}
+                  <td style="text-align:right;font-weight:900;color:${tot_s_out_da>0?'#059669':tot_s_out_da<0?'#dc2626':'#64748b'};">${tot_s_out_da>0?'+':''}${tot_s_out_da.toLocaleString()}명</td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
@@ -3910,15 +4053,32 @@ function updateEngineProgress(percent, isVisible = true) {
 
 // Decode HTML with EUC-KR / CP949 / UTF-8 automatic detection
 async function decodeHtmlResponse(res) {
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
   const buffer = await res.arrayBuffer();
-  let text = new TextDecoder('utf-8').decode(buffer);
-  if (/charset=["']?(euc-kr|ks_c_5601-1987|cp949)/i.test(text)) {
+
+  // 1. Explicit charset in HTTP headers
+  if (contentType.includes('euc-kr') || contentType.includes('cp949') || contentType.includes('ks_c_5601')) {
     try {
-      text = new TextDecoder('euc-kr').decode(buffer);
+      return new TextDecoder('euc-kr').decode(buffer);
     } catch (e) {}
   }
-  return text;
+  if (contentType.includes('utf-8')) {
+    return new TextDecoder('utf-8').decode(buffer);
+  }
+
+  // 2. Strict UTF-8 decode (fatal: true throws TypeError on invalid multi-byte sequences like raw EUC-KR)
+  try {
+    return new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+  } catch (err) {
+    // 3. Fallback to EUC-KR when UTF-8 fatal decode fails
+    try {
+      return new TextDecoder('euc-kr').decode(buffer);
+    } catch (e2) {
+      return new TextDecoder('utf-8').decode(buffer);
+    }
+  }
 }
+
 
 // Multi-Proxy HTML Fetcher (Local Fast Proxy -> Public Fallback Proxies)
 async function fetchHtmlWithProxies(targetUrl) {
@@ -4123,16 +4283,28 @@ function parseUniversityHtml(htmlText, domainHint = '') {
     
     if (!isJinhak && !hasIpsiKeywords && idx > 5) return;
 
-    // Nearest header title search (h1~h4, div, p)
-    let headerTitle = `표 ${result.tables_html.length + 1}`;
-    let prev = table.previousElementSibling;
-    while (prev) {
-      if (['H1', 'H2', 'H3', 'H4', 'DIV', 'P'].includes(prev.tagName) && prev.textContent.trim()) {
-        headerTitle = prev.textContent.trim().replace(/\s+/g, ' ');
-        break;
-      }
-      prev = prev.previousElementSibling;
+    // Nearest header title search: 1. caption tag, 2. preceding heading/div/p
+    let headerTitle = '';
+    const captionEl = table.querySelector('caption');
+    if (captionEl && captionEl.textContent.trim()) {
+      headerTitle = captionEl.textContent.trim().replace(/\s+/g, ' ');
     }
+
+    if (!headerTitle || headerTitle.startsWith('표 ')) {
+      let prev = table.previousElementSibling;
+      while (prev) {
+        if (['H1', 'H2', 'H3', 'H4', 'DIV', 'P'].includes(prev.tagName) && prev.textContent.trim()) {
+          const bulSpan = prev.querySelector('.bul, [id*="Title"]');
+          headerTitle = (bulSpan ? bulSpan.textContent : prev.textContent).trim().replace(/\s+/g, ' ');
+          break;
+        }
+        prev = prev.previousElementSibling;
+      }
+    }
+    if (!headerTitle) {
+      headerTitle = `표 ${result.tables_html.length + 1}`;
+    }
+
 
     const cleanTableHtml = table.outerHTML
       .replace(/style="[^"]*"/gi, '')

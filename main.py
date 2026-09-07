@@ -68,11 +68,19 @@ def check_admin_access(request: Request) -> bool:
 async def api_proxy(url: str):
     import requests
     try:
-        resp = requests.get(url, timeout=10)
-        resp.encoding = resp.apparent_encoding
-        return HTMLResponse(content=resp.text)
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Upgrade-Insecure-Requests": "1"
+        }
+        resp = requests.get(url, headers=headers, timeout=12)
+        if resp.encoding is None or resp.encoding.lower() in ('iso-8859-1', 'ascii'):
+            resp.encoding = resp.apparent_encoding or 'utf-8'
+        return HTMLResponse(content=resp.text, media_type="text/html; charset=utf-8")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # Dependency
 def get_db():
