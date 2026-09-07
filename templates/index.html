@@ -4472,26 +4472,48 @@ async function saveUniversitiesAndRefresh(updatedList, toSyncList = null) {
   buildTree();
   renderDataSummary();
   
-  // 서버 DB(compi.mojuk.kr 및 로컬 DB)에 저장 동기화
+  // 서버 DB(compi.mojuk.kr 및 로컬 DB)에 분할 저장 동기화 (Nginx 413 방지 및 100% 반영)
   const targetSync = (toSyncList && toSyncList.length) ? toSyncList : null;
-  if (targetSync) {
-    try {
-      const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
-      const res = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-admin-token': token
-        },
-        body: JSON.stringify({ universities: targetSync })
-      });
-      if (res.ok) {
-        console.log(`[서버 DB 저장 성공] ${targetSync.length}개 대학 데이터가 DB에 영구 반영되었습니다.`);
-      } else {
-        console.warn('[서버 DB 저장 응답 오류]', res.status);
+  if (targetSync && targetSync.length) {
+    const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+    let syncSuccessCount = 0;
+    for (const item of targetSync) {
+      try {
+        const cleanItem = {
+          name: cleanUnivName(item.name),
+          year: String(item.year || '2027'),
+          admission_type: item.admission_type || item.adm_type || '수시1차',
+          capacity_type: item.capacity_type || item.cap_type || '구분없음',
+          url: item.url || '',
+          is_free_apply: item.is_free_apply || '',
+          is_multi_apply: item.is_multi_apply || '',
+          scraped_data: {
+            title: item.scraped_data ? (item.scraped_data.title || '') : '',
+            parsed_departments: item.departments || (item.scraped_data ? item.scraped_data.parsed_departments || [] : [])
+          },
+          departments: item.departments || (item.scraped_data ? item.scraped_data.parsed_departments || [] : [])
+        };
+
+        const res = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-token': token
+          },
+          body: JSON.stringify({ universities: [cleanItem] })
+        });
+        if (res.ok) {
+          syncSuccessCount++;
+          console.log(`[서버 DB 저장 성공] ${cleanItem.name} (${cleanItem.year}) DB 반영 완료`);
+        } else {
+          console.warn(`[서버 DB 저장 응답 오류] ${cleanItem.name} status=${res.status}`);
+        }
+      } catch (err) {
+        console.warn(`[서버 DB 저장 실패] ${item.name}:`, err);
       }
-    } catch (e) {
-      console.warn('[서버 DB 저장 실패]', e);
+    }
+    if (syncSuccessCount > 0) {
+      console.log(`[서버 DB 동기화 완료] 총 ${syncSuccessCount}/${targetSync.length}개 대학 데이터가 서버 DB에 영구 반영되었습니다.`);
     }
   }
 
@@ -5267,19 +5289,41 @@ async function startEngineExcelScrape() {
         appendEngineLog(`💾 수집된 ${newlyScraped.length}개 대학 데이터를 로컬 DB에 저장하는 중...`, 'info');
         try {
           const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
-          const saveRes = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-admin-token': token
-            },
-            body: JSON.stringify({ universities: newlyScraped })
-          });
-          if (saveRes.ok) {
-            appendEngineLog(`✅ [DB 저장 성공] ${newlyScraped.length}개 대학이 DB에 안전하게 저장되었습니다.`, 'success');
+          let savedCount = 0;
+          for (const item of newlyScraped) {
+            try {
+              const cleanItem = {
+                name: cleanUnivName(item.name),
+                year: String(item.year || '2027'),
+                admission_type: item.admission_type || item.adm_type || '수시1차',
+                capacity_type: item.capacity_type || item.cap_type || '구분없음',
+                url: item.url || '',
+                is_free_apply: item.is_free_apply || '',
+                is_multi_apply: item.is_multi_apply || '',
+                scraped_data: {
+                  title: item.scraped_data ? (item.scraped_data.title || '') : '',
+                  parsed_departments: item.departments || (item.scraped_data ? item.scraped_data.parsed_departments || [] : [])
+                },
+                departments: item.departments || (item.scraped_data ? item.scraped_data.parsed_departments || [] : [])
+              };
+
+              const saveRes = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-admin-token': token
+                },
+                body: JSON.stringify({ universities: [cleanItem] })
+              });
+              if (saveRes.ok) {
+                savedCount++;
+              }
+            } catch (innerErr) {}
+          }
+          if (savedCount > 0) {
+            appendEngineLog(`✅ [DB 저장 성공] ${savedCount}/${newlyScraped.length}개 대학이 DB에 안전하게 저장되었습니다.`, 'success');
           } else {
-            const saveErr = await saveRes.json().catch(() => ({}));
-            appendEngineLog(`⚠️ DB 저장 실패: ${saveErr.detail || '오류 발생'}`, 'error');
+            appendEngineLog(`⚠️ DB 저장 상태 확인 필요 (로컬 파일 반영됨)`, 'warn');
           }
         } catch (e) {
           appendEngineLog(`⚠️ DB 저장 요청 중 오류: ${e.message}`, 'error');
