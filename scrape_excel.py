@@ -18,7 +18,7 @@ import openpyxl
 
 from database import SessionLocal, University, DepartmentData, engine, Base
 from scraper_service import scrape_university_data, normalize_ratio_url
-from export_data import export_to_json, push_to_github_pages
+from export_data import export_to_json, push_to_github_pages, sync_to_remote_compi
 
 def detect_and_extract_rows(file_path):
     """
@@ -260,6 +260,10 @@ def process_excel_scrape(file_path, auto_push=True):
         # JSON Export & GitHub Pages 배포
         print("\n[동기화] data.json 파일 변환 중...")
         export_to_json(db)
+        
+        # compi.mojuk.kr 라이브 서버 DB 동기화
+        print("\n[동기화] compi.mojuk.kr 원격 서버 DB로 실시간 반영 중...")
+        sync_to_remote_compi()
         
         if auto_push:
             print("\n[배포] GitHub Pages(suego78ai/ipsi)로 자동 배포 중...")

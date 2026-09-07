@@ -116,6 +116,59 @@ def export_to_json(db=None):
         if close_db:
             db.close()
 
+def sync_to_remote_compi(remote_url="https://compi.mojuk.kr", token="ipsi4774!"):
+    """로컬 DB(ipsi.db)의 최신 대학 데이터를 compi.mojuk.kr 원격 서버 DB로 직접 동기화 (Nginx 413 방지 경량 분할 전송)"""
+    try:
+        import requests
+        import sqlite3
+        if not DB_PATH.exists():
+            return False
+        
+        conn = sqlite3.connect(str(DB_PATH))
+        c = conn.cursor()
+        rows = c.execute("SELECT id, name, year, admission_type, capacity_type, url, is_free_apply, is_multi_apply, scraped_data FROM universities").fetchall()
+        
+        url = f"{remote_url}/api/save_scraped_batch"
+        headers = {"Content-Type": "application/json", "x-admin-token": token}
+        
+        print(f"[원격 DB 동기화] {len(rows)}개 대학 데이터를 {remote_url} DB로 전송 중...")
+        items = []
+        for r in rows:
+            scraped_data = json.loads(r[8]) if r[8] else {}
+            clean_scraped = {
+                "title": scraped_data.get("title", ""),
+                "parsed_departments": scraped_data.get("parsed_departments", [])
+            }
+            items.append({
+                "name": r[1],
+                "year": str(r[2]),
+                "admission_type": r[3],
+                "capacity_type": r[4] or "구분없음",
+                "url": r[5] or "",
+                "is_free_apply": r[6] or "",
+                "is_multi_apply": r[7] or "",
+                "scraped_data": clean_scraped,
+                "departments": scraped_data.get("parsed_departments", [])
+            })
+        
+        chunk_size = 5
+        synced = 0
+        for i in range(0, len(items), chunk_size):
+            chunk = items[i:i + chunk_size]
+            try:
+                res = requests.post(url, headers=headers, json={"universities": chunk}, timeout=20)
+                if res.status_code == 200:
+                    synced += len(chunk)
+                else:
+                    print(f"  [청크 전송 실패: {res.status_code}]")
+            except Exception as ex:
+                print(f"  [청크 전송 예외: {ex}]")
+        print(f"[원격 DB 동기화 완료] {synced}/{len(rows)}개 대학이 {remote_url} DB에 성공적으로 저장되었습니다.")
+        return True
+    except Exception as e:
+        print(f"[원격 DB 동기화 안내] {remote_url} 연동 건너뜀 ({e})")
+        return False
+
 def push_to_github_pages(commit_msg="Update latest ipsi data (data.json)"):
     export_to_json()
 
@@ -145,6 +198,9 @@ def push_to_github_pages(commit_msg="Update latest ipsi data (data.json)"):
                 print("[배포] ipsi_repo 미러에 변경 사항이 없습니다.")
         except Exception as e:
             print(f"[경고] ipsi_repo 푸시 중 오류: {e}")
+
+    # 3. compi.mojuk.kr 라이브 서버 DB 동기화
+    sync_to_remote_compi()
 
     return True
 
