@@ -17,7 +17,7 @@ import pandas as pd
 import openpyxl
 
 from database import SessionLocal, University, DepartmentData, engine, Base
-from scraper_service import scrape_university_data
+from scraper_service import scrape_university_data, normalize_ratio_url
 from export_data import export_to_json, push_to_github_pages
 
 def detect_and_extract_rows(file_path):
@@ -69,7 +69,10 @@ def detect_and_extract_rows(file_path):
                             url = target
                             url_col_idx = i
                             
-            if not url or url in seen_urls:
+            if not url:
+                continue
+            url = normalize_ratio_url(url)
+            if url in seen_urls:
                 continue
             seen_urls.add(url)
                 

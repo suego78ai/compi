@@ -3579,6 +3579,33 @@ function setupDropzoneEvents() {
 
 let DIRECT_ADMIN_PARSED_DATA = null;
 
+// URL Normalizer (유웨이 파워경쟁률 등 긴 wrapper URL에서 실제 경쟁률 URL 추출)
+function normalizeRatioUrl(url) {
+  if (!url) return '';
+  url = String(url).trim();
+  if (/ratioURL=/i.test(url)) {
+    try {
+      const parsed = new URL(url);
+      const inner = parsed.searchParams.get('ratioURL') || parsed.searchParams.get('ratiourl');
+      if (inner) {
+        let clean = decodeURIComponent(inner).trim();
+        if (clean.startsWith('//')) clean = 'https:' + clean;
+        else if (!clean.startsWith('http')) clean = 'https://' + clean;
+        return clean;
+      }
+    } catch (e) {
+      const match = url.match(/[?&]ratioURL=([^&]+)/i);
+      if (match && match[1]) {
+        let clean = decodeURIComponent(match[1]).trim();
+        if (clean.startsWith('//')) clean = 'https:' + clean;
+        else if (!clean.startsWith('http')) clean = 'https://' + clean;
+        return clean;
+      }
+    }
+  }
+  return url;
+}
+
 // Smart URL List Parser (6-column standard: 학년도, 모집시기, 대학명, 무료접수, 중복지원, URL - 정원구분 제외)
 function extractUrlRowsFromSheet(rows) {
   if (!rows || !Array.isArray(rows)) return [];
@@ -3614,6 +3641,7 @@ function extractUrlRowsFromSheet(rows) {
       if (foundUrl) u = String(foundUrl).trim();
     }
     if (!u || !u.startsWith('http')) continue;
+    u = normalizeRatioUrl(u);
 
     let y = colMap.year !== -1 ? String(row[colMap.year] || '').trim() : '';
     if (!y) {
@@ -3957,7 +3985,8 @@ async function handleAdminDirectScrape(e) {
   const year = document.getElementById('directYear').value.trim();
   const adm = document.getElementById('directAdm').value.trim();
   const cap = (document.getElementById('directCap') ? document.getElementById('directCap').value.trim() : '') || '구분없음';
-  const url = document.getElementById('directUrl').value.trim();
+  const url = normalizeRatioUrl(document.getElementById('directUrl').value.trim());
+  document.getElementById('directUrl').value = url;
 
   openScraperEngineModal();
   switchScraperTab('tabDirectScrape', document.querySelectorAll('#scraperEngineModal .tab-btn')[1]);
@@ -4080,14 +4109,38 @@ async function decodeHtmlResponse(res) {
 }
 
 
+function extractFrameUrl(html, baseUrl) {
+  try {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const frame = doc.querySelector('frame[name*="Main" i], frame[name*="power" i], frame[src*="ratio" i], frame, iframe');
+    if (frame && frame.getAttribute('src')) {
+      let src = frame.getAttribute('src').trim();
+      if (src.startsWith('//')) src = 'https:' + src;
+      return new URL(src, baseUrl).href;
+    }
+  } catch (e) {
+    console.warn("Failed to extract frame URL:", e);
+  }
+  return null;
+}
+
 // Multi-Proxy HTML Fetcher (Local Fast Proxy -> Public Fallback Proxies)
 async function fetchHtmlWithProxies(targetUrl) {
+  targetUrl = normalizeRatioUrl(targetUrl);
   // 1. Try server proxy (superfast & no cors)
   try {
-    const localRes = await fetch(getApiEndpoint(`/api/proxy?url=${encodeURIComponent(targetUrl)}`), { signal: AbortSignal.timeout(2500) });
+    const localRes = await fetch(getApiEndpoint(`/api/proxy?url=${encodeURIComponent(targetUrl)}`), { signal: AbortSignal.timeout(3500) });
     if (localRes.ok) {
       const text = await decodeHtmlResponse(localRes);
-      if (text && text.length > 500) return text;
+      if (text && text.length > 300) {
+        if (text.includes('<frame') && !text.includes('<table')) {
+          const innerUrl = extractFrameUrl(text, targetUrl);
+          if (innerUrl && innerUrl !== targetUrl) {
+            return await fetchHtmlWithProxies(innerUrl);
+          }
+        }
+        return text;
+      }
     }
   } catch (e) {}
 
@@ -4104,7 +4157,15 @@ async function fetchHtmlWithProxies(targetUrl) {
       const res = await fetch(pUrl, { signal: AbortSignal.timeout(9000) });
       if (res.ok) {
         const text = await decodeHtmlResponse(res);
-        if (text && text.length > 500) return text;
+        if (text && text.length > 300) {
+          if (text.includes('<frame') && !text.includes('<table')) {
+            const innerUrl = extractFrameUrl(text, targetUrl);
+            if (innerUrl && innerUrl !== targetUrl) {
+              return await fetchHtmlWithProxies(innerUrl);
+            }
+          }
+          return text;
+        }
       }
     } catch (err) {
       console.warn("Proxy attempt error:", err);
@@ -4823,7 +4884,8 @@ async function handleEngineDirectScrape(e) {
   const year = document.getElementById('engDirectYear').value.trim();
   const adm = document.getElementById('engDirectAdm').value.trim();
   const cap = (document.getElementById('engDirectCap') ? document.getElementById('engDirectCap').value.trim() : '') || '구분없음';
-  const url = document.getElementById('engDirectUrl').value.trim();
+  const url = normalizeRatioUrl(document.getElementById('engDirectUrl').value.trim());
+  document.getElementById('engDirectUrl').value = url;
 
   appendEngineLog(`🔍 [단일 스크래핑] ${name} (${url}) 수집 시작...`);
   setEngineStatus('스크래핑 중...', '#eab308');
@@ -5767,6 +5829,25 @@ window.stopPeriodicScraping = stopPeriodicScraping;
 window.startBatchScrapingEngine = startBatchScrapingEngine;
 window.updateBatchScrapeTargetSummary = updateBatchScrapeTargetSummary;
 window.populateBatchScrapeFilterOptions = populateBatchScrapeFilterOptions;
+
+// URL 입력창 자동 정규화 이벤트 바인딩 (붙여넣기 시 긴 wrapper URL 즉시 정리)
+document.addEventListener('DOMContentLoaded', () => {
+  ['directUrl', 'engDirectUrl'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.addEventListener('input', () => {
+        const cleaned = normalizeRatioUrl(el.value);
+        if (cleaned !== el.value) el.value = cleaned;
+      });
+      el.addEventListener('paste', () => {
+        setTimeout(() => {
+          const cleaned = normalizeRatioUrl(el.value);
+          if (cleaned !== el.value) el.value = cleaned;
+        }, 50);
+      });
+    }
+  });
+});
 </script>
 
 <!-- Floating Scraper Status Widget -->

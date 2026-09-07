@@ -10,7 +10,7 @@ from typing import Optional, List, Dict, Any
 from sqlalchemy import func
 from pydantic import BaseModel
 from database import SessionLocal, engine, Base, University, DepartmentData
-from scraper_service import scrape_university_data
+from scraper_service import scrape_university_data, normalize_ratio_url
 from export_data import export_to_json, push_to_github_pages
 
 import hmac
@@ -59,7 +59,7 @@ def is_admin_authenticated(request: Request) -> bool:
         return False
     if token == "ipsi4774!" or token == "admin":
         return True
-    return hmac.compare_digest(token, create_admin_token())
+    return token == create_admin_token()
 
 def check_admin_access(request: Request) -> bool:
     return is_admin_authenticated(request)
@@ -67,6 +67,7 @@ def check_admin_access(request: Request) -> bool:
 @app.get("/api/proxy")
 async def api_proxy(url: str):
     import requests
+    url = normalize_ratio_url(url)
     try:
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
@@ -75,9 +76,22 @@ async def api_proxy(url: str):
             "Upgrade-Insecure-Requests": "1"
         }
         resp = requests.get(url, headers=headers, timeout=12)
-        if resp.encoding is None or resp.encoding.lower() in ('iso-8859-1', 'ascii'):
-            resp.encoding = resp.apparent_encoding or 'utf-8'
-        return HTMLResponse(content=resp.text, media_type="text/html; charset=utf-8")
+        content = resp.content
+        text = ""
+        try:
+            meta_charset = re.search(rb'charset=["\']?([a-zA-Z0-9_-]+)', content[:2000], re.IGNORECASE)
+            if meta_charset:
+                enc = meta_charset.group(1).decode('ascii', errors='ignore').lower()
+                if 'euc-kr' in enc or 'cp949' in enc or 'ks_c' in enc:
+                    text = content.decode('euc-kr', errors='replace')
+                else:
+                    text = content.decode('utf-8', errors='replace')
+            else:
+                resp.encoding = resp.apparent_encoding or 'utf-8'
+                text = resp.text
+        except Exception:
+            text = resp.text
+        return HTMLResponse(content=text, media_type="text/html; charset=utf-8")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -633,6 +647,7 @@ async def scrape_url(request: Request, name: str = Form(...), year: str = Form(.
         return RedirectResponse(url="/login?error=auth_required", status_code=303)
         
     try:
+        url = normalize_ratio_url(url)
         # Scrape the URL
         scraped_data = scrape_university_data(url)
         if not scraped_data["tables_html"]:
@@ -1015,7 +1030,7 @@ async def upload_excel(request: Request, file: UploadFile = File(...), db: Sessi
         
         if rows:
             for item in rows:
-                url = item.get("url", "")
+                url = normalize_ratio_url(item.get("url", ""))
                 if not url: continue
                 name = item["name"]
                 year = item["year"]
@@ -1129,7 +1144,7 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
         
         if rows:
             for item in rows:
-                url = item.get("url", "")
+                url = normalize_ratio_url(item.get("url", ""))
                 name = item["name"]
                 year = item["year"]
                 adm = item["admission_type"]
@@ -1182,66 +1197,69 @@ async def api_upload_excel(request: Request, file: UploadFile = File(...), db: S
                     dept_count = len(scraped_data.get("parsed_departments", []))
                     details.append({"name": name, "status": "success", "dept_count": dept_count})
                 except Exception as ex:
-                    print(f"Error scraping {name} ({url}): {ex}")
                     failed_count += 1
                     details.append({"name": name, "status": "fail", "reason": str(ex)})
                     continue
-        else:
-            # Fallback: Direct table excel
-            direct_data = parse_direct_excel_to_univ_data(contents, file.filename or "경쟁률.xlsx")
-            if direct_data:
-                name = direct_data["name"]
-                year = direct_data["year"]
-                adm = direct_data["admission_type"]
-                cap = direct_data["capacity_type"]
-                scraped_data = direct_data["scraped_data"]
-                departments = direct_data["departments"]
-                
-                existing_univ = db.query(University).filter(
-                    University.name == name,
-                    University.year == year,
-                    University.admission_type == adm,
-                    University.capacity_type == cap
-                ).first()
-                
-                if existing_univ:
-                    existing_univ.scraped_data = json.dumps(scraped_data)
-                    db.commit()
+        
+        # Fallback: Direct table excel
+        direct_data = parse_direct_excel_to_univ_data(contents, file.filename or "경쟁률.xlsx")
+        if direct_data and direct_data.get("scraped_data"):
+            name = direct_data["name"]
+            year = direct_data["year"]
+            adm = direct_data["admission_type"]
+            cap = direct_data.get("capacity_type", "구분없음")
+            free = direct_data.get("is_free_apply", "")
+            multi = direct_data.get("is_multi_apply", "")
+            scraped_data = direct_data["scraped_data"]
+            departments = direct_data.get("departments", [])
+            
+            existing_univ = db.query(University).filter(
+                University.name == name,
+                University.year == year,
+                University.admission_type == adm,
+                University.capacity_type == cap
+            ).first()
+            
+            if existing_univ:
+                existing_univ.is_free_apply = free
+                existing_univ.is_multi_apply = multi
+                existing_univ.scraped_data = json.dumps(scraped_data)
+                db.commit()
+                if departments:
                     save_departments(db, existing_univ.id, departments)
-                else:
-                    new_univ = University(
-                        name=name,
-                        year=year,
-                        admission_type=adm,
-                        capacity_type=cap,
-                        url="",
-                        scraped_data=json.dumps(scraped_data)
-                    )
-                    db.add(new_univ)
-                    db.commit()
-                    db.refresh(new_univ)
+            else:
+                new_univ = University(
+                    name=name,
+                    year=year,
+                    admission_type=adm,
+                    capacity_type=cap,
+                    is_free_apply=free,
+                    is_multi_apply=multi,
+                    url="",
+                    scraped_data=json.dumps(scraped_data)
+                )
+                db.add(new_univ)
+                db.commit()
+                db.refresh(new_univ)
+                if departments:
                     save_departments(db, new_univ.id, departments)
-                    
-                success_count += 1
-                details.append({"name": name, "status": "success", "dept_count": len(departments)})
+            
+            success_count += 1
+            details.append({"name": f"{name} (직접 서식)", "status": "success", "dept_count": len(departments)})
                 
         try:
             export_to_json(db)
         except Exception as ex:
             print(f"[경고] JSON 자동 갱신 실패: {ex}")
             
-        msg = f"총 {success_count}개 대학 데이터가 성공적으로 DB에 저장 및 동기화되었습니다."
-        if failed_count > 0:
-            msg += f" (실패: {failed_count}개)"
-            
         return {
             "success": True,
-            "count": success_count,
+            "success_count": success_count,
             "failed_count": failed_count,
-            "details": details,
-            "message": msg
+            "details": details
         }
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 class ScrapedUnivItem(BaseModel):
@@ -1272,7 +1290,7 @@ async def api_save_scraped_batch(request: Request, body: SaveScrapedBatchRequest
             year = str(item.year)
             adm = item.admission_type or "수시1차"
             cap = item.capacity_type or "구분없음"
-            url = item.url or ""
+            url = normalize_ratio_url(item.url or "")
             free = item.is_free_apply or ""
             multi = item.is_multi_apply or ""
             scraped_data = item.scraped_data or {}
@@ -1349,7 +1367,10 @@ async def api_batch_scrape_server(request: Request, body: BatchScrapeServerReque
 
     for u in target_univs:
         try:
-            scraped = scrape_university_data(u.url)
+            clean_url = normalize_ratio_url(u.url)
+            if clean_url != u.url:
+                u.url = clean_url
+            scraped = scrape_university_data(clean_url)
             if scraped and scraped.get("tables_html"):
                 u.scraped_data = json.dumps(scraped)
                 db.commit()

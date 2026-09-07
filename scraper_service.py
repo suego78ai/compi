@@ -93,15 +93,47 @@ class ScrapedResultModel:
             "parsed_departments": [vars(dept) for dept in self.parsed_departments]
         }
 
+def normalize_ratio_url(url: str) -> str:
+    """
+    유웨이어플라이 파워경쟁률 등 긴 wrapper URL에서 실제 경쟁률 페이지 URL을 추출하여 정규화합니다.
+    예: https://ratio.uwayapply.com/power/?ratioURL=%2F%2Fratio.uwayapply.com%2F...
+    -> https://ratio.uwayapply.com/...
+    """
+    if not url:
+        return ""
+    url = url.strip()
+    if "ratioURL=" in url or "ratiourl=" in url.lower():
+        try:
+            parsed = urllib.parse.urlparse(url)
+            qs = urllib.parse.parse_qs(parsed.query)
+            for k, v in qs.items():
+                if k.lower() == "ratiourl" and v:
+                    inner = v[0].strip()
+                    if inner.startswith("//"):
+                        inner = "https:" + inner
+                    elif not inner.startswith("http"):
+                        inner = "https://" + inner
+                    return inner
+        except Exception:
+            pass
+        # 정규식 fallback
+        m = re.search(r'[?&]ratioURL=([^&]+)', url, re.IGNORECASE)
+        if m:
+            inner = urllib.parse.unquote(m.group(1)).strip()
+            if inner.startswith("//"):
+                inner = "https:" + inner
+            elif not inner.startswith("http"):
+                inner = "https://" + inner
+            return inner
+    return url
+
 # ==========================================
 # 2. 추상화 어댑터 (Base Adapter)
 # ==========================================
 
 class BaseScraperAdapter(ABC):
-    def fetch_soup(self, url: str) -> BeautifulSoup:
-        session = create_scraper_session()
+    def _fetch_html_text(self, session: requests.Session, url: str) -> str:
         html_text = ""
-        
         # 1. 직접 또는 설정된 프록시를 통해 요청
         try:
             resp = session.get(url, timeout=12)
@@ -146,8 +178,37 @@ class BaseScraperAdapter(ABC):
 
         if not html_text:
             raise RuntimeError(f"경쟁률 페이지 HTML을 불러오지 못했습니다 (차단 또는 타임아웃): {url}")
+        return html_text
 
-        return BeautifulSoup(html_text, 'html.parser')
+    def fetch_soup(self, url: str) -> BeautifulSoup:
+        url = normalize_ratio_url(url)
+        session = create_scraper_session()
+        html_text = self._fetch_html_text(session, url)
+        soup = BeautifulSoup(html_text, 'html.parser')
+
+        # frameset / frame / iframe 자동 추적 (테이블이 없고 frame이 존재하는 경우)
+        if not soup.find('table'):
+            frame = (
+                soup.find('frame', attrs={'name': re.compile(r'main|powerMain|body|content', re.I)})
+                or soup.find('frame', attrs={'src': re.compile(r'ratio|apply', re.I)})
+                or soup.find('frame')
+                or soup.find('iframe', attrs={'src': re.compile(r'ratio|apply', re.I)})
+                or soup.find('iframe')
+            )
+            if frame and frame.get('src'):
+                frame_src = frame['src'].strip()
+                if frame_src.startswith('//'):
+                    frame_src = 'https:' + frame_src
+                inner_url = urllib.parse.urljoin(url, frame_src)
+                try:
+                    inner_html = self._fetch_html_text(session, inner_url)
+                    inner_soup = BeautifulSoup(inner_html, 'html.parser')
+                    if inner_soup.find('table'):
+                        return inner_soup
+                except Exception:
+                    pass
+
+        return soup
 
     def clean_html_table(self, df: pd.DataFrame) -> str:
         clean_html = df.to_html(index=False, classes=[], border=0)
@@ -353,6 +414,7 @@ class DefaultScraperAdapter(BaseScraperAdapter):
 
 def scrape_university_data(url: str) -> Dict[str, Any]:
     """URL 도메인에 따라 적절한 어댑터를 선택하여 스크래핑을 수행합니다."""
+    url = normalize_ratio_url(url)
     url_lower = url.lower()
     
     if 'jinhakapply.com' in url_lower:
