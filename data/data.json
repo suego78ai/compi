@@ -5570,8 +5570,8 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "185",
       "admission_count": "185",
-      "applicant_num": "388",
-      "applicant_count": "388",
+      "applicant_num": "389",
+      "applicant_count": "389",
       "competition_rate": "2.10 : 1",
       "competition_ratio": "2.10 : 1"
     },
@@ -5895,10 +5895,10 @@
       "table_title": "정원내 일반전형 경쟁률 현황",
       "recruit_num": "25",
       "admission_count": "25",
-      "applicant_num": "213",
-      "applicant_count": "213",
-      "competition_rate": "8.52 : 1",
-      "competition_ratio": "8.52 : 1"
+      "applicant_num": "214",
+      "applicant_count": "214",
+      "competition_rate": "8.56 : 1",
+      "competition_ratio": "8.56 : 1"
     },
     {
       "id": 66,
@@ -30370,10 +30370,10 @@
       "table_title": "정원내 특성화고 전형 경쟁률 현황",
       "recruit_num": "1",
       "admission_count": "1",
-      "applicant_num": "12",
-      "applicant_count": "12",
-      "competition_rate": "12.00 : 1",
-      "competition_ratio": "12.00 : 1"
+      "applicant_num": "13",
+      "applicant_count": "13",
+      "competition_rate": "13.00 : 1",
+      "competition_ratio": "13.00 : 1"
     },
     {
       "id": 68,
@@ -205302,5 +205302,5 @@
     }
   ],
   "total": 8212,
-  "exported_at": "2026-09-08T08:39:28"
+  "exported_at": "2026-09-08T08:41:01"
 }
