@@ -274,7 +274,7 @@
         <button id="btnStopPeriodicScrape" class="btn btn-secondary" style="display:none;flex:1.4;min-width:140px;padding:0.75rem;justify-content:center;background:#dc2626;color:#fff;border:none;font-weight:700;font-size:0.92rem;box-shadow:0 3px 8px rgba(220,38,38,0.35);cursor:pointer;" onclick="stopPeriodicScraping('manual')">
           ⏹️ 스크래핑 멈춤
         </button>
-        <button id="btnOnceScrape" class="btn btn-secondary" style="flex:1.2;min-width:150px;padding:0.75rem;justify-content:center;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;" onclick="refreshLatestDataWithFeedback(this)">
+        <button id="btnOnceScrape" class="btn btn-secondary" style="flex:1.2;min-width:150px;padding:0.75rem;justify-content:center;border-color:var(--primary-color);color:var(--primary-color);font-weight:700;" onclick="triggerOnceInstantScrape(this)">
           ⚡ 1회 즉시 스크래핑
         </button>
       </div>
@@ -484,7 +484,7 @@
         <input type="text" id="searchInput" placeholder="학과명 / 대학명 검색..." oninput="handleSearch(this.value, true)">
         <button class="btn btn-secondary" onclick="clearSearch()" title="검색어 지우기">✕</button>
       </div>
-      <button class="btn btn-secondary header-nav-btn" id="hnav_refresh" onclick="refreshLatestDataWithFeedback(this)" title="최신 실시간 경쟁률 데이터 새로고침" style="color:var(--primary-color);font-weight:700;">🔄 새로고침</button>
+      <button class="btn btn-secondary header-nav-btn" id="hnav_refresh" onclick="refreshLatestDataWithFeedback(this)" title="최신 데이터로 화면 새로고침" style="color:var(--primary-color);font-weight:700;">🔄 화면 새로고침</button>
       <button class="btn btn-secondary header-nav-btn" id="hnav_query" onclick="showQueryBuilder(true)">🔎 상세 쿼리</button>
       <!-- <button class="btn btn-secondary header-nav-btn" id="hnav_report" onclick="showReportBuilder(false, true)">📊 비교 리포트</button> -->
       <button class="btn btn-secondary header-nav-btn" id="hnav_realtime" onclick="showRealtimeReportBuilder(true)">📊 입시결과</button>
@@ -514,7 +514,7 @@
       <div class="glass-card">
         <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
           <h2>📂 등록 대학 대시보드</h2>
-          <button onclick="refreshLatestDataWithFeedback(this)" class="btn btn-secondary" style="font-size:0.75rem;padding:0.25rem 0.55rem;font-weight:700;" title="최신 데이터 다시 불러오기">🔄 새로고침</button>
+          <button onclick="refreshLatestDataWithFeedback(this)" class="btn btn-secondary" style="font-size:0.75rem;padding:0.25rem 0.55rem;font-weight:700;" title="최신 데이터로 화면 새로고침">🔄 화면 새로고침</button>
         </div>
         <div class="tree-container" id="treeContainer">
           <p style="color:var(--text-secondary);text-align:center;padding:1.5rem 0;">데이터 로딩 중...</p>
@@ -524,7 +524,7 @@
         <div class="card-header"><h2>⚡ 빠른 탐색 메뉴</h2></div>
         <div style="display:flex;flex-direction:column;gap:0.6rem;">
           <button class="btn btn-secondary quick-nav-btn" id="qnav_home" style="width:100%;justify-content:flex-start;" onclick="showHome(true, null, null, 'insights')">🏠 메인 대시보드</button>
-          <button class="btn btn-secondary quick-nav-btn" id="qnav_refresh_side" style="width:100%;justify-content:flex-start;color:var(--primary-color);font-weight:700;" onclick="refreshLatestDataWithFeedback(this)">🔄 실시간 데이터 새로고침</button>
+          <button class="btn btn-secondary quick-nav-btn" id="qnav_refresh_side" style="width:100%;justify-content:flex-start;color:var(--primary-color);font-weight:700;" onclick="refreshLatestDataWithFeedback(this)">🔄 화면 새로고침</button>
           <button class="btn btn-secondary quick-nav-btn" id="qnav_inha" style="width:100%;justify-content:flex-start;color:#6b21a8;font-weight:700;background:#faf5ff;" onclick="switchHomeTab('inha')">⭐ 인하공전 현황판</button>
           <button class="btn btn-secondary quick-nav-btn" id="qnav_realtime" style="width:100%;justify-content:flex-start;" onclick="showRealtimeReportBuilder(true)">📊 입시결과 (전형별/전체)</button>
           <button class="btn btn-secondary admin-only-btn" style="display:none;width:100%;justify-content:flex-start;color:#7c3aed;font-weight:700;" onclick="openScraperEngineModal()">⚡ 스크래핑 엔진 실행 센터</button>
@@ -5649,8 +5649,8 @@ async function startEngineExcelScrape() {
   reader.readAsArrayBuffer(ENGINE_EXCEL_FILE);
 }
 
-async function reloadLatestData() {
-  showLoading(true);
+async function reloadLatestData(showSpinner = false) {
+  if (showSpinner) showLoading(true);
   try {
     const isServer = isServerEnvironment();
     let dataUrl = isServer ? `/api/data?t=${Date.now()}` : `https://compi.mojuk.kr/api/data?t=${Date.now()}`;
@@ -5727,7 +5727,7 @@ async function reloadLatestData() {
     console.error('최신 데이터 갱신 실패:', e);
     throw e;
   } finally {
-    showLoading(false);
+    if (showSpinner) showLoading(false);
   }
 }
 
@@ -5755,166 +5755,73 @@ function showToast(message, type = 'info', duration = 3500) {
   }, duration);
 }
 
+// ── 초고속 화면 새로고침 (서버에서 1분 주기로 상시 수집된 최신 경쟁률을 0.05초 만에 즉시 렌더링) ──
 async function refreshLatestDataWithFeedback(btn = null) {
   const refreshBtns = [
     btn,
     document.getElementById('hnav_refresh'),
-    document.getElementById('qnav_refresh_side'),
-    document.getElementById('btnOnceScrape')
+    document.getElementById('qnav_refresh_side')
   ].filter(Boolean);
 
   const origTexts = new Map();
   refreshBtns.forEach(b => {
     origTexts.set(b, b.innerHTML);
     b.disabled = true;
-    b.innerHTML = '<span class="spin-animation">🔄</span> 최신화 중...';
+    b.innerHTML = '<span class="spin-animation">🔄</span> 새로고침 중...';
   });
 
-  // 화면을 가리는 전체 로딩 오버레이(showLoading)를 띄우지 않고 가벼운 토스트로 즉각 안내
-  showToast('⚡ 최신 경쟁률을 실시간 수집하여 동기화 중입니다...', 'info', 3000);
-
-  if (typeof appendEngineLog === 'function') {
-    appendEngineLog('🚀 [실시간 새로고침] 최신 경쟁률 수집 및 DB 동기화를 시작합니다...', 'info');
-  }
-
   try {
-    // 0. 타겟: 2027학년도 수시1차 (URL 컬럼 데이터 기준)
-    let activeYear = '2027';
-    let activeAdm = '수시1차';
-
-    if (CURRENT_ACTIVE_DETAIL_HINT && CURRENT_ACTIVE_DETAIL_HINT.year) {
-      activeYear = CURRENT_ACTIVE_DETAIL_HINT.year;
-      activeAdm = CURRENT_ACTIVE_DETAIL_HINT.adm || '수시1차';
-    }
-
-    // ★ 1단계: 사용자 대기 시간 0초! 클릭 즉시 기존 DB 최신 데이터를 먼저 화면에 즉각 표시 (0.05초 소요)
-    await reloadLatestData();
+    // 화면 차단 오버레이 없이 0.05초 만에 DB 최신 데이터로 화면 즉각 재렌더링
+    await reloadLatestData(false);
     if (CURRENT_ACTIVE_DETAIL_ID) {
       showUnivDetail(CURRENT_ACTIVE_DETAIL_ID, false, CURRENT_ACTIVE_DETAIL_HINT?.name, CURRENT_ACTIVE_DETAIL_HINT?.year, CURRENT_ACTIVE_DETAIL_HINT?.adm);
     } else if (typeof CURRENT_HOME_TAB !== 'undefined' && CURRENT_HOME_TAB === 'inha') {
       showHome(false, null, null, 'inha');
     }
 
-    let scrapeSuccess = false;
-    let updatedCount = 0;
-
-    // ★ 2단계: 서버의 병렬 1회 즉시 스크래핑 API 호출 (/api/instant_scrape)
-    // -> 서버가 등록 대학들을 병렬로 1.5초 내에 수집하여 로컬 및 https://compi.mojuk.kr DB에 동기화
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000); // 12초 타임아웃 안전장치
-
-      const apiRes = await fetch(getApiEndpoint('/api/instant_scrape'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          year: activeYear,
-          admission_type: activeAdm,
-          force: true
-        }),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      if (apiRes.ok) {
-        const data = await apiRes.json();
-        if (data.success) {
-          scrapeSuccess = true;
-          updatedCount = data.success_count || 0;
-          if (typeof appendEngineLog === 'function') {
-            appendEngineLog(`✔ [서버 즉시 스크래핑 완료] ${data.message || updatedCount + '개 대학 최신 수집 완료'}`, 'success');
-          }
-        }
-      }
-    } catch (apiErr) {
-      console.warn('[서버 즉시 스크래핑 비동기 호출 안내]', apiErr);
-    }
-
-    // 3. 서버 API 미지원 환경일 때만 브라우저 클라이언트 스크래핑 Fallback 실행
-    if (!scrapeSuccess) {
-      let targetUnivs = ALL_UNIVS.filter(u => {
-        const hasUrl = u.url && String(u.url).trim().startsWith('http');
-        if (!hasUrl) return false;
-        const uYear = String(u.year || '').trim();
-        const uAdm = String(u.admission_type || u.adm_type || '').trim();
-        return uYear === activeYear && uAdm === activeAdm;
-      });
-
-      if (!targetUnivs.length) {
-        targetUnivs = ALL_UNIVS.filter(u => u.url && String(u.url).trim().startsWith('http') && String(u.year || '') === activeYear);
-      }
-
-      if (targetUnivs.length > 0) {
-        let clientSuccess = 0;
-        const updatedAll = [...ALL_UNIVS];
-        for (const u of targetUnivs) {
-          try {
-            const html = await fetchHtmlWithProxies(u.url);
-            const parsed = parseUniversityHtml(html, u.url);
-            if (parsed.parsed_departments && parsed.parsed_departments.length > 0) {
-              const targetAdm = u.admission_type || u.adm_type || '수시1차';
-              const targetCap = u.capacity_type || u.cap_type || '구분없음';
-              const updatedRecord = {
-                ...u,
-                admission_type: targetAdm,
-                adm_type: targetAdm,
-                capacity_type: targetCap,
-                cap_type: targetCap,
-                scraped_data: parsed,
-                departments: parsed.parsed_departments
-              };
-              await saveSingleUnivToDb(updatedRecord);
-              clientSuccess++;
-
-              const remaining = updatedAll.filter(item => !(item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === targetAdm && (item.capacity_type || item.cap_type) === targetCap)));
-              remaining.unshift(updatedRecord);
-              updatedAll.length = 0;
-              updatedAll.push(...remaining);
-            }
-          } catch (cErr) {
-            console.warn(`[클라이언트 즉시 스크래핑 실패] ${u.name}:`, cErr);
-          }
-        }
-        updatedCount = clientSuccess;
-        ALL_UNIVS = updatedAll;
-
-        try {
-          const syncedRemote = await syncToRemoteCompiDbDirectly(targetUnivs);
-          if (syncedRemote > 0 && typeof appendEngineLog === 'function') {
-            appendEngineLog(`🌐 [원격 DB 동기화] https://compi.mojuk.kr 서버 DB에 ${syncedRemote}개 대학 최신 경쟁률이 업데이트되었습니다.`, 'success');
-          }
-        } catch (rErr) {
-          console.warn('[원격 DB 동기화 실패]', rErr);
-        }
-      }
-    }
-
-    // ★ 4단계: 스크래핑 결과 최신 데이터로 화면 부드럽게 최종 갱신
-    await reloadLatestData();
-    if (CURRENT_ACTIVE_DETAIL_ID) {
-      showUnivDetail(CURRENT_ACTIVE_DETAIL_ID, false, CURRENT_ACTIVE_DETAIL_HINT?.name, CURRENT_ACTIVE_DETAIL_HINT?.year, CURRENT_ACTIVE_DETAIL_HINT?.adm);
-    } else if (typeof CURRENT_HOME_TAB !== 'undefined' && CURRENT_HOME_TAB === 'inha') {
-      showHome(false, null, null, 'inha');
-    }
-
-    const successMsg = `✨ 2027학년도 최신 경쟁률이 즉시 수집되어 DB에 성공적으로 반영되었습니다!`;
-    showToast(successMsg, 'success', 3500);
-    if (typeof appendEngineLog === 'function') {
-      appendEngineLog(`🎉 [완료] 최신 데이터가 로컬 및 원격 https://compi.mojuk.kr 서버 DB에 성공적으로 갱신되었습니다.`, 'success');
-    }
+    showToast('✨ 최신 경쟁률 데이터로 화면을 새로고침했습니다.', 'success', 2000);
   } catch (err) {
-    console.error('[실시간 새로고침 오류]', err);
-    showToast('⚠️ 실시간 갱신 중 일부 항목 지연: 최신 저장된 데이터로 화면을 갱신했습니다.', 'warning', 3500);
+    console.error('[화면 새로고침 오류]', err);
+    showToast('⚠️ 화면 새로고침 중 오류: ' + err.message, 'error', 3000);
   } finally {
-    refreshBtns.forEach(b => {
-      b.disabled = false;
-      b.innerHTML = origTexts.get(b) || '🔄 새로고침';
+    setTimeout(() => {
+      refreshBtns.forEach(b => {
+        b.disabled = false;
+        b.innerHTML = origTexts.get(b) || '🔄 화면 새로고침';
+      });
+    }, 200);
+  }
+}
+
+// ── 관리자 모달 전용 1회 수동 즉시 스크래핑 ──
+async function triggerOnceInstantScrape(btn = null) {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spin-animation">🔄</span> 수집 중...';
+  }
+  showToast('⚡ 서버 즉시 스크래핑을 실행 중입니다...', 'info', 4000);
+  try {
+    const res = await fetch(getApiEndpoint('/api/instant_scrape'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ year: '2027', admission_type: '수시1차', force: true })
     });
+    const data = await res.json();
+    await reloadLatestData(false);
+    showToast(`✨ ${data.message || '1회 즉시 스크래핑 완료'}`, 'success', 3000);
+  } catch (e) {
+    showToast('❌ 스크래핑 실패: ' + e.message, 'error', 3000);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '⚡ 1회 즉시 스크래핑';
+    }
   }
 }
 
 window.reloadLatestData = reloadLatestData;
 window.refreshLatestDataWithFeedback = refreshLatestDataWithFeedback;
+window.triggerOnceInstantScrape = triggerOnceInstantScrape;
 window.showToast = showToast;
 
 // ── Excel & JSON Export ─────────────────────────────────────

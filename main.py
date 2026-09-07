@@ -1472,27 +1472,24 @@ async def sync_data_to_remote_compi(synced_univ_ids: list, db_session=None) -> i
     }
 
     chunk_size = 5
-    synced_count = 0
-    for i in range(0, len(items_to_sync), chunk_size):
-        chunk = items_to_sync[i:i + chunk_size]
+    chunks = [items_to_sync[i:i + chunk_size] for i in range(0, len(items_to_sync), chunk_size)]
+
+    def _post_chunk(chunk):
         payload = json.dumps({"universities": chunk}).encode("utf-8")
         req = urllib.request.Request(remote_url, data=payload, headers=headers, method="POST")
-
-        def _post():
-            try:
-                with urllib.request.urlopen(req, timeout=12) as resp:
-                    return resp.status
-            except Exception:
-                return 0
-
         try:
-            status = await asyncio.to_thread(_post)
-            if status == 200:
-                synced_count += len(chunk)
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                if resp.status == 200:
+                    return len(chunk)
         except Exception as err:
             print(f"[원격 DB 동기화 전송 오류] {err}")
+        return 0
 
-    print(f"[원격 DB 동기화] {synced_count}/{len(items_to_sync)}개 대학 최신 경쟁률이 https://compi.mojuk.kr DB에 성공적으로 업데이트되었습니다.")
+    tasks = [asyncio.to_thread(_post_chunk, ch) for ch in chunks]
+    results = await asyncio.gather(*tasks)
+    synced_count = sum(results)
+
+    print(f"[원격 DB 동기화 완료] {synced_count}/{len(items_to_sync)}개 대학 최신 경쟁률이 https://compi.mojuk.kr DB에 반영되었습니다.")
     return synced_count
 
 class ServerPeriodicScraperManager:
@@ -1703,41 +1700,42 @@ class ServerPeriodicScraperManager:
         cycle_failed = 0
         successful_univ_ids = []
 
-        for idx, item in enumerate(target_univ_records, 1):
-            if not self.is_running:
-                self.add_log(f"⏹️ 스크래핑이 사용자에 의해 중단되었습니다.", "warn")
-                break
-
-            self.current_univ = f"[{idx}/{len(target_univ_records)}] {item['name']}"
+        async def _scrape_worker(item):
             raw_url = item["url"]
             clean_url = normalize_ratio_url(raw_url)
-
             try:
-                # 동기 network scraping 함수를 스레드풀에서 실행하여 서버 블로킹 방지
                 scraped = await asyncio.to_thread(scrape_university_data, clean_url)
+                return (item, clean_url, scraped, None)
+            except Exception as e:
+                return (item, clean_url, None, str(e))
+
+        self.current_univ = f"총 {len(target_univ_records)}개 대학 병렬 수집 중..."
+        tasks = [_scrape_worker(item) for item in target_univ_records]
+        scrape_results = await asyncio.gather(*tasks)
+
+        with SessionLocal() as db:
+            for item, clean_url, scraped, err in scrape_results:
+                if not self.is_running:
+                    break
                 if scraped and scraped.get("tables_html"):
                     parsed_depts = scraped.get("parsed_departments", [])
-                    with SessionLocal() as db:
-                        u = db.query(University).filter(University.id == item["id"]).first()
-                        if u:
-                            if clean_url != u.url:
-                                u.url = clean_url
-                            u.scraped_data = json.dumps(scraped)
-                            db.commit()
-                            save_departments(db, u.id, parsed_depts)
+                    u = db.query(University).filter(University.id == item["id"]).first()
+                    if u:
+                        if clean_url != u.url:
+                            u.url = clean_url
+                        u.scraped_data = json.dumps(scraped)
+                        db.commit()
+                        save_departments(db, u.id, parsed_depts)
 
                     cycle_success += 1
                     self.success_total += 1
                     successful_univ_ids.append(item["id"])
-                    self.add_log(f"✔ [{idx}/{len(target_univ_records)}] {item['name']} 성공 ({len(parsed_depts)}개 학과 / DB 저장 완료)", "success")
+                    self.add_log(f"✔ {item['name']} 성공 ({len(parsed_depts)}개 학과 / DB 저장)", "success")
                 else:
                     cycle_failed += 1
                     self.failed_total += 1
-                    self.add_log(f"✖ [{idx}/{len(target_univ_records)}] {item['name']} 실패: 유효한 경쟁률 표를 찾지 못함", "warn")
-            except Exception as e:
-                cycle_failed += 1
-                self.failed_total += 1
-                self.add_log(f"✖ [{idx}/{len(target_univ_records)}] {item['name']} 에러: {e}", "error")
+                    msg = f"에러: {err}" if err else "유효한 경쟁률 표 없음"
+                    self.add_log(f"✖ {item['name']} 실패: {msg}", "warn")
 
         self.current_univ = ""
         self.is_executing_cycle = False
@@ -1915,24 +1913,29 @@ async def api_instant_scrape(request: Request, body: Optional[InstantScrapeReque
     fail_cnt = 0
     results = []
 
-    for u in target_univs:
+    async def _scrape_single_univ(u):
+        clean_url = normalize_ratio_url(u.url)
         try:
-            clean_url = normalize_ratio_url(u.url)
+            scraped = await asyncio.to_thread(scrape_university_data, clean_url)
+            return (u, clean_url, scraped, None)
+        except Exception as e:
+            return (u, clean_url, None, str(e))
+
+    tasks = [_scrape_single_univ(u) for u in target_univs]
+    scraped_results = await asyncio.gather(*tasks)
+
+    for u, clean_url, scraped, err in scraped_results:
+        if scraped and (scraped.get("tables_html") or scraped.get("parsed_departments")):
             if clean_url != u.url:
                 u.url = clean_url
-            scraped = await asyncio.to_thread(scrape_university_data, clean_url)
-            if scraped and (scraped.get("tables_html") or scraped.get("parsed_departments")):
-                u.scraped_data = json.dumps(scraped)
-                db.commit()
-                save_departments(db, u.id, scraped.get("parsed_departments", []))
-                success_cnt += 1
-                results.append({"id": u.id, "name": u.name, "year": u.year, "status": "success", "dept_count": len(scraped.get("parsed_departments", []))})
-            else:
-                fail_cnt += 1
-                results.append({"id": u.id, "name": u.name, "status": "no_departments"})
-        except Exception as e:
+            u.scraped_data = json.dumps(scraped)
+            db.commit()
+            save_departments(db, u.id, scraped.get("parsed_departments", []))
+            success_cnt += 1
+            results.append({"id": u.id, "name": u.name, "year": u.year, "status": "success", "dept_count": len(scraped.get("parsed_departments", []))})
+        else:
             fail_cnt += 1
-            results.append({"id": u.id, "name": u.name, "status": "error", "error": str(e)})
+            results.append({"id": u.id, "name": u.name, "status": "error" if err else "no_departments", "error": err})
 
     try:
         export_to_json(db)

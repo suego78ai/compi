@@ -174,7 +174,7 @@ def push_to_github_pages(commit_msg="Update latest ipsi data (data.json)"):
 
     # 1. compi.mojuk.kr 메인 저장소(suego78ai/compi) Git 커밋 및 푸시
     try:
-        subprocess.run(["git", "add", "data/data.json", "ipsi.db", "index.html", "templates/index.html"], cwd=ROOT_DIR, check=True)
+        subprocess.run(["git", "add", "data/data.json", "ipsi.db", "index.html", "templates/index.html", "main.py", "export_data.py"], cwd=ROOT_DIR, check=True)
         status = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT_DIR, capture_output=True, text=True)
         if status.stdout.strip():
             subprocess.run(["git", "commit", "-m", commit_msg], cwd=ROOT_DIR, check=True)
