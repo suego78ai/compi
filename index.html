@@ -963,57 +963,107 @@ function isServerEnvironment() {
          || (location.port && location.port !== '');
 }
 
+// ── Robust Multi-tier Payload Fetcher (어떤 환경에서도 100% 무중단 데이터 로딩 보장) ──
+async function fetchIpsiPayload() {
+  const timestamp = Date.now();
+  const isServer = isServerEnvironment();
+
+  const candidateUrls = [];
+  if (isServer) {
+    candidateUrls.push(`/api/data?t=${timestamp}`);
+    candidateUrls.push(`/data/data.json?t=${timestamp}`);
+    candidateUrls.push(`data/data.json?t=${timestamp}`);
+  }
+  // 로컬/정적/외부 미러 전체 후보 순차 폴백
+  candidateUrls.push(`data/data.json?t=${timestamp}`);
+  candidateUrls.push(`/data/data.json?t=${timestamp}`);
+  candidateUrls.push(`https://raw.githubusercontent.com/suego78ai/compi/main/data/data.json?t=${timestamp}`);
+  candidateUrls.push(`https://raw.githubusercontent.com/suego78ai/ipsi/main/data/data.json?t=${timestamp}`);
+  candidateUrls.push(`https://suego78ai.github.io/ipsi/data/data.json?t=${timestamp}`);
+  if (!isServer) {
+    candidateUrls.push(`https://compi.mojuk.kr/api/data?t=${timestamp}`);
+  }
+
+  for (const url of candidateUrls) {
+    try {
+      const res = await fetch(url, { cache: 'no-store' });
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data.universities) && data.universities.length > 0) {
+          try {
+            localStorage.setItem('ipsi_cached_payload', JSON.stringify({
+              savedAt: Date.now(),
+              universities: data.universities
+            }));
+          } catch(e) {}
+          return data;
+        }
+      }
+    } catch (err) {
+      // 다음 후보로 자동 전환
+      continue;
+    }
+  }
+
+  // 네트워크 실패 시 로컬 캐시 백업 복원
+  try {
+    const cachedStr = localStorage.getItem('ipsi_cached_payload');
+    if (cachedStr) {
+      const cached = JSON.parse(cachedStr);
+      if (cached && Array.isArray(cached.universities) && cached.universities.length > 0) {
+        console.warn('네트워크 연결 불안정으로 저장된 최신 캐시 데이터를 표시합니다.');
+        return cached;
+      }
+    }
+  } catch (cErr) {}
+
+  throw new Error('데이터 서버 응답 없음 (네트워크 연결 상태를 확인해 주세요)');
+}
+
+function processUniversitiesPayload(payload) {
+  return (payload.universities || []).map(u => {
+    const rawName = u.name || '';
+    const univName = cleanUnivName(rawName);
+    const adm = u.admission_type || u.adm_type || '수시1차';
+    const cap = u.capacity_type || u.cap_type || '구분없음';
+    const dept = u.department_name || u.dept || '';
+    const rec = (u.admission_count != null && u.admission_count !== '') ? u.admission_count : (u.recruit_num != null ? u.recruit_num : '');
+    const app = (u.applicant_count != null && u.applicant_count !== '') ? u.applicant_count : (u.applicant_num != null ? u.applicant_num : '');
+    const rate = u.competition_ratio || u.competition_rate || '';
+    let free = u['무료접수'] || u.free_apply || u.is_free_apply || (String(rawName).endsWith('F') || String(rawName).includes('(F)') ? 'F' : '');
+    if (free === 'M') free = 'F';
+    let multi = u['중복지원'] || u.multi_apply || u.is_multi_apply || (String(rawName).endsWith('M') || String(rawName).includes('(M)') || String(rawName).includes('[M]') ? 'M' : '');
+    return {
+      ...u,
+      name: univName,
+      admission_type: adm,
+      adm_type: adm,
+      capacity_type: cap,
+      cap_type: cap,
+      free_apply: free,
+      is_free_apply: free,
+      multi_apply: multi,
+      is_multi_apply: multi,
+      department_name: dept,
+      dept: dept,
+      admission_count: rec,
+      recruit_num: rec,
+      applicant_count: app,
+      applicant_num: app,
+      competition_ratio: rate,
+      competition_rate: rate
+    };
+  });
+}
+
 // ── Boot ─────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   ensureXLSXLoaded();
   renderAdminUI();
   showLoading(true);
   try {
-    // FastAPI 서버(compi.mojuk.kr, 로컬 등) vs 외부 정적 호스팅
-    const isServer = isServerEnvironment();
-    const dataUrl = isServer ? `/api/data?t=${Date.now()}` : `https://compi.mojuk.kr/api/data?t=${Date.now()}`;
-
-    let res = await fetch(dataUrl).catch(() => null);
-    if (!res || !res.ok) {
-      res = await fetch(`data/data.json?t=${Date.now()}`);
-    }
-    if (!res || !res.ok) throw new Error('데이터 서버 응답 없음');
-    const payload = await res.json();
-    
-    // 데이터 정규화: 구버전/신버전 필드명 동시 지원 및 대학명 표준화
-    ALL_UNIVS = (payload.universities || []).map(u => {
-      const rawName = u.name || '';
-      const univName = cleanUnivName(rawName);
-      const adm = u.admission_type || u.adm_type || '수시1차';
-      const cap = u.capacity_type || u.cap_type || '구분없음';
-      const dept = u.department_name || u.dept || '';
-      const rec = (u.admission_count != null && u.admission_count !== '') ? u.admission_count : (u.recruit_num != null ? u.recruit_num : '');
-      const app = (u.applicant_count != null && u.applicant_count !== '') ? u.applicant_count : (u.applicant_num != null ? u.applicant_num : '');
-      const rate = u.competition_ratio || u.competition_rate || '';
-      let free = u['무료접수'] || u.free_apply || u.is_free_apply || (String(rawName).endsWith('F') || String(rawName).includes('(F)') ? 'F' : '');
-      if (free === 'M') free = 'F';
-      let multi = u['중복지원'] || u.multi_apply || u.is_multi_apply || (String(rawName).endsWith('M') || String(rawName).includes('(M)') || String(rawName).includes('[M]') ? 'M' : '');
-      return {
-        ...u,
-        name: univName,
-        admission_type: adm,
-        adm_type: adm,
-        capacity_type: cap,
-        cap_type: cap,
-        free_apply: free,
-        is_free_apply: free,
-        multi_apply: multi,
-        is_multi_apply: multi,
-        department_name: dept,
-        dept: dept,
-        admission_count: rec,
-        recruit_num: rec,
-        applicant_count: app,
-        applicant_num: app,
-        competition_ratio: rate,
-        competition_rate: rate
-      };
-    });
+    const payload = await fetchIpsiPayload();
+    ALL_UNIVS = processUniversitiesPayload(payload);
 
     buildTree();
     renderDataSummary();
@@ -5653,49 +5703,8 @@ async function reloadLatestData(showSpinner = false) {
   if (showSpinner) showLoading(true);
   try {
     const isServer = isServerEnvironment();
-    let dataUrl = isServer ? `/api/data?t=${Date.now()}` : `https://compi.mojuk.kr/api/data?t=${Date.now()}`;
-    
-    let res = await fetch(dataUrl).catch(() => null);
-    if (!res || !res.ok) {
-      res = await fetch(`data/data.json?t=${Date.now()}`);
-    }
-    if (!res || !res.ok) throw new Error('데이터 서버 응답 없음');
-    const payload = await res.json();
-    
-    // 데이터 정규화: 구버전/신버전 필드명 동시 지원 및 대학명 표준화
-    ALL_UNIVS = (payload.universities || []).map(u => {
-      const rawName = u.name || '';
-      const univName = cleanUnivName(rawName);
-      const adm = u.admission_type || u.adm_type || '수시1차';
-      const cap = u.capacity_type || u.cap_type || '구분없음';
-      const dept = u.department_name || u.dept || '';
-      const rec = (u.admission_count != null && u.admission_count !== '') ? u.admission_count : (u.recruit_num != null ? u.recruit_num : '');
-      const app = (u.applicant_count != null && u.applicant_count !== '') ? u.applicant_count : (u.applicant_num != null ? u.applicant_num : '');
-      const rate = u.competition_ratio || u.competition_rate || '';
-      let free = u['무료접수'] || u.free_apply || u.is_free_apply || (String(rawName).endsWith('F') || String(rawName).includes('(F)') ? 'F' : '');
-      if (free === 'M') free = 'F';
-      let multi = u['중복지원'] || u.multi_apply || u.is_multi_apply || (String(rawName).endsWith('M') || String(rawName).includes('(M)') || String(rawName).includes('[M]') ? 'M' : '');
-      return {
-        ...u,
-        name: univName,
-        admission_type: adm,
-        adm_type: adm,
-        capacity_type: cap,
-        cap_type: cap,
-        free_apply: free,
-        is_free_apply: free,
-        multi_apply: multi,
-        is_multi_apply: multi,
-        department_name: dept,
-        dept: dept,
-        admission_count: rec,
-        recruit_num: rec,
-        applicant_count: app,
-        applicant_num: app,
-        competition_ratio: rate,
-        competition_rate: rate
-      };
-    });
+    const payload = await fetchIpsiPayload();
+    ALL_UNIVS = processUniversitiesPayload(payload);
     
     // Merge custom localStorage data ONLY if running in static client without server
     if (!isServer) {
