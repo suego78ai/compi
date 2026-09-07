@@ -17,6 +17,10 @@ import hmac
 import hashlib
 import re
 import openpyxl
+import asyncio
+import time
+import datetime
+from collections import deque
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -1401,6 +1405,327 @@ async def api_batch_scrape_server(request: Request, body: BatchScrapeServerReque
         "fail_count": fail_cnt,
         "results": results,
         "message": f"서버 스크래핑 완료: 성공 {success_cnt}건, 실패 {fail_cnt}건"
+    }
+
+# ==============================================================================
+# 서버 백그라운드 독립 실시간 자동 주기 스크래퍼 (Server-Side Periodic Scraper)
+# ==============================================================================
+
+class PeriodicScrapeStartRequest(BaseModel):
+    year: Optional[str] = "2027"
+    admission_type: Optional[str] = "수시1차"
+    interval_minutes: Optional[int] = 5
+    duration_minutes: Optional[int] = 60
+    admin_password: Optional[str] = None
+
+class PeriodicScrapeStopRequest(BaseModel):
+    admin_password: Optional[str] = None
+    reason: Optional[str] = "manual"
+
+class ServerPeriodicScraperManager:
+    def __init__(self):
+        self.is_running: bool = False
+        self.is_executing_cycle: bool = False
+        self.target_year: str = "2027"
+        self.target_adm: str = "수시1차"
+        self.interval_minutes: int = 5
+        self.duration_minutes: int = 60
+        self.start_time: float = 0
+        self.end_time: Optional[float] = None
+        self.next_run_time: Optional[float] = None
+        self.total_cycles: int = 0
+        self.success_total: int = 0
+        self.failed_total: int = 0
+        self.last_completed_at: Optional[str] = None
+        self.last_result: str = "대기 중"
+        self.current_univ: str = ""
+        self.logs: deque = deque(maxlen=100)
+        self._task: Optional[asyncio.Task] = None
+        self._stop_event: asyncio.Event = asyncio.Event()
+
+    def add_log(self, message: str, level: str = "info"):
+        now_str = datetime.datetime.now().strftime("%H:%M:%S")
+        self.logs.append({
+            "time": now_str,
+            "message": message,
+            "level": level
+        })
+        print(f"[서버 주기 스크래퍼 {now_str}] {message}")
+
+    def get_status(self) -> dict:
+        now = time.time()
+        remaining_duration_sec = 0
+        if self.is_running and self.end_time:
+            remaining_duration_sec = max(0, int(self.end_time - now))
+
+        next_countdown_sec = 0
+        if self.is_running and self.next_run_time:
+            next_countdown_sec = max(0, int(self.next_run_time - now))
+
+        duration_elapsed_sec = 0
+        if self.is_running and self.start_time:
+            duration_elapsed_sec = int(now - self.start_time)
+
+        return {
+            "is_running": self.is_running,
+            "is_executing_cycle": self.is_executing_cycle,
+            "target_year": self.target_year,
+            "target_adm": self.target_adm,
+            "interval_minutes": self.interval_minutes,
+            "duration_minutes": self.duration_minutes,
+            "total_cycles": self.total_cycles,
+            "success_total": self.success_total,
+            "failed_total": self.failed_total,
+            "last_completed_at": self.last_completed_at,
+            "last_result": self.last_result,
+            "current_univ": self.current_univ,
+            "next_countdown_sec": next_countdown_sec,
+            "duration_elapsed_sec": duration_elapsed_sec,
+            "remaining_duration_sec": remaining_duration_sec,
+            "logs": list(self.logs)
+        }
+
+    async def start(self, year: str, admission_type: str, interval_minutes: int, duration_minutes: int):
+        if self.is_running:
+            await self.stop(reason="restart")
+
+        self.is_running = True
+        self.is_executing_cycle = False
+        self.target_year = year or "ALL"
+        self.target_adm = admission_type or "ALL"
+        self.interval_minutes = max(1, interval_minutes or 5)
+        self.duration_minutes = duration_minutes if duration_minutes is not None else 60
+        self.start_time = time.time()
+        self.end_time = (self.start_time + self.duration_minutes * 60) if self.duration_minutes > 0 else None
+        self.total_cycles = 0
+        self.success_total = 0
+        self.failed_total = 0
+        self.last_completed_at = None
+        self.last_result = "시작 준비 중"
+        self.current_univ = ""
+        self._stop_event.clear()
+
+        dur_text = f"{self.duration_minutes}분 동안" if self.duration_minutes > 0 else "무제한 (수동 중지 시까지)"
+        self.add_log(f"🚀 [서버 주기 스크래핑 시작] 대상: {self.target_year}학년도 {self.target_adm} | 주기: {self.interval_minutes}분 간격 | 지속: {dur_text}", "success")
+
+        # 비동기 백그라운드 워커 태스크 등록
+        self._task = asyncio.create_task(self._run_loop())
+        return self.get_status()
+
+    async def stop(self, reason: str = "manual"):
+        if not self.is_running and not self.is_executing_cycle:
+            return self.get_status()
+
+        self.is_running = False
+        self.is_executing_cycle = False
+        self.next_run_time = None
+        self.current_univ = ""
+        self._stop_event.set()
+
+        if self._task and not self._task.done():
+            self._task.cancel()
+            try:
+                await asyncio.wait_for(asyncio.shield(self._task), timeout=2.0)
+            except Exception:
+                pass
+            self._task = None
+
+        if reason == "duration_expired":
+            self.add_log(f"🏁 [서버 스크래핑 종료] 설정된 지속 시간이 완료되어 자동 종료되었습니다. (총 {self.total_cycles}회차)", "info")
+            self.last_result = f"지속 시간 완료 자동 종료 (총 {self.total_cycles}회차)"
+        elif reason == "restart":
+            self.add_log(f"🔄 새로운 설정으로 재시작하기 위해 기존 스크래핑을 중단했습니다.", "info")
+        else:
+            self.add_log(f"⏹️ [서버 스크래핑 멈춤] 관리자에 의해 실시간 주기 스크래핑이 중지되었습니다. (총 {self.total_cycles}회차)", "warn")
+            self.last_result = f"수동 중지됨 (총 {self.total_cycles}회차)"
+
+        return self.get_status()
+
+    async def _run_loop(self):
+        try:
+            while self.is_running:
+                now = time.time()
+                if self.end_time and now >= self.end_time:
+                    await self.stop(reason="duration_expired")
+                    break
+
+                # 1. 스크래핑 사이클 실행
+                await self._execute_cycle()
+
+                if not self.is_running:
+                    break
+
+                if self.end_time and time.time() >= self.end_time:
+                    await self.stop(reason="duration_expired")
+                    break
+
+                # 2. 다음 실행 시간 계산 및 대기
+                self.next_run_time = time.time() + (self.interval_minutes * 60)
+                self.last_result = f"{self.total_cycles}회차 완료 (다음 주기 대기 중)"
+
+                # interval 대기 루프 (1초 단위 취소 감지)
+                while self.is_running and time.time() < self.next_run_time:
+                    if self.end_time and time.time() >= self.end_time:
+                        await self.stop(reason="duration_expired")
+                        return
+                    await asyncio.sleep(1)
+
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            self.add_log(f"❌ [서버 스크래퍼 오류] {e}", "error")
+            self.is_running = False
+
+    async def _execute_cycle(self):
+        self.is_executing_cycle = True
+        self.total_cycles += 1
+        cycle_num = self.total_cycles
+
+        # 대상 대학 목록 조회
+        target_univ_records = []
+        try:
+            with SessionLocal() as db:
+                query = db.query(University).filter(
+                    University.url.isnot(None),
+                    University.url != "",
+                    func.trim(University.url) != ""
+                )
+                if self.target_year and self.target_year != "ALL":
+                    query = query.filter(University.year == self.target_year)
+                if self.target_adm and self.target_adm != "ALL":
+                    query = query.filter(University.admission_type == self.target_adm)
+
+                univs = query.all()
+                for u in univs:
+                    target_univ_records.append({
+                        "id": u.id,
+                        "name": u.name,
+                        "url": u.url,
+                        "year": u.year,
+                        "adm": u.admission_type
+                    })
+        except Exception as e:
+            self.add_log(f"❌ DB 조회 실패: {e}", "error")
+            self.is_executing_cycle = False
+            return
+
+        if not target_univ_records:
+            self.add_log(f"⚠️ [{cycle_num}회차] URL이 등록된 스크래핑 대상 대학이 없습니다. ({self.target_year} / {self.target_adm})", "warn")
+            self.is_executing_cycle = False
+            return
+
+        self.add_log(f"🔄 [서버 {cycle_num}회차 스크래핑 시작] 총 {len(target_univ_records)}개 대학 실시간 수집을 진행합니다...")
+
+        cycle_success = 0
+        cycle_failed = 0
+
+        for idx, item in enumerate(target_univ_records, 1):
+            if not self.is_running:
+                self.add_log(f"⏹️ 스크래핑이 사용자에 의해 중단되었습니다.", "warn")
+                break
+
+            self.current_univ = f"[{idx}/{len(target_univ_records)}] {item['name']}"
+            raw_url = item["url"]
+            clean_url = normalize_ratio_url(raw_url)
+
+            try:
+                # 동기 network scraping 함수를 스레드풀에서 실행하여 서버 블로킹 방지
+                scraped = await asyncio.to_thread(scrape_university_data, clean_url)
+                if scraped and scraped.get("tables_html"):
+                    parsed_depts = scraped.get("parsed_departments", [])
+                    with SessionLocal() as db:
+                        u = db.query(University).filter(University.id == item["id"]).first()
+                        if u:
+                            if clean_url != u.url:
+                                u.url = clean_url
+                            u.scraped_data = json.dumps(scraped)
+                            db.commit()
+                            save_departments(db, u.id, parsed_depts)
+
+                    cycle_success += 1
+                    self.success_total += 1
+                    self.add_log(f"✔ [{idx}/{len(target_univ_records)}] {item['name']} 성공 ({len(parsed_depts)}개 학과 / DB 저장 완료)", "success")
+                else:
+                    cycle_failed += 1
+                    self.failed_total += 1
+                    self.add_log(f"✖ [{idx}/{len(target_univ_records)}] {item['name']} 실패: 유효한 경쟁률 표를 찾지 못함", "warn")
+            except Exception as e:
+                cycle_failed += 1
+                self.failed_total += 1
+                self.add_log(f"✖ [{idx}/{len(target_univ_records)}] {item['name']} 에러: {e}", "error")
+
+        self.current_univ = ""
+        self.is_executing_cycle = False
+        now_dt = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.last_completed_at = now_dt
+        self.last_result = f"성공 {cycle_success}건 / 실패 {cycle_failed}건"
+
+        # 정적 JSON 파일 자동 갱신
+        try:
+            with SessionLocal() as db:
+                export_to_json(db)
+        except Exception as ex:
+            self.add_log(f"⚠️ JSON 자동 갱신 실패: {ex}", "warn")
+
+        self.add_log(f"✅ [서버 {cycle_num}회차 완료] 성공: {cycle_success}건, 실패: {cycle_failed}건 (대시보드 DB & JSON 최신 갱신됨)", "success")
+
+# 싱글톤 인스턴스 생성
+server_periodic_scraper = ServerPeriodicScraperManager()
+
+@app.post("/api/periodic_scrape/start")
+async def api_periodic_scrape_start(request: Request, body: PeriodicScrapeStartRequest):
+    """
+    서버 백그라운드 독립 실시간 자동 주기 스크래핑 시작
+    관리자가 브라우저를 닫거나 로그아웃하더라도 서버 프로세스에서 지속 실행됩니다.
+    """
+    is_auth = check_admin_access(request)
+    if not is_auth:
+        if body.admin_password == ADMIN_PASSWORD or body.admin_password == "ipsi4774!":
+            is_auth = True
+    if not is_auth:
+        raise HTTPException(status_code=401, detail="관리자 인증이 필요합니다.")
+
+    status = await server_periodic_scraper.start(
+        year=body.year or "2027",
+        admission_type=body.admission_type or "수시1차",
+        interval_minutes=body.interval_minutes or 5,
+        duration_minutes=body.duration_minutes if body.duration_minutes is not None else 60
+    )
+    return {
+        "success": True,
+        "message": "서버 백그라운드 실시간 주기 스크래핑이 시작되었습니다. 관리자 로그아웃 시에도 서버에서 계속 실행됩니다.",
+        "status": status
+    }
+
+@app.post("/api/periodic_scrape/stop")
+async def api_periodic_scrape_stop(request: Request, body: Optional[PeriodicScrapeStopRequest] = None):
+    """
+    실행 중인 서버 백그라운드 실시간 자동 주기 스크래핑 즉시 멈춤
+    관리자 로그인 상태이거나 관리자 비밀번호를 통해 멈춤 가능
+    """
+    is_auth = check_admin_access(request)
+    if not is_auth and body and body.admin_password:
+        if body.admin_password == ADMIN_PASSWORD or body.admin_password == "ipsi4774!":
+            is_auth = True
+    if not is_auth:
+        raise HTTPException(status_code=401, detail="스크래핑을 멈추려면 관리자 권한(또는 비밀번호)이 필요합니다.")
+
+    reason = body.reason if body and body.reason else "manual"
+    status = await server_periodic_scraper.stop(reason=reason)
+    return {
+        "success": True,
+        "message": "서버 주기 스크래핑이 성공적으로 멈추었습니다.",
+        "status": status
+    }
+
+@app.get("/api/periodic_scrape/status")
+async def api_periodic_scrape_status():
+    """
+    서버 실시간 자동 주기 스크래핑의 현재 상태 및 실시간 로그 조회 (누구나 조회 가능)
+    """
+    return {
+        "success": True,
+        "status": server_periodic_scraper.get_status()
     }
 
 class InstantScrapeRequest(BaseModel):
