@@ -4464,6 +4464,41 @@ function parseUniversityHtml(htmlText, domainHint = '') {
   return result;
 }
 
+async function saveSingleUnivToDb(item) {
+  if (!item) return false;
+  try {
+    const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
+    const cleanItem = {
+      name: cleanUnivName(item.name),
+      year: String(item.year || '2027'),
+      admission_type: item.admission_type || item.adm_type || '수시1차',
+      capacity_type: item.capacity_type || item.cap_type || '구분없음',
+      url: item.url || '',
+      is_free_apply: item.is_free_apply || '',
+      is_multi_apply: item.is_multi_apply || '',
+      scraped_data: {
+        title: item.scraped_data ? (item.scraped_data.title || '') : '',
+        parsed_departments: item.departments || (item.scraped_data ? item.scraped_data.parsed_departments || [] : [])
+      },
+      departments: item.departments || (item.scraped_data ? item.scraped_data.parsed_departments || [] : [])
+    };
+
+    const res = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-token': token
+      },
+      body: JSON.stringify({ universities: [cleanItem] })
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn(`[단일 대학 DB 저장 실패] ${item.name}:`, err);
+    return false;
+  }
+}
+window.saveSingleUnivToDb = saveSingleUnivToDb;
+
 async function saveUniversitiesAndRefresh(updatedList, toSyncList = null) {
   ALL_UNIVS = Array.isArray(updatedList) ? updatedList : [];
   try {
@@ -4472,45 +4507,13 @@ async function saveUniversitiesAndRefresh(updatedList, toSyncList = null) {
   buildTree();
   renderDataSummary();
   
-  // 서버 DB(compi.mojuk.kr 및 로컬 DB)에 분할 저장 동기화 (Nginx 413 방지 및 100% 반영)
+  // 서버 DB(compi.mojuk.kr 및 로컬 DB)에 동기화 (Nginx 413 방지 및 100% 반영)
   const targetSync = (toSyncList && toSyncList.length) ? toSyncList : null;
   if (targetSync && targetSync.length) {
-    const token = localStorage.getItem('ipsi_admin_token') || 'ipsi4774!';
     let syncSuccessCount = 0;
     for (const item of targetSync) {
-      try {
-        const cleanItem = {
-          name: cleanUnivName(item.name),
-          year: String(item.year || '2027'),
-          admission_type: item.admission_type || item.adm_type || '수시1차',
-          capacity_type: item.capacity_type || item.cap_type || '구분없음',
-          url: item.url || '',
-          is_free_apply: item.is_free_apply || '',
-          is_multi_apply: item.is_multi_apply || '',
-          scraped_data: {
-            title: item.scraped_data ? (item.scraped_data.title || '') : '',
-            parsed_departments: item.departments || (item.scraped_data ? item.scraped_data.parsed_departments || [] : [])
-          },
-          departments: item.departments || (item.scraped_data ? item.scraped_data.parsed_departments || [] : [])
-        };
-
-        const res = await fetch(getApiEndpoint('/api/save_scraped_batch'), {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-token': token
-          },
-          body: JSON.stringify({ universities: [cleanItem] })
-        });
-        if (res.ok) {
-          syncSuccessCount++;
-          console.log(`[서버 DB 저장 성공] ${cleanItem.name} (${cleanItem.year}) DB 반영 완료`);
-        } else {
-          console.warn(`[서버 DB 저장 응답 오류] ${cleanItem.name} status=${res.status}`);
-        }
-      } catch (err) {
-        console.warn(`[서버 DB 저장 실패] ${item.name}:`, err);
-      }
+      const ok = await saveSingleUnivToDb(item);
+      if (ok) syncSuccessCount++;
     }
     if (syncSuccessCount > 0) {
       console.log(`[서버 DB 동기화 완료] 총 ${syncSuccessCount}/${targetSync.length}개 대학 데이터가 서버 DB에 영구 반영되었습니다.`);
@@ -4794,7 +4797,10 @@ async function executePeriodicScrapeCycle() {
       cycleScraped.push(updatedRecord);
       cycleSuccess++;
       PERIODIC_SCRAPER.successTotal++;
-      appendEngineLog(`✔ ${u.name} 성공 (${parsed.parsed_departments.length}개 학과 갱신)`, 'success');
+
+      // ★ 스크래핑 즉시 서버 DB에 영구 반영 (각 대학별 실시간 저장)
+      const isDbSaved = await saveSingleUnivToDb(updatedRecord);
+      appendEngineLog(`✔ ${u.name} 성공 (${parsed.parsed_departments.length}개 학과${isDbSaved ? ' / DB 실시간 저장 완료' : ''})`, 'success');
     } catch (err) {
       cycleFailed++;
       PERIODIC_SCRAPER.failedTotal++;
@@ -5448,19 +5454,104 @@ function showToast(message, type = 'info', duration = 3500) {
 }
 
 async function refreshLatestDataWithFeedback(btn = null) {
-  const targetBtn = btn || document.getElementById('hnav_refresh');
+  const targetBtn = btn || document.getElementById('hnav_refresh') || document.getElementById('qnav_refresh_side');
   let originalHtml = '';
   if (targetBtn) {
     originalHtml = targetBtn.innerHTML;
     targetBtn.disabled = true;
-    targetBtn.innerHTML = '<span class="spin-animation">🔄</span> 갱신 중...';
+    targetBtn.innerHTML = '<span class="spin-animation">🔄</span> 실시간 스크래핑 중...';
   }
   showLoading(true);
+  showToast('⚡ [실시간 1회 즉시 스크래핑] 대학별 최신 경쟁률을 수집하여 DB에 갱신 중입니다...', 'info', 4000);
+
   try {
+    // 1. 현재 화면에서 보고 있는 학년도/모집시기 감지 (기본값: 최신 2027학년도)
+    let activeYear = '2027';
+    if (typeof CURRENT_VIEW_YEAR !== 'undefined' && CURRENT_VIEW_YEAR) {
+      activeYear = CURRENT_VIEW_YEAR;
+    } else {
+      const ySelect = document.getElementById('engineBatchYear') || document.getElementById('filterYear');
+      if (ySelect && ySelect.value && ySelect.value !== 'ALL') {
+        activeYear = ySelect.value;
+      }
+    }
+
+    let scrapeSuccess = false;
+    let updatedCount = 0;
+
+    // 2. 서버의 1회 즉시 스크래핑 API 호출 (/api/instant_scrape)
+    try {
+      const apiRes = await fetch(getApiEndpoint('/api/instant_scrape'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year: activeYear, admission_type: 'ALL' })
+      });
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        if (data.success) {
+          scrapeSuccess = true;
+          updatedCount = data.success_count || 0;
+        }
+      }
+    } catch (apiErr) {
+      console.warn('[서버 즉시 스크래핑 API 호출 실패, 브라우저 스크래핑 엔진으로 대체]', apiErr);
+    }
+
+    // 3. 서버 API 미지원/오류 시 브라우저 내장 스크래핑 엔진으로 1회 즉시 스크래핑 실행
+    if (!scrapeSuccess) {
+      const targetUnivs = ALL_UNIVS.filter(u => {
+        const hasUrl = u.url && String(u.url).trim().startsWith('http');
+        if (!hasUrl) return false;
+        const uYear = String(u.year || '').trim();
+        return activeYear === 'ALL' || uYear === activeYear;
+      });
+
+      if (targetUnivs.length > 0) {
+        let clientSuccess = 0;
+        const updatedAll = [...ALL_UNIVS];
+        for (const u of targetUnivs) {
+          try {
+            const html = await fetchHtmlWithProxies(u.url);
+            const parsed = parseUniversityHtml(html, u.url);
+            if (parsed.parsed_departments && parsed.parsed_departments.length > 0) {
+              const targetAdm = u.admission_type || u.adm_type || '수시1차';
+              const targetCap = u.capacity_type || u.cap_type || '구분없음';
+              const updatedRecord = {
+                ...u,
+                admission_type: targetAdm,
+                adm_type: targetAdm,
+                capacity_type: targetCap,
+                cap_type: targetCap,
+                scraped_data: {
+                  title: parsed.title || '',
+                  parsed_departments: parsed.parsed_departments
+                },
+                departments: parsed.parsed_departments
+              };
+              // DB 실시간 반영
+              await saveSingleUnivToDb(updatedRecord);
+              clientSuccess++;
+
+              const remaining = updatedAll.filter(item => !(item.id === u.id || (item.name === u.name && item.year === u.year && (item.admission_type || item.adm_type) === targetAdm)));
+              remaining.unshift(updatedRecord);
+              updatedAll.length = 0;
+              updatedAll.push(...remaining);
+            }
+          } catch (cErr) {
+            console.warn(`[클라이언트 즉시 스크래핑 실패] ${u.name}:`, cErr);
+          }
+        }
+        updatedCount = clientSuccess;
+        ALL_UNIVS = updatedAll;
+      }
+    }
+
+    // 4. 최신 데이터 다시 로드 및 대시보드 화면 전체 재렌더링
     await reloadLatestData();
-    showToast(`✨ 최신 입시 경쟁률 데이터가 갱신되었습니다! (총 ${ALL_UNIVS.length}개)`, 'success');
+    showToast(`✨ 실시간 1회 즉시 스크래핑 완료! (${updatedCount > 0 ? updatedCount + '개 대학' : '전체'} 최신 경쟁률이 DB에 업데이트되었습니다)`, 'success', 5000);
   } catch (err) {
-    alert('데이터 갱신 중 오류가 발생했습니다: ' + err.message);
+    console.error('[실시간 새로고침 스크래핑 오류]', err);
+    alert('실시간 스크래핑 중 오류가 발생했습니다: ' + err.message);
   } finally {
     showLoading(false);
     if (targetBtn) {
