@@ -1403,6 +1403,97 @@ async def api_batch_scrape_server(request: Request, body: BatchScrapeServerReque
         "message": f"서버 스크래핑 완료: 성공 {success_cnt}건, 실패 {fail_cnt}건"
     }
 
+class InstantScrapeRequest(BaseModel):
+    year: Optional[str] = "2027"
+    admission_type: Optional[str] = "ALL"
+    univ_name: Optional[str] = None
+
+_last_instant_scrape_time = 0
+
+@app.post("/api/instant_scrape")
+async def api_instant_scrape(request: Request, body: Optional[InstantScrapeRequest] = None, db: Session = Depends(get_db)):
+    """
+    누구나 클릭 가능한 1회 즉시 스크래핑 엔드포인트
+    지정된 학년도/모집시기(기본값: 최신 2027학년도)의 등록 대학 경쟁률을 즉시 스크래핑하여 DB에 영구 반영
+    """
+    global _last_instant_scrape_time
+    import time
+    now = time.time()
+    # 최소 3초 간격 방어 (단시간 연타 방지)
+    if now - _last_instant_scrape_time < 3:
+        return {
+            "success": True,
+            "message": "방금 전 최신 데이터가 스크래핑되었습니다.",
+            "cached": True,
+            "success_count": 0
+        }
+    _last_instant_scrape_time = now
+
+    req_year = body.year if body and body.year else "2027"
+    req_adm = body.admission_type if body and body.admission_type else "ALL"
+    req_name = body.univ_name if body and body.univ_name else None
+
+    query = db.query(University).filter(
+        University.url.isnot(None),
+        University.url != "",
+        func.trim(University.url) != ""
+    )
+    if req_year and req_year != "ALL":
+        query = query.filter(University.year == req_year)
+    if req_adm and req_adm != "ALL":
+        query = query.filter(University.admission_type == req_adm)
+    if req_name:
+        query = query.filter(University.name == req_name)
+
+    target_univs = query.all()
+    if not target_univs:
+        target_univs = db.query(University).filter(
+            University.year == "2027",
+            University.url.isnot(None),
+            University.url != ""
+        ).all()
+
+    success_cnt = 0
+    fail_cnt = 0
+    results = []
+
+    for u in target_univs:
+        try:
+            clean_url = normalize_ratio_url(u.url)
+            if clean_url != u.url:
+                u.url = clean_url
+            scraped = scrape_university_data(clean_url)
+            if scraped and scraped.get("parsed_departments"):
+                clean_scraped = {
+                    "title": scraped.get("title", ""),
+                    "parsed_departments": scraped.get("parsed_departments", [])
+                }
+                u.scraped_data = json.dumps(clean_scraped)
+                db.commit()
+                save_departments(db, u.id, scraped.get("parsed_departments", []))
+                success_cnt += 1
+                results.append({"id": u.id, "name": u.name, "year": u.year, "status": "success", "dept_count": len(scraped.get("parsed_departments", []))})
+            else:
+                fail_cnt += 1
+                results.append({"id": u.id, "name": u.name, "status": "no_departments"})
+        except Exception as e:
+            fail_cnt += 1
+            results.append({"id": u.id, "name": u.name, "status": "error", "error": str(e)})
+
+    try:
+        export_to_json(db)
+    except Exception as ex:
+        print(f"[경고] JSON 자동 갱신 실패: {ex}")
+
+    return {
+        "success": True,
+        "total": len(target_univs),
+        "success_count": success_cnt,
+        "fail_count": fail_cnt,
+        "results": results,
+        "message": f"실시간 1회 즉시 스크래핑 완료: {success_cnt}개 대학 DB 업데이트 성공"
+    }
+
 @app.post("/api/deploy_github")
 async def api_deploy_github(request: Request):
     if not check_admin_access(request):
