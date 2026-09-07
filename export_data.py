@@ -151,12 +151,14 @@ def sync_to_remote_compi(remote_url="https://compi.mojuk.kr", token="ipsi4774!")
                 "departments": scraped_data.get("parsed_departments", [])
             })
         
+        import urllib3
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         chunk_size = 5
         synced = 0
         for i in range(0, len(items), chunk_size):
             chunk = items[i:i + chunk_size]
             try:
-                res = requests.post(url, headers=headers, json={"universities": chunk}, timeout=20)
+                res = requests.post(url, headers=headers, json={"universities": chunk}, timeout=20, verify=False)
                 if res.status_code == 200:
                     synced += len(chunk)
                 else:

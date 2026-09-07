@@ -1475,10 +1475,14 @@ async def sync_data_to_remote_compi(synced_univ_ids: list, db_session=None) -> i
     chunks = [items_to_sync[i:i + chunk_size] for i in range(0, len(items_to_sync), chunk_size)]
 
     def _post_chunk(chunk):
+        import ssl
+        ssl_ctx = ssl.create_default_context()
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
         payload = json.dumps({"universities": chunk}).encode("utf-8")
         req = urllib.request.Request(remote_url, data=payload, headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=12) as resp:
+            with urllib.request.urlopen(req, timeout=15, context=ssl_ctx) as resp:
                 if resp.status == 200:
                     return len(chunk)
         except Exception as err:

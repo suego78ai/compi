@@ -34820,8 +34820,8 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "1,377",
       "admission_count": "1,377",
-      "applicant_num": "1,380",
-      "applicant_count": "1,380",
+      "applicant_num": "1,381",
+      "applicant_count": "1,381",
       "competition_rate": "1.00 : 1",
       "competition_ratio": "1.00 : 1"
     },
@@ -34845,8 +34845,8 @@
       "table_title": "전형별 경쟁률 현황",
       "recruit_num": "367",
       "admission_count": "367",
-      "applicant_num": "374",
-      "applicant_count": "374",
+      "applicant_num": "375",
+      "applicant_count": "375",
       "competition_rate": "1.02 : 1",
       "competition_ratio": "1.02 : 1"
     },
@@ -35395,10 +35395,10 @@
       "table_title": "일반고 경쟁률 현황",
       "recruit_num": "50",
       "admission_count": "50",
-      "applicant_num": "16",
-      "applicant_count": "16",
-      "competition_rate": "0.32 : 1",
-      "competition_ratio": "0.32 : 1"
+      "applicant_num": "17",
+      "applicant_count": "17",
+      "competition_rate": "0.34 : 1",
+      "competition_ratio": "0.34 : 1"
     },
     {
       "id": 55,
@@ -36245,10 +36245,10 @@
       "table_title": "특성화고 경쟁률 현황",
       "recruit_num": "8",
       "admission_count": "8",
-      "applicant_num": "67",
-      "applicant_count": "67",
-      "competition_rate": "8.38 : 1",
-      "competition_ratio": "8.38 : 1"
+      "applicant_num": "68",
+      "applicant_count": "68",
+      "competition_rate": "8.50 : 1",
+      "competition_ratio": "8.50 : 1"
     },
     {
       "id": 55,
@@ -205302,5 +205302,5 @@
     }
   ],
   "total": 8212,
-  "exported_at": "2026-09-08T08:38:01"
+  "exported_at": "2026-09-08T08:39:28"
 }
